@@ -10,6 +10,7 @@ export function displayWarning (message) {
 
 export function displaySuccess (message) {
     console.error(chalk.green(message));
+    sdfe
 }
 
 export function display(message) {

@@ -29,6 +29,7 @@ program.command('pr')
             displayError('gsloth pr does not expect stdin');
             return;
         }
+        let kinda = getCoolStuffToDoStuff();
         console.log('Starting review of', pr);
         const diff = await getPrDiff(pr);
         const preamble = [readInternalPreamble(), readPreamble(PR_PREAMBLE)];
