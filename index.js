@@ -3,7 +3,7 @@ import {Command} from 'commander';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
 import {spawn} from 'node:child_process';
-import {display, displayError, displayWarning} from "./consoleUtils.js";
+import {display, displayError, displayWarning} from "./src/consoleUtils.js";
 import {fileURLToPath} from "url";
 
 const program = new Command();
@@ -32,11 +32,12 @@ program.command('pr')
         console.log('Starting review of', pr);
         const diff = await getPrDiff(pr);
         const preamble = [readInternalPreamble(), readPreamble(PR_PREAMBLE)];
-        if (options.input) {
-            preamble.push(readFile(options.input));
+        const content = [diff];
+        if (options.file) {
+            content.push(readFile(options.file));
         }
-        const { review } = await import('./codeReview.js');
-        await review('sloth-PR-review-'+pr, preamble.join("\n"), diff);
+        const { review } = await import('./src/codeReview.js');
+        await review('sloth-PR-review-'+pr, preamble.join("\n"), content.join("\n"));
     });
 
 program.command('review')
@@ -49,11 +50,27 @@ program.command('review')
             return
         }
         const preamble = [readInternalPreamble(), readPreamble(PR_PREAMBLE)];
-        if (options.input) {
-            preamble.push(readFile(options.input));
+        const content = [global.stdin];
+        if (options.file) {
+            content.push(readFile(options.file));
         }
-        const { review } = await import('./codeReview.js');
-        await review('sloth-DIFF-review', preamble.join("\n"), global.stdin);
+        const { review } = await import('./src/codeReview.js');
+        await review('sloth-DIFF-review', preamble.join("\n"), content.join("\n"));
+    });
+
+program.command('ask')
+    .description('Ask a question')
+    .argument('<message>', 'A message')
+    .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
+    // TODO add option consuming extra message as argument
+    .action(async (message, options) => {
+        const preamble = [readInternalPreamble()];
+        const content = [message];
+        if (options.file) {
+            content.push(readFile(options.file));
+        }
+        const { askQuestion } = await import('./src/questionAnswering.js');
+        await askQuestion('sloth-ASK', preamble.join("\n"), content.join("\n"));
     });
 
 // TODO add question command

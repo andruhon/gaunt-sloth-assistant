@@ -1,24 +1,17 @@
-import { ChatVertexAI } from "@langchain/google-vertexai";
 import {
-    START,
     END,
-    MessagesAnnotation,
-    StateGraph,
     MemorySaver,
+    MessagesAnnotation,
+    START,
+    StateGraph,
 } from "@langchain/langgraph";
-import { v4 as uuidv4 } from "uuid";
+import { writeFileSync } from "node:fs";
 import path from "node:path";
-import url from "node:url";
-import {fileSafeLocalDate, toFileSafeString} from "./utils.js";
-import {writeFileSync} from "node:fs";
-import {display, displayError, displaySuccess} from "./consoleUtils.js";
+import { getConfig } from "./config.js";
+import { display, displayError, displaySuccess } from "./consoleUtils.js";
+import { fileSafeLocalDate, toFileSafeString } from "./utils.js";
 
-const CONFIG_FILE = '.gsloth.config.js'
-const historyConfig = { configurable: { thread_id: uuidv4() } };
-const configFileUrl = url.pathToFileURL(path.join(process.cwd(),CONFIG_FILE));
-const { configure } = await import(configFileUrl);
-const config = await configure((module) => import(module))
-
+const config = await getConfig();
 
 export async function review(source, preamble, diff) {
     // This node receives the current state (messages) and invokes the LLM
@@ -38,7 +31,7 @@ export async function review(source, preamble, diff) {
         .addEdge("model", END); // End after the 'model' node completes
 
     // Set up memory (optional but good practice for potential future multi-turn interactions)
-    const memory = new MemorySaver();
+    const memory = new MemorySaver(); // TODO extract to config
 
     // Compile the workflow into a runnable app
     const app = workflow.compile({ checkpointer: memory });
@@ -55,15 +48,15 @@ export async function review(source, preamble, diff) {
         },
     ];
 
-    const output = await app.invoke({messages}, historyConfig);
+    const output = await app.invoke({messages}, config.session);
     const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
     display(`writing ${filePath}`);
     // FIXME this looks ugly, there should be other way
-    const content = output.messages[output.messages.length - 1].content;
+    const outputContent = output.messages[output.messages.length - 1].content;
     // TODO highlight LLM output with something like Prism.JS
-    display(content);
+    display(outputContent);
     try {
-        writeFileSync(filePath, content);
+        writeFileSync(filePath, outputContent);
         displaySuccess(`This report can be found in ${filePath}`);
     } catch (error) {
         displayError(`Failed to write review to file: ${filePath}`);
