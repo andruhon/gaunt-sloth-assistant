@@ -54,6 +54,10 @@ program.command('review')
         await review('sloth-DIFF-review', preamble.join("\n"), global.stdin);
     });
 
+// TODO add question command
+
+// TODO add general interactive chat command
+
 if(process.stdin.isTTY) {
     program.parse();
 } else {
