@@ -48,6 +48,7 @@ export async function review(source, preamble, diff) {
         },
     ];
 
+    display("Reviewing...");
     const output = await app.invoke({messages}, config.session);
     const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
     display(`writing ${filePath}`);

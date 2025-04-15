@@ -48,6 +48,7 @@ export async function askQuestion(source, preamble, content) {
         },
     ];
 
+    display("Thinking...");
     const output = await app.invoke({messages}, config.session);
     // FIXME this looks ugly, there should be other way
     const outputContent = output.messages[output.messages.length - 1].content;

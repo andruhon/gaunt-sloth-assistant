@@ -105,6 +105,7 @@ function readPreamble(preambleFilename) {
 
 function readFile(fileName) {
     const filePath = resolve(CURRENT_DIR, fileName);
+    display(`Reading file ${fileName}...`);
     return readFileSyncWithMessages(filePath);
 }
 
