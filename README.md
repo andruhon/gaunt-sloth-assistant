@@ -29,7 +29,8 @@ Add general description of what your project is and what do you expect from this
 Check [.gsloth.preamble.review.md](.gsloth.preamble.review.md) for example.
 
 Add `.gsloth.config.js,` to your project.
-**Example of .gsloth.config.js for Anthropic**
+
+**Example of .gsloth.config.js for Anthropic**  
 ```javascript
 export async function configure(importFunction, global) {
     // this is going to be imported from sloth dependencies,
@@ -45,7 +46,8 @@ export async function configure(importFunction, global) {
 }
 
 ```
-**Example of .gsloth.config.js for VertexAI**
+
+**Example of .gsloth.config.js for VertexAI**  
 VertexAI usually needs `gcloud auth application-default login` and does not need any separate API keys.
 ```javascript
 export async function configure(importFunction, global) {
