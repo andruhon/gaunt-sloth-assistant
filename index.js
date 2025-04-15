@@ -23,6 +23,7 @@ program.command('pr')
     .description('Review a PR in current git directory (assuming that GH cli is installed and authenticated for current project')
     .argument('<prNumber>', 'PR number to review')
     .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
+    // TODO add option consuming extra message as argument
     .action(async (pr, options) => {
         if (global.stdin) {
             displayError('gsloth pr does not expect stdin');
@@ -41,6 +42,7 @@ program.command('pr')
 program.command('review')
     .description('Review provided diff or other content')
     .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
+    // TODO add option consuming extra message as argument
     .action(async (options) => {
         if (!global.stdin) {
             displayError('gsloth review expects stdin with github diff stdin');
