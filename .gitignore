@@ -1,0 +1,4 @@
+/node_modules/
+/sloth-DIFF-review*
+/sloth-PR-review*
+.idea

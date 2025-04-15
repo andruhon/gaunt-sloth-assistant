@@ -1,0 +1,25 @@
+{
+  "name": "gaunt-sloth-assistant",
+  "version": "0.0.1",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "gsloth": "index.js"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.24.0",
+    "@langchain/core": "^0.3.43",
+    "@langchain/google-vertexai": "^0.2.3",
+    "@langchain/langgraph": "^0.2.62",
+    "@types/node": "^22.14.1",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "uuid": "^11.1.0"
+  }
+}
