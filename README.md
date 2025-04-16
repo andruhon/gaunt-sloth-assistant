@@ -2,7 +2,16 @@
 Simplistic assistant helping to do code reviews from command line based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
 
 ## Review PR
-`gsloth pr 42`
+`gsloth pr 42` - review PR by PR number.
+Official [GitHub cli (gh)](https://cli.github.com/) should be installed
+and authenticated to have access to your project.
+
+`gsloth pr 42 -f PROJ-1234.md` - Review providing MD file with requirements and notes. 
+Jira integration is in [ROADMAP](ROADMAP.md).
+Currently, the easiest ***meaningful*** way to add jira description is to
+open Jira XML with "Export XML" in jira and to copy `<description></description>` block.
+This block contains HTML and AI understands it easily 
+(most importantly it understand nested lists like ul>li).
 
 ## Review Diff
 `git --no-pager diff origin/master...ffd079c134eabf18d85975f155b76d62a895cdec | gsloth review`
@@ -39,7 +48,7 @@ export async function configure(importFunction, global) {
     const anthropic = await importFunction('@langchain/anthropic');
     return {
         llm: new anthropic.ChatAnthropic({
-            apiKey:                                                                                                                                                         "sk-ant-api03--YOURAPIHASH", // You should put your API hash here
+            apiKey: "sk-ant-api03--YOURAPIHASH", // You should put your API hash here
             model: "claude-3-5-sonnet-20241022"
         })
     };
@@ -48,7 +57,8 @@ export async function configure(importFunction, global) {
 ```
 
 **Example of .gsloth.config.js for VertexAI**  
-VertexAI usually needs `gcloud auth application-default login` and does not need any separate API keys.
+VertexAI usually needs `gcloud auth application-default login`
+(or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
 ```javascript
 export async function configure(importFunction, global) {
     // this is going to be imported from sloth dependencies,

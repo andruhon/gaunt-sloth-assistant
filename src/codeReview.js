@@ -7,17 +7,17 @@ import {
 } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { getConfig } from "./config.js";
+import {initConfig, slothContext} from "./config.js";
 import { display, displayError, displaySuccess } from "./consoleUtils.js";
 import { fileSafeLocalDate, toFileSafeString } from "./utils.js";
 
-const config = await getConfig();
+await initConfig();
 
 export async function review(source, preamble, diff) {
     // This node receives the current state (messages) and invokes the LLM
     const callModel = async (state) => {
         // state.messages will contain the list including the system preamble and user diff
-        const response = await config.llm.invoke(state.messages);
+        const response = await slothContext.config.llm.invoke(state.messages);
         // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
         // Wrap the response in an array if it's a single message object.
         return { messages: response };
@@ -48,13 +48,16 @@ export async function review(source, preamble, diff) {
         },
     ];
 
-    display("Reviewing...");
-    const output = await app.invoke({messages}, config.session);
+    process.stdout.write("Reviewing.");
+    const progress = setInterval(() => process.stdout.write('.'), 1000);
+    const output = await app.invoke({messages}, slothContext.session);
     const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
     display(`writing ${filePath}`);
     // FIXME this looks ugly, there should be other way
     const outputContent = output.messages[output.messages.length - 1].content;
-    // TODO highlight LLM output with something like Prism.JS
+    clearInterval(progress);
+    console.log('');
+    // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
     display(outputContent);
     try {
         writeFileSync(filePath, outputContent);

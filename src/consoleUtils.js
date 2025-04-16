@@ -12,6 +12,10 @@ export function displaySuccess (message) {
     console.error(chalk.green(message));
 }
 
+export function displayInfo (message) {
+    console.error(chalk.blue(message));
+}
+
 export function display(message) {
     console.log(message);
 }
