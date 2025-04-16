@@ -2,8 +2,8 @@
   "name": "gaunt-sloth-assistant",
   "version": "0.0.3",
   "description": "",
-  "license": "ISC",
-  "author": "",
+  "license": "MIT",
+  "author": "Andrew Kondratev",
   "type": "module",
   "main": "index.js",
   "scripts": {

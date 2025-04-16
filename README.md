@@ -78,3 +78,6 @@ export async function configure(importFunction, global) {
 }
 ```
 
+## License
+License is [MIT](https://opensource.org/license/mit). See [LICENSE](LICENSE)
+
