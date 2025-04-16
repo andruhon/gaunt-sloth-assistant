@@ -49,14 +49,16 @@ export async function review(source, preamble, diff) {
     ];
 
     process.stdout.write("Reviewing.");
+    // TODO create proper progress indicator for async tasks.
     const progress = setInterval(() => process.stdout.write('.'), 1000);
     const output = await app.invoke({messages}, slothContext.session);
     const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
+    process.stdout.write("\n");
     display(`writing ${filePath}`);
     // FIXME this looks ugly, there should be other way
     const outputContent = output.messages[output.messages.length - 1].content;
     clearInterval(progress);
-    console.log('');
+    process.stdout.write("\n");
     // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
     display(outputContent);
     try {

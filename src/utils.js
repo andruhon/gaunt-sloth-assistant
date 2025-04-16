@@ -1,6 +1,6 @@
 import {display, displayError, displaySuccess, displayWarning} from "./consoleUtils.js";
 import {existsSync, readFileSync, writeFileSync} from "node:fs";
-import {slothContext, USER_PROJECT_REVIEW_PREAMBLE} from "./config.js";
+import {slothContext} from "./config.js";
 import {resolve} from "node:path";
 import {spawn} from "node:child_process";
 
@@ -63,7 +63,7 @@ export function readStdin(program) {
             }
         });
         process.stdin.on('end', function() {
-            console.log('');
+            process.stdout.write('.\n');
             program.parse(process.argv);
         });
     }
