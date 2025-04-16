@@ -2,42 +2,92 @@
 Simplistic assistant helping to do code reviews from command line based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
 
 ## Review PR
-`gsloth pr 42` - review PR by PR number.
+Review PR by PR number:
+```shell
+gsloth pr 42
+``` 
 Official [GitHub cli (gh)](https://cli.github.com/) should be installed
 and authenticated to have access to your project.
 
-`gsloth pr 42 -f PROJ-1234.md` - Review providing MD file with requirements and notes. 
+Review providing markdown file with requirements and notes.
+```shell
+gsloth pr 42 -f PROJ-1234.md
+```
 Jira integration is in [ROADMAP](ROADMAP.md).
 Currently, the easiest ***meaningful*** way to add jira description is to
 open Jira XML with "Export XML" in jira and to copy `<description></description>` block.
 This block contains HTML and AI understands it easily 
 (most importantly it understand nested lists like ul>li).
 
-## Review Diff
-`git --no-pager diff origin/master...ffd079c134eabf18d85975f155b76d62a895cdec | gsloth review`
-(May be helpful to review subset of PR)
+## Review any Diff
+```shell
+git --no-pager diff origin/master...yourgitcommithash | gsloth review
+```
+(helpful to review a subset of PR)
+
+Review current local changes:
+```shell
+git --no-pager diff | gsloth review
+```
 
 ## Question Answering
-`gsloth ask "which types of primitives are available in JavaScript?"`
+```shell
+gsloth ask "which types of primitives are available in JavaScript?"
+```
 
-`gsloth ask "Please have a look at this file" -f index.js`
+```shell
+gsloth ask "Please have a look at this file" -f index.js
+```
 
 ## Installation
-There's no npm module yet. Do `npm install -g ./` to install local build globally to your machine.
+
+Tested with Node 22 LTS.
+
+## NPM
+```shell
+npm install gaunt-sloth-assistant -g
 ```
+
+## GitHub (master)
+
+```shell
 git clone https://github.com/andruhon/gaunt-sloth.git
 npm install
 npm install -g ./
 ```
 
 ## Configuration
-There is no global configuration yet. The project you want to get reviewed needs gsloth configuration.
+Go to your project directory and init sloth with vendor of your choice.
 
-Add `.gsloth.preamble.review.md` to your project.
-Add general description of what your project is and what do you expect from this code review.
+### Google Vertex AI
+```shell
+cd ./your-project
+gsloth init vertexai
+gcloud auth login
+gcloud auth application-default login
+```
+
+### Anthropic
+```shell
+cd ./your-project
+gsloth init anthropic
+```
+Make sure you edit `.gsloth.config.js` and set up your key.
+
+### Further configuration
+
+Currently only vertexai and anthropic can be configured with `gsloth init`.
+
+Populate `.gsloth.preamble.review.md` with your project details and quality requirements.
+Proper preamble is a paramount for good inference.
 Check [.gsloth.preamble.review.md](.gsloth.preamble.review.md) for example.
 
-Add `.gsloth.config.js,` to your project.
+### Manual configuration.
+Your project should have the following files in order for gsloth to function:
+- `.gsloth.config.js`
+- `.gsloth.preamble.review.md`
+
+Global configuration to invoke gsloth anywhere is in [ROADMAP](ROADMAP.md).
 
 **Example of .gsloth.config.js for Anthropic**  
 ```javascript
@@ -53,7 +103,6 @@ export async function configure(importFunction, global) {
         })
     };
 }
-
 ```
 
 **Example of .gsloth.config.js for VertexAI**  
@@ -77,6 +126,9 @@ export async function configure(importFunction, global) {
     }
 }
 ```
+
+The configure function should simply return instance of langchain [chat model](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html).
+See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/) for more details.
 
 ## License
 License is [MIT](https://opensource.org/license/mit). See [LICENSE](LICENSE)
