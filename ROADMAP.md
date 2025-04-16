@@ -6,6 +6,7 @@ Doing the following below and making it work stably should be sufficient to call
 
 ### Add tests and gain reasonable coverage
 ### Configure eslint for code quality checks
+### Automate release process
 ### Add project init command
 Add a command to init certain model in certain project, for example `gsloth init gemini`
 or `gsloth init` and select one of the provided options. 
