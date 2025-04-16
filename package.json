@@ -17,7 +17,7 @@
     "@langchain/anthropic": "^0.3.17",
     "@langchain/core": "^0.3.43",
     "@langchain/google-vertexai": "^0.2.3",
-    "@langchain/langgraph": "^0.2.62",
+    "@langchain/langgraph": "^0.2.64",
     "@types/node": "^22.14.1",
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
