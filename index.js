@@ -39,7 +39,7 @@ program.command('pr')
             displayError('`gsloth pr` does not expect stdin, use `gsloth review` instead');
             return;
         }
-        displayInfo('Starting review of PR', pr);
+        displayInfo(`Starting review of PR ${pr}`);
         const diff = await getPrDiff(pr);
         const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
         const content = [diff];
