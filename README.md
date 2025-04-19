@@ -72,7 +72,14 @@ gcloud auth application-default login
 cd ./your-project
 gsloth init anthropic
 ```
-Make sure you edit `.gsloth.config.js` and set up your key.
+Make sure you either define `ANTHROPIC_API_KEY` environment variable or edit `.gsloth.config.js` and set up your key.
+
+### Groq
+```shell
+cd ./your-project
+gsloth init groq
+```
+Make sure you either define `GROQ_API_KEY` environment variable or edit `.gsloth.config.js` and set up your key.
 
 ### Further configuration
 

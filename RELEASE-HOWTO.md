@@ -13,5 +13,6 @@ gh release create --generate-notes
 
 Publish to NPM
 ```shell
+npm login
 npm publish
 ```
