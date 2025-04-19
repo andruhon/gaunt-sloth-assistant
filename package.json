@@ -18,19 +18,18 @@
     "gsloth": "index.js"
   },
   "dependencies": {
-    "@eslint/js": "^9.24.0",
-    "@langchain/anthropic": "^0.3.17",
-    "@langchain/core": "^0.3.43",
-    "@langchain/google-vertexai": "^0.2.3",
+    "@eslint/js": "^9.25.0",
+    "@langchain/anthropic": "^0.3.18",
+    "@langchain/core": "^0.3.45",
+    "@langchain/google-vertexai": "^0.2.4",
     "@langchain/groq": "^0.2.2",
-    "@langchain/langgraph": "^0.2.64",
+    "@langchain/langgraph": "^0.2.65",
     "@types/node": "^22.14.1",
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "jasmine": "^5.6.0",
-    "jest": "^29.7.0"
+    "jasmine": "^5.6.0"
   }
 }
