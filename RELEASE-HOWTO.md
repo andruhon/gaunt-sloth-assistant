@@ -10,3 +10,8 @@ Note the release version and do
 ```shell
 gh release create --generate-notes
 ```
+
+Publish to NPM
+```shell
+npm publish
+```
