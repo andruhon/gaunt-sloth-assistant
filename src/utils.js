@@ -101,3 +101,22 @@ export function getSlothVersion() {
     const projectJson = readFileSync(jsonPath, { encoding: 'utf8' });
     return JSON.parse(projectJson).version;
 }
+
+
+export class ProgressIndicator {
+
+    constructor(initialMessage) {
+        this.hasBeenCalled = false;
+        this.initialMessage = initialMessage;
+    }
+    
+    indicate() {
+        if (this.hasBeenCalled) {
+            process.stdout.write('.');
+        } else {
+            this.hasBeenCalled = true;
+            process.stdout.write(this.initialMessage);
+        }
+    }
+
+}

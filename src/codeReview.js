@@ -7,17 +7,36 @@ import {
 } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import {initConfig, slothContext} from "./config.js";
+import { initConfig, slothContext } from "./config.js";
 import { display, displayError, displaySuccess } from "./consoleUtils.js";
-import { fileSafeLocalDate, toFileSafeString } from "./utils.js";
-
-await initConfig();
+import { fileSafeLocalDate, toFileSafeString, ProgressIndicator } from "./utils.js";
 
 export async function review(source, preamble, diff) {
+    await initConfig();
+    const progressIndicator = new ProgressIndicator("Reviewing.");
+    const outputContent = await reviewInner(slothContext, () => progressIndicator.indicate(), preamble, diff);
+    const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
+    process.stdout.write("\n");
+    display(`writing ${filePath}`);
+    process.stdout.write("\n");
+    // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
+    display(outputContent);
+    try {
+        writeFileSync(filePath, outputContent);
+        displaySuccess(`This report can be found in ${filePath}`);
+    } catch (error) {
+        displayError(`Failed to write review to file: ${filePath}`);
+        displayError(error.message);
+        // Consider if you want to exit or just log the error
+        // process.exit(1);
+    }
+}
+
+export async function reviewInner(context, indicateProgress, preamble, diff) {
     // This node receives the current state (messages) and invokes the LLM
     const callModel = async (state) => {
         // state.messages will contain the list including the system preamble and user diff
-        const response = await slothContext.config.llm.invoke(state.messages);
+        const response = await context.config.llm.invoke(state.messages);
         // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
         // Wrap the response in an array if it's a single message object.
         return { messages: response };
@@ -48,26 +67,11 @@ export async function review(source, preamble, diff) {
         },
     ];
 
-    process.stdout.write("Reviewing.");
+    indicateProgress();
     // TODO create proper progress indicator for async tasks.
-    const progress = setInterval(() => process.stdout.write('.'), 1000);
-    const output = await app.invoke({messages}, slothContext.session);
-    const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
-    process.stdout.write("\n");
-    display(`writing ${filePath}`);
-    // FIXME this looks ugly, there should be other way
-    const outputContent = output.messages[output.messages.length - 1].content;
+    const progress = setInterval(() => indicateProgress(), 1000);
+    const output = await app.invoke({messages}, context.session);
     clearInterval(progress);
-    process.stdout.write("\n");
-    // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
-    display(outputContent);
-    try {
-        writeFileSync(filePath, outputContent);
-        displaySuccess(`This report can be found in ${filePath}`);
-    } catch (error) {
-        displayError(`Failed to write review to file: ${filePath}`);
-        displayError(error.message);
-        // Consider if you want to exit or just log the error
-        // process.exit(1);
-    }
+    // FIXME this looks ugly, there should be other way
+    return output.messages[output.messages.length - 1].content;
 }
