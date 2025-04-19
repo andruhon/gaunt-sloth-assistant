@@ -71,18 +71,27 @@ export function readStdin(program) {
 
 export async function spawnCommand(command, args, progressMessage, successMessage) {
     return new Promise((resolve, reject) => {
-        const out = {stdout: ''};
+        const out = {stdout: '', stderr: ''};
         const spawned = spawn(command, args);
-        spawned.stdout.on('data', async (stdoutChunk) => {
+        spawned.stdout.on('data', async (stdoutChunk, dd) => {
             display(progressMessage);
             out.stdout += stdoutChunk.toString();
         });
+        spawned.stderr.on('data', (err) => {
+            displayError(progressMessage);
+            out.stderr += err.toString();
+        })
         spawned.on('error', (err) => {
-            reject(err);
+            reject(err.toString());
         })
         spawned.on('close', (code) => {
-            display(successMessage);
-            resolve(out.stdout);
+            if (code === 0) {
+                display(successMessage);
+                resolve(out.stdout);
+            } else {
+                displayError(`Failed to spawn command with code ${code}`);
+                reject(out.stdout + ' ' + out.stderr);
+            }
         });
     });
 }

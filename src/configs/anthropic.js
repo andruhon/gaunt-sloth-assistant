@@ -11,7 +11,7 @@ export async function configure(importFunction, global) {
     const anthropic = await importFunction('@langchain/anthropic');
     return {
         llm: new anthropic.ChatAnthropic({
-            apiKey: "sk-ant-api--YOUR_API_HASH", // You should put your API hash here
+            apiKey: process.env.ANTHROPIC_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
             model: "claude-3-5-sonnet-20241022" // Don't forget to check new models availability.
         })
     };

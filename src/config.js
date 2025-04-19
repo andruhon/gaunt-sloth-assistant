@@ -1,16 +1,14 @@
-import path, {dirname} from "node:path";
+import path from "node:path";
 import url from "node:url";
-import {v4 as uuidv4} from "uuid";
-import {display, displayError, displayInfo, displaySuccess, displayWarning} from "./consoleUtils.js";
-import {fileURLToPath} from "url";
-import {write, writeFileSync, existsSync} from "node:fs";
-import {writeFileIfNotExistsWithMessages} from "./utils.js";
+import { v4 as uuidv4 } from "uuid";
+import { displayError, displayInfo, displayWarning } from "./consoleUtils.js";
+import { writeFileIfNotExistsWithMessages } from "./utils.js";
 
 export const USER_PROJECT_CONFIG_FILE = '.gsloth.config.js'
 export const SLOTH_INTERNAL_PREAMBLE = '.gsloth.preamble.internal.md';
 export const USER_PROJECT_REVIEW_PREAMBLE = '.gsloth.preamble.review.md';
 
-export const availableDefaultConfigs = ['vertexai', 'anthropic'];
+export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'];
 
 export const slothContext = {
     /**
@@ -29,10 +27,17 @@ export const slothContext = {
 };
 
 export async function initConfig() {
-    const configFileUrl = url.pathToFileURL(path.join(process.cwd(), USER_PROJECT_CONFIG_FILE));
-    const {configure} = await import(configFileUrl);
-    const config = await configure((module) => import(module));
-    slothContext.config = {...config};
+    const configFileUrl = url.pathToFileURL(path.join(process.cwd(), USER_PROJECT_CONFIG_FILE));    
+    return import(configFileUrl)
+        .then((i) => i.configure((module) => import(module)))    
+        .then((config) => {
+            slothContext.config = {...config};
+        })
+        .catch((e) => {
+            console.log(e);
+            displayError(`Failed to read config, make sure ${configFileUrl} contains valid JavaScript.`);
+            process.exit();
+        });    
 }
 
 export async function createProjectConfig(configType) {

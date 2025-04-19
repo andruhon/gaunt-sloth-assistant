@@ -55,7 +55,7 @@ program.command('review')
     .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
     // TODO add option consuming extra message as argument
     .action(async (options) => {
-        if (!slothContext.stdin || options.file) {
+        if (!slothContext.stdin && !options.file) {
             displayError('gsloth review expects stdin with github diff stdin or a file');
             return
         }

@@ -1,6 +1,7 @@
 import {resolve} from "node:path";
 import {SLOTH_INTERNAL_PREAMBLE, slothContext} from "./config.js";
 import {readFileSyncWithMessages, spawnCommand} from "./utils.js";
+import { displayError } from "./consoleUtils.js";
 
 export function readInternalPreamble() {
     const filePath = resolve(slothContext.installDir, SLOTH_INTERNAL_PREAMBLE);
@@ -18,8 +19,15 @@ export function readPreamble(preambleFilename) {
 
 /**
  * This function expects https://cli.github.com/ to be installed and authenticated.
+ * It does something like `gh pr diff 42`
  */
 export async function getPrDiff(pr) {
     // TODO makes sense to check if gh is available and authenticated
-    return spawnCommand('gh', ['pr', 'diff', pr], 'Loading PR diff...', 'Loaded PR diff.');
+    try {
+        return await spawnCommand('gh', ['pr', 'diff', pr], 'Loading PR diff...', 'Loaded PR diff.');
+    } catch (e) {
+        displayError(e.toString());
+        displayError(`Failed to call "gh pr diff ${pr}", see message above for details.`);
+        process.exit();
+    }
 }

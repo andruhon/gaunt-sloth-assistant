@@ -76,7 +76,7 @@ Make sure you edit `.gsloth.config.js` and set up your key.
 
 ### Further configuration
 
-Currently only vertexai and anthropic can be configured with `gsloth init`.
+Currently vertexai, anthropic and groq can be configured with `gsloth init`.
 
 Populate `.gsloth.preamble.review.md` with your project details and quality requirements.
 Proper preamble is a paramount for good inference.
@@ -98,7 +98,7 @@ export async function configure(importFunction, global) {
     const anthropic = await importFunction('@langchain/anthropic');
     return {
         llm: new anthropic.ChatAnthropic({
-            apiKey: "sk-ant-api03--YOURAPIHASH", // You should put your API hash here
+            apiKey: process.env.ANTHROPIC_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
             model: "claude-3-5-sonnet-20241022"
         })
     };
@@ -124,6 +124,23 @@ export async function configure(importFunction, global) {
             // project: 'your-cool-google-cloud-project',
         })
     }
+}
+```
+
+**Example of .gsloth.config.js for Groq**  
+VertexAI usually needs `gcloud auth application-default login`
+(or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
+```javascript
+export async function configure(importFunction, global) {
+    // this is going to be imported from sloth dependencies,
+    // but can potentially be pulled from global node modules or from this project
+    const groq = await importFunction('@langchain/groq');
+    return {
+        llm: new groq.ChatGroq({
+            model: "deepseek-r1-distill-llama-70b", // Check other models available
+            apiKey: process.env.GROQ_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
+        })
+    };
 }
 ```
 
