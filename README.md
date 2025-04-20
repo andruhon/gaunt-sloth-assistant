@@ -48,14 +48,6 @@ Tested with Node 22 LTS.
 npm install gaunt-sloth-assistant -g
 ```
 
-## GitHub (master)
-
-```shell
-git clone https://github.com/andruhon/gaunt-sloth.git
-npm install
-npm install -g ./
-```
-
 ## Configuration
 Go to your project directory and init sloth with vendor of your choice.
 
