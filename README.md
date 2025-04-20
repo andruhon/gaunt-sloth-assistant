@@ -1,13 +1,16 @@
 # Gaunt Sloth Assistant
 Simplistic assistant helping to do code reviews from command line based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
 
-## Review PR
-Review PR by PR number:
+## Review PR (Pull Request)
+To review PR by PR number:
+
+First make sure the official [GitHub cli (gh)](https://cli.github.com/) is installed
+and authenticated to have access to your project.
+
 ```shell
+cd ./your-project
 gsloth pr 42
 ``` 
-Official [GitHub cli (gh)](https://cli.github.com/) should be installed
-and authenticated to have access to your project.
 
 Review providing markdown file with requirements and notes.
 ```shell
