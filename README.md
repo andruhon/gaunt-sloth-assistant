@@ -1,5 +1,5 @@
 # Gaunt Sloth Assistant
-Simplistic assistant helping to do code reviews from command line based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
+Simplistic AI assistant helping to do **code reviews from command line** based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
 
 ## Review PR (Pull Request)
 To review PR by PR number:
@@ -7,8 +7,11 @@ To review PR by PR number:
 First make sure the official [GitHub cli (gh)](https://cli.github.com/) is installed
 and authenticated to have access to your project.
 
+Open terminal (command line) in your project directory.
+
+Type command: `gsloth pr [desired pull request number]`, for example:
+
 ```shell
-cd ./your-project
 gsloth pr 42
 ``` 
 
