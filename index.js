@@ -51,7 +51,7 @@ program.command('pr')
     });
 
 program.command('review')
-    .description('Review provided diff or other content')
+    .description('Review provided diff (as stdin) or other content. For example `git diff --no-pager | gsloth review`')
     .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
     // TODO add option consuming extra message as argument
     .action(async (options) => {
