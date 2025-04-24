@@ -7,11 +7,9 @@ import {
 } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import {initConfig, slothContext} from "./config.js";
+import { slothContext } from "./config.js";
 import { display, displayError, displaySuccess } from "./consoleUtils.js";
 import { fileSafeLocalDate, toFileSafeString } from "./utils.js";
-
-await initConfig();
 
 export async function askQuestion(source, preamble, content) {
     // This node receives the current state (messages) and invokes the LLM

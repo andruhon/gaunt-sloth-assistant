@@ -4,7 +4,7 @@ import {dirname} from 'node:path';
 import {displayError, displayInfo} from "./src/consoleUtils.js";
 import {
     availableDefaultConfigs,
-    createProjectConfig,
+    createProjectConfig, initConfig,
     slothContext,
     USER_PROJECT_REVIEW_PREAMBLE
 } from "./src/config.js";
@@ -85,6 +85,7 @@ program.command('ask')
         if (options.file) {
             content.push(readFileFromCurrentDir(options.file));
         }
+        await initConfig();
         const { askQuestion } = await import('./src/questionAnswering.js');
         await askQuestion('sloth-ASK', preamble.join("\n"), content.join("\n"));
     });
