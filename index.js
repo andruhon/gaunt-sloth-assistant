@@ -11,6 +11,7 @@ import {
 import {fileURLToPath} from "url";
 import {getSlothVersion, readFileFromCurrentDir, readStdin} from "./src/utils.js";
 import {getPrDiff, readInternalPreamble, readPreamble} from "./src/prompt.js";
+import {reviewRouter} from "./src/reviewRouter.js";
 
 const program = new Command();
 
@@ -29,52 +30,54 @@ program.command('init')
         await createProjectConfig(config);
     });
 
-program.command('pr')
-    .description('Review a PR in current git directory (assuming that GH cli is installed and authenticated for current project')
-    .argument('<prNumber>', 'PR number to review')
-    .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
-    // TODO add option consuming extra message as argument
-    .action(async (pr, options) => {
-        if (slothContext.stdin) {
-            displayError('`gsloth pr` does not expect stdin, use `gsloth review` instead');
-            return;
-        }
-        displayInfo(`Starting review of PR ${pr}`);
-        const diff = await getPrDiff(pr);
-        const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
-        const content = [diff];
-        if (options.file) {
-            content.push(readFileFromCurrentDir(options.file));
-        }
-        const { review } = await import('./src/codeReview.js');
-        await review('sloth-PR-review-'+pr, preamble.join("\n"), content.join("\n"));
-    });
+// program.command('pr')
+//     .description('Review a PR in current git directory (assuming that GH cli is installed and authenticated for current project')
+//     .argument('<prNumber>', 'PR number to review')
+//     .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
+//     // TODO add option consuming extra message as argument
+//     .action(async (pr, options) => {
+//         if (slothContext.stdin) {
+//             displayError('`gsloth pr` does not expect stdin, use `gsloth review` instead');
+//             return;
+//         }
+//         displayInfo(`Starting review of PR ${pr}`);
+//         const diff = await getPrDiff(pr);
+//         const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
+//         const content = [diff];
+//         if (options.file) {
+//             content.push(readFileFromCurrentDir(options.file));
+//         }
+//         const { review } = await import('./src/codeReview.js');
+//         await review('sloth-PR-review-'+pr, preamble.join("\n"), content.join("\n"));
+//     });
 
-program.command('review')
-    .description('Review provided diff (as stdin) or other content. For example `git diff --no-pager | gsloth review`')
-    .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
-    // TODO add option consuming extra message as argument
-    .action(async (options) => {
-        if (!slothContext.stdin && !options.file) {
-            displayError('gsloth review expects stdin with github diff stdin or a file');
-            return
-        }
-        const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
-        const content = [];
-        if (slothContext.stdin) {
-            content.push(slothContext.stdin);
-        }
-        if (options.file) {
-            content.push(readFileFromCurrentDir(options.file));
-        }
-        const { review } = await import('./src/codeReview.js');
-        await review('sloth-DIFF-review', preamble.join("\n"), content.join("\n"));
-    });
+// program.command('review')
+//     .description('Review provided diff (as stdin) or other content. For example `git diff --no-pager | gsloth review`')
+//     .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
+//     // TODO add option consuming extra message as argument
+//     .action(async (options) => {
+//         if (!slothContext.stdin && !options.file) {
+//             displayError('gsloth review expects stdin with github diff stdin or a file');
+//             return
+//         }
+//         const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
+//         const content = [];
+//         if (slothContext.stdin) {
+//             content.push(slothContext.stdin);
+//         }
+//         if (options.file) {
+//             content.push(readFileFromCurrentDir(options.file));
+//         }
+//         const { review } = await import('./src/codeReview.js');
+//         await review('sloth-DIFF-review', preamble.join("\n"), content.join("\n"));
+//     });
+
+reviewRouter(program, slothContext)
 
 program.command('ask')
     .description('Ask a question')
     .argument('<message>', 'A message')
-    .option('-f, --file <file>', 'Input file. Context of this file will be added BEFORE the diff')
+    .option('-f, --file <file>', 'Input file. Content of this file will be added BEFORE the diff')
     // TODO add option consuming extra message as argument
     .action(async (message, options) => {
         const preamble = [readInternalPreamble()];
@@ -88,4 +91,4 @@ program.command('ask')
 
 // TODO add general interactive chat command
 
-readStdin(program);
+await readStdin(program);

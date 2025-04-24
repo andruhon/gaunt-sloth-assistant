@@ -12,7 +12,6 @@ import { display, displayError, displaySuccess } from "./consoleUtils.js";
 import { fileSafeLocalDate, toFileSafeString, ProgressIndicator } from "./utils.js";
 
 export async function review(source, preamble, diff) {
-    await initConfig();
     const progressIndicator = new ProgressIndicator("Reviewing.");
     const outputContent = await reviewInner(slothContext, () => progressIndicator.indicate(), preamble, diff);
     const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");

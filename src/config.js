@@ -27,7 +27,7 @@ export const slothContext = {
 };
 
 export async function initConfig() {
-    const configFileUrl = url.pathToFileURL(path.join(process.cwd(), USER_PROJECT_CONFIG_FILE));    
+    const configFileUrl = url.pathToFileURL(path.join(process.cwd(), USER_PROJECT_CONFIG_FILE));
     return import(configFileUrl)
         .then((i) => i.configure((module) => import(module)))    
         .then((config) => {

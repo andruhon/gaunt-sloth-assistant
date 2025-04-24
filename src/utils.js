@@ -50,23 +50,25 @@ export function readFileSyncWithMessages(filePath, errorMessageIn, noFileMessage
 }
 
 export function readStdin(program) {
-    if(process.stdin.isTTY) {
-        program.parse();
-    } else {
-        // Support piping diff into gsloth
-        process.stdout.write('reading STDIN.');
-        process.stdin.on('readable', function() {
-            const chunk = this.read();
-            process.stdout.write('.');
-            if (chunk !== null) {
-                slothContext.stdin += chunk;
-            }
-        });
-        process.stdin.on('end', function() {
-            process.stdout.write('.\n');
-            program.parse(process.argv);
-        });
-    }
+    return new Promise((resolve) => {
+        if(process.stdin.isTTY) {
+            program.parseAsync().then(resolve);
+        } else {
+            // Support piping diff into gsloth
+            process.stdout.write('reading STDIN.');
+            process.stdin.on('readable', function() {
+                const chunk = this.read();
+                process.stdout.write('.');
+                if (chunk !== null) {
+                    slothContext.stdin += chunk;
+                }
+            });
+            process.stdin.on('end', function() {
+                process.stdout.write('.\n');
+                program.parseAsync(process.argv).then(resolve);
+            });
+        }
+    });
 }
 
 export async function spawnCommand(command, args, progressMessage, successMessage) {
