@@ -11,7 +11,7 @@ import {
 import {fileURLToPath} from "url";
 import {getSlothVersion, readFileFromCurrentDir, readStdin} from "./src/utils.js";
 import {getPrDiff, readInternalPreamble, readPreamble} from "./src/prompt.js";
-import {reviewRouter} from "./src/reviewRouter.js";
+import {reviewCommand} from "./src/commands/reviewCommand.js";
 
 const program = new Command();
 
@@ -72,7 +72,7 @@ program.command('init')
 //         await review('sloth-DIFF-review', preamble.join("\n"), content.join("\n"));
 //     });
 
-reviewRouter(program, slothContext)
+reviewCommand(program, slothContext)
 
 program.command('ask')
     .description('Ask a question')

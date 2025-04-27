@@ -1,8 +1,8 @@
-import { reviewInner } from '../src/codeReview.js';
+import { reviewInner } from '../src/modules/reviewModule.js';
 import { slothContext } from '../src/config.js';
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 
-describe('codeReview', () => {
+describe('reviewModule', () => {
 
   it('should invoke LLM', async () => {
     // Setup mock for slothContext

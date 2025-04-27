@@ -7,9 +7,9 @@ import {
 } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { initConfig, slothContext } from "./config.js";
-import { display, displayError, displaySuccess } from "./consoleUtils.js";
-import { fileSafeLocalDate, toFileSafeString, ProgressIndicator } from "./utils.js";
+import { initConfig, slothContext } from "../config.js";
+import { display, displayError, displaySuccess } from "../consoleUtils.js";
+import { fileSafeLocalDate, toFileSafeString, ProgressIndicator } from "../utils.js";
 
 export async function review(source, preamble, diff) {
     const progressIndicator = new ProgressIndicator("Reviewing.");
