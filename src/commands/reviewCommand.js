@@ -1,6 +1,21 @@
-import {readInternalPreamble, readPreamble} from "../prompt.js";
+import { Option } from 'commander';
 import { USER_PROJECT_REVIEW_PREAMBLE } from "../config.js";
-import {readFileFromCurrentDir} from "../utils.js";
+import { readInternalPreamble, readPreamble } from "../prompt.js";
+import { readFileFromCurrentDir } from "../utils.js";
+
+/**
+ * Requirements providers. Expected to be in `.providers/` dir
+ */
+const REQUIREMENTS_PROVIDERS = {
+    'jira-legacy': 'jiraIssueLegacyAccessTokenProvider.js'
+};
+
+/**
+ * Content providers. Expected to be in `.providers/` dir
+ */
+const CONTENT_PROVIDERS = {
+    'gh': 'ghPrDiffProvider.js'
+};
 
 export async function reviewCommand(program, context) {
     program.command('review')
@@ -12,9 +27,15 @@ export async function reviewCommand(program, context) {
         // TODO add support to include multiple files
         .option('-f, --file <file>', 'Input file. Content of this file will be added BEFORE the diff, but after requirements')
         .option('-r, --requirements <requirements>', 'Requirements for this review.')
-        .option('-p, --requirements-provider <requirementsProvider>', 'Requirements provider for this review.')
-        // .option('-c, --content, --code <content>', 'Content (usually code) to review')
-        .option('--content-provider <contentProvider>', 'Content  provider')
+        .addOption(
+            new Option('-p, --requirements-provider <requirementsProvider>', 'Requirements provider for this review.')
+            .choices(Object.keys(REQUIREMENTS_PROVIDERS))
+        )
+        .option('-c, --content <content>', 'Content (usually code) to review')
+        .addOption(
+            new Option('--content-provider <contentProvider>', 'Content  provider')
+            .choices(Object.keys(CONTENT_PROVIDERS))
+        )
         .option('-m, --message <message>', 'Extra message to provide just before the content')
         .action(async (contentId, requirementsId, options) => {
             // if (!context.stdin || options.file) {
@@ -25,6 +46,7 @@ export async function reviewCommand(program, context) {
             await initConfig();
             const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
             const content = [];
+            // TODO add implementations for command provider override
             if (typeof context.config?.requirementsProvider === 'function') {
                 content.push(await context.config.requirementsProvider(context.config?.requirementsProviderConfig, requirementsId));
             } else if (typeof context.config?.requirementsProvider === 'string') {

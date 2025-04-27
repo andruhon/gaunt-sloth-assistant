@@ -1,17 +1,15 @@
 #!/usr/bin/env node
-import {Argument, Command} from 'commander';
-import {dirname} from 'node:path';
-import {displayError, displayInfo} from "./src/consoleUtils.js";
+import { Argument, Command } from 'commander';
+import { dirname } from 'node:path';
+import { fileURLToPath } from "url";
+import { reviewCommand } from "./src/commands/reviewCommand.js";
 import {
     availableDefaultConfigs,
     createProjectConfig, initConfig,
-    slothContext,
-    USER_PROJECT_REVIEW_PREAMBLE
+    slothContext
 } from "./src/config.js";
-import {fileURLToPath} from "url";
-import {getSlothVersion, readFileFromCurrentDir, readStdin} from "./src/utils.js";
-import {getPrDiff, readInternalPreamble, readPreamble} from "./src/prompt.js";
-import {reviewCommand} from "./src/commands/reviewCommand.js";
+import { readInternalPreamble } from "./src/prompt.js";
+import { getSlothVersion, readFileFromCurrentDir, readStdin } from "./src/utils.js";
 
 const program = new Command();
 

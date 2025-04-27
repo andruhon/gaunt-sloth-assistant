@@ -27,4 +27,29 @@ describe('reviewCommand',  function (){
         td.verify(this.review('sloth-DIFF-review', "INTERNAL PREAMBLE\nPROJECT PREAMBLE", "FILE TO REVIEW"));
     });
 
+    it('Should display predefined providers in help', async function() {
+        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const program = new Command();
+        const testOutput = { text: '' };
+        
+        program.configureOutput({
+            writeOut: (str) => testOutput.text += str,
+            writeErr: (str) => testOutput.text += str
+        });
+        
+        await reviewCommand(program, {});
+        
+        const commandUnderTest = program.commands.find(c => c.name() == 'review');
+        expect(commandUnderTest).toBeDefined();
+        commandUnderTest.outputHelp();
+        
+        // Verify content providers are displayed
+        expect(testOutput.text).toContain('--content-provider <contentProvider>');
+        expect(testOutput.text).toContain('(choices: "gh")');
+        
+        // Verify requirements providers are displayed
+        expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
+        expect(testOutput.text).toContain('(choices: "jira-legacy")');
+    });
+
 });
