@@ -18,7 +18,7 @@ const CONTENT_PROVIDERS = {
     'gh': 'ghPrDiffProvider.js'
 };
 
-export async function reviewCommand(program, context) {
+export function reviewCommand(program, context) {
     program.command('review')
         .description('Review provided diff or other content')
         .argument('[contentId]', 'Optional content ID argument to retrieve content with content provider')
