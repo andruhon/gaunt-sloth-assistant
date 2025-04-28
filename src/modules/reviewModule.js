@@ -9,7 +9,7 @@ import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { initConfig, slothContext } from "../config.js";
 import { display, displayError, displaySuccess } from "../consoleUtils.js";
-import { fileSafeLocalDate, toFileSafeString, ProgressIndicator } from "../utils.js";
+import { fileSafeLocalDate, toFileSafeString, ProgressIndicator, extractLastMessageContent } from "../utils.js";
 
 export async function review(source, preamble, diff) {
     const progressIndicator = new ProgressIndicator("Reviewing.");
@@ -71,6 +71,5 @@ export async function reviewInner(context, indicateProgress, preamble, diff) {
     const progress = setInterval(() => indicateProgress(), 1000);
     const output = await app.invoke({messages}, context.session);
     clearInterval(progress);
-    // FIXME this looks ugly, there should be other way
-    return output.messages[output.messages.length - 1].content;
+    return extractLastMessageContent(output);
 }

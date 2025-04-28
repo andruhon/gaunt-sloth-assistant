@@ -9,7 +9,7 @@ import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { slothContext } from "./config.js";
 import { display, displayError, displaySuccess } from "./consoleUtils.js";
-import { fileSafeLocalDate, toFileSafeString } from "./utils.js";
+import { fileSafeLocalDate, toFileSafeString, extractLastMessageContent } from "./utils.js";
 
 export async function askQuestion(source, preamble, content) {
     // This node receives the current state (messages) and invokes the LLM
@@ -48,8 +48,7 @@ export async function askQuestion(source, preamble, content) {
 
     display("Thinking...");
     const output = await app.invoke({messages}, slothContext.session);
-    // FIXME this looks ugly, there should be other way
-    const outputContent = output.messages[output.messages.length - 1].content;
+    const outputContent = extractLastMessageContent(output);
     const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
     display(`writing ${filePath}`);
     // TODO highlight LLM output with something like Prism.JS

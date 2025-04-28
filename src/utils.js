@@ -111,7 +111,7 @@ export class ProgressIndicator {
         this.hasBeenCalled = false;
         this.initialMessage = initialMessage;
     }
-    
+
     indicate() {
         if (this.hasBeenCalled) {
             process.stdout.write('.');
@@ -121,4 +121,16 @@ export class ProgressIndicator {
         }
     }
 
+}
+
+/**
+ * Extracts the content of the last message from an LLM response
+ * @param {Object} output - The output from the LLM containing messages
+ * @returns {string} The content of the last message
+ */
+export function extractLastMessageContent(output) {
+    if (!output || !output.messages || !output.messages.length) {
+        return '';
+    }
+    return output.messages[output.messages.length - 1].content;
 }
