@@ -31,6 +31,14 @@ When JIRA integration is configured, the JIRA issue text can be included alongsi
 The project review preamble can be modified to reject a pull request immediately
 if it appears to implement something different from what was requested in the requirements.
 
+The command syntax is generally `gsloth pr <prId> [requirementsId]`,
+for example, the snippet below does review of PR 42 and
+supplies description of JIRA issue with number PP-4242:
+
+```shell
+gsloth pr 42 PP-4242
+```
+
 Example configuration setting up JIRA integration using a legacy API token.
 Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
 
