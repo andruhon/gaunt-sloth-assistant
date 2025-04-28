@@ -71,7 +71,7 @@ describe('reviewCommand',  function (){
         td.when(jiraProvider(td.matchers.anything(), 'JIRA-123')).thenResolve('JIRA Requirements');
 
         // Replace the dynamic import with our mock
-        td.when(td.replace(td.matchers.contains('../providers/jiraIssueLegacyAccessTokenProvider.js'))).thenReturn({
+        await td.replaceEsm('../src/providers/jiraIssueLegacyAccessTokenProvider.js', {
             get: jiraProvider
         });
 
@@ -96,7 +96,7 @@ describe('reviewCommand',  function (){
         td.when(ghProvider('123')).thenResolve('PR Diff Content');
 
         // Replace the dynamic import with our mock
-        td.when(td.replace(td.matchers.contains('../providers/ghPrDiffProvider.js'))).thenReturn({
+        await td.replaceEsm('../src/providers/ghPrDiffProvider.js', {
             get: ghProvider
         });
 
@@ -107,6 +107,17 @@ describe('reviewCommand',  function (){
     });
 
     it('Should test pr command', async function() {
+        // Create a spy for the review function
+        const reviewSpy = td.func();
+
+        // Replace the review function in the codeReviewMock
+        this.codeReviewMock.review = reviewSpy;
+
+        // Mock the modules/reviewModule.js import in the reviewCommand.js file
+        await td.replaceEsm('../src/modules/reviewModule.js', {
+            review: reviewSpy
+        });
+
         const { reviewCommand } = await import("../src/commands/reviewCommand.js");
         const program = new Command();
         const context = {};
@@ -116,13 +127,13 @@ describe('reviewCommand',  function (){
         td.when(ghProvider('123')).thenResolve('PR Diff Content');
 
         // Replace the dynamic import with our mock
-        td.when(td.replace(td.matchers.contains('../providers/ghPrDiffProvider.js'))).thenReturn({
+        await td.replaceEsm('../src/providers/ghPrDiffProvider.js', {
             get: ghProvider
         });
 
         await reviewCommand(program, context);
         await program.parseAsync(['na', 'na', 'pr', '123']);
 
-        td.verify(this.review('sloth-PR-123-review', "INTERNAL PREAMBLE\nPROJECT PREAMBLE", "PR Diff Content"));
+        td.verify(reviewSpy('sloth-PR-123-review', "INTERNAL PREAMBLE\nPROJECT PREAMBLE", "PR Diff Content"));
     });
 });

@@ -1,3 +1,5 @@
+import {display} from "../consoleUtils.js";
+
 export async function get(config, prId) {
     const issueData = await getJiraIssue(config, prId);
     return `## ${prId} Requirements - ${issueData.fields?.summary}\n\n${issueData.fields?.description}`
@@ -41,7 +43,7 @@ async function getJiraIssue(config, jiraKey) {
         // 'Content-Type': 'application/json' // Usually not needed for GET requests
     };
 
-    console.log(`Workspaceing Jira issue: ${jiraKey} from ${cleanBaseUrl}`); // Optional: Log the action
+    display(`Fetching Jira issue: ${jiraKey} from ${cleanBaseUrl}`);
 
     try {
         const response = await fetch(apiUrl, {
@@ -56,7 +58,7 @@ async function getJiraIssue(config, jiraKey) {
                 // Attempt to get more details from the response body for non-OK statuses
                 errorBody = await response.text();
             } catch (e) {
-                console.error("Error reading response body for non-OK status:", e);
+                // Silent fail - we already have a generic error message
             }
             // Throw a detailed error including status, status text, URL, and body if available
             throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}. URL: ${apiUrl}. Response Body: ${errorBody}`);
@@ -69,7 +71,6 @@ async function getJiraIssue(config, jiraKey) {
     } catch (error) {
         // Handle network errors (e.g., DNS resolution failure, connection refused)
         // or errors thrown from the non-OK response check above
-        console.error(`Error fetching Jira issue ${jiraKey}:`, error.message);
         // Re-throw the error so the caller can handle it appropriately
         throw error;
     }
