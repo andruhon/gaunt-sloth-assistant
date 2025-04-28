@@ -25,6 +25,34 @@ open Jira XML with "Export XML" in jira and to copy `<description></description>
 This block contains HTML and AI understands it easily 
 (most importantly it understand nested lists like ul>li).
 
+## JIRA Integration
+
+When JIRA integration is configured, the JIRA issue text can be included alongside the diff for review.
+The project review preamble can be modified to reject a pull request immediately
+if it appears to implement something different from what was requested in the requirements.
+
+Example configuration setting up JIRA integration using a legacy API token.
+Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
+
+A legacy token can be acquired from `Atlassian Account Settings -> Security -> Create and manage API tokens`.
+
+```javascript
+export async function configure(importFunction, global) {
+    const vertexAi = await importFunction('@langchain/google-vertexai');
+    return {
+        llm: new vertexAi.ChatVertexAI({
+            model: "gemini-2.5-pro-exp-03-25"
+        }),
+        requirementsProvider: 'jira-legacy',
+        requirementsProviderConfig: {
+            username: 'andrei.kondratev@unimarket.com', // Your Jira username/email
+            token: 'YOURSECRETTOKEN',     // Replace with your real Jira API token
+            baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
+        }
+    }
+}
+```
+
 ## Review any Diff
 ```shell
 git --no-pager diff origin/master...yourgitcommithash | gsloth review

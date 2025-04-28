@@ -29,7 +29,7 @@ async function getJiraIssue(config, jiraKey) {
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
 
     // Construct the full API URL
-    const apiUrl = `${cleanBaseUrl}${jiraKey}`;
+    const apiUrl = `${cleanBaseUrl}/${jiraKey}`;
 
     // Encode credentials for Basic Authentication header
     const credentials = `${username}:${token}`;
@@ -43,7 +43,7 @@ async function getJiraIssue(config, jiraKey) {
         // 'Content-Type': 'application/json' // Usually not needed for GET requests
     };
 
-    display(`Fetching Jira issue: ${jiraKey} from ${cleanBaseUrl}`);
+    display(`Fetching Jira issue: ${apiUrl}`);
 
     try {
         const response = await fetch(apiUrl, {
