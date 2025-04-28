@@ -73,6 +73,7 @@ export function readStdin(program) {
 
 export async function spawnCommand(command, args, progressMessage, successMessage) {
     return new Promise((resolve, reject) => {
+        // TODO use progress indicator
         const out = {stdout: '', stderr: ''};
         const spawned = spawn(command, args);
         spawned.stdout.on('data', async (stdoutChunk, dd) => {
@@ -80,7 +81,7 @@ export async function spawnCommand(command, args, progressMessage, successMessag
             out.stdout += stdoutChunk.toString();
         });
         spawned.stderr.on('data', (err) => {
-            displayError(progressMessage);
+            display(progressMessage);
             out.stderr += err.toString();
         })
         spawned.on('error', (err) => {

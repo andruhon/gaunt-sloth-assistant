@@ -27,12 +27,14 @@ export function reviewCommand(program, context) {
         // TODO add provider to get results of git --no-pager diff
         // TODO add support to include multiple files
         .option('-f, --file <file>', 'Input file. Content of this file will be added BEFORE the diff, but after requirements')
-        .option('-r, --requirements <requirements>', 'Requirements for this review.')
+        // TODO figure out what to do with this (we probably want to merge it with requirementsId)?
+        // .option('-r, --requirements <requirements>', 'Requirements for this review.')
         .addOption(
             new Option('-p, --requirements-provider <requirementsProvider>', 'Requirements provider for this review.')
             .choices(Object.keys(REQUIREMENTS_PROVIDERS))
         )
-        .option('-c, --content <content>', 'Content (usually code) to review')
+        // TODO figure out what to do with this (we probably want to merge it with contentId)?
+        // .option('-c, --content <content>', 'Content (usually code) to review')
         .addOption(
             new Option('--content-provider <contentProvider>', 'Content  provider')
             .choices(Object.keys(CONTENT_PROVIDERS))
@@ -48,30 +50,34 @@ export function reviewCommand(program, context) {
             const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
             const content = [];
 
-            if (typeof context.config?.requirementsProvider === 'function') {
-                content.push(await context.config.requirementsProvider(context.config?.requirementsProviderConfig, requirementsId));
-            } else if (typeof context.config?.requirementsProvider === 'string') {
-                // Use one of the predefined requirements providers
-                const providerName = context.config.requirementsProvider;
-                if (REQUIREMENTS_PROVIDERS[providerName]) {
-                    const providerPath = `../providers/${REQUIREMENTS_PROVIDERS[providerName]}`;
-                    const { get } = await import(providerPath);
-                    content.push(await get(context.config?.requirementsProviderConfig, requirementsId));
-                } else {
-                    displayError(`Unknown requirements provider: ${providerName}`);
+            if (requirementsId) {
+                if (typeof context.config?.requirementsProvider === 'function') {
+                    content.push(await context.config.requirementsProvider(context.config?.requirementsProviderConfig, requirementsId));
+                } else if (typeof context.config?.requirementsProvider === 'string') {
+                    // Use one of the predefined requirements providers
+                    const providerName = context.config.requirementsProvider;
+                    if (REQUIREMENTS_PROVIDERS[providerName]) {
+                        const providerPath = `../providers/${REQUIREMENTS_PROVIDERS[providerName]}`;
+                        const {get} = await import(providerPath);
+                        content.push(await get(context.config?.requirementsProviderConfig, requirementsId));
+                    } else {
+                        displayError(`Unknown requirements provider: ${providerName}. Continuing without requirements.`);
+                    }
                 }
             }
-            if (typeof context.config?.contentProvider === 'function') {
-                content.push(await context.config.contentProvider(context.config?.contentProviderConfig, contentId));
-            } else if (typeof context.config?.contentProvider === 'string') {
-                // Use one of the predefined content providers
-                const providerName = context.config.contentProvider;
-                if (CONTENT_PROVIDERS[providerName]) {
-                    const providerPath = `../providers/${CONTENT_PROVIDERS[providerName]}`;
-                    const { get } = await import(providerPath);
-                    content.push(await get(contentId));
-                } else {
-                    displayError(`Unknown content provider: ${providerName}`);
+            if (contentId) {
+                if (typeof context.config?.contentProvider === 'function') {
+                    content.push(await context.config.contentProvider(context.config?.contentProviderConfig, contentId));
+                } else if (typeof context.config?.contentProvider === 'string') {
+                    // Use one of the predefined content providers
+                    const providerName = context.config.contentProvider;
+                    if (CONTENT_PROVIDERS[providerName]) {
+                        const providerPath = `../providers/${CONTENT_PROVIDERS[providerName]}`;
+                        const {get} = await import(providerPath);
+                        content.push(await get(contentId));
+                    } else {
+                        displayError(`Unknown content provider: ${providerName}. Continuing with other content if provided.`);
+                    }
                 }
             }
             if (options.file) {
@@ -102,16 +108,18 @@ export function reviewCommand(program, context) {
             const content = [];
 
             // Handle requirements
-            if (typeof context.config?.requirementsProvider === 'function') {
-                content.push(await context.config.requirementsProvider(context.config?.requirementsProviderConfig, requirementsId));
-            } else if (typeof context.config?.requirementsProvider === 'string') {
-                const providerName = context.config.requirementsProvider;
-                if (REQUIREMENTS_PROVIDERS[providerName]) {
-                    const providerPath = `../providers/${REQUIREMENTS_PROVIDERS[providerName]}`;
-                    const { get } = await import(providerPath);
-                    content.push(await get(context.config?.requirementsProviderConfig, requirementsId));
-                } else {
-                    displayError(`Unknown requirements provider: ${providerName}`);
+            if (requirementsId) {
+                if (typeof context.config?.requirementsProvider === 'function') {
+                    content.push(await context.config.requirementsProvider(context.config?.requirementsProviderConfig, requirementsId));
+                } else if (typeof context.config?.requirementsProvider === 'string') {
+                    const providerName = context.config.requirementsProvider;
+                    if (REQUIREMENTS_PROVIDERS[providerName]) {
+                        const providerPath = `../providers/${REQUIREMENTS_PROVIDERS[providerName]}`;
+                        const {get} = await import(providerPath);
+                        content.push(await get(context.config?.requirementsProviderConfig, requirementsId));
+                    } else {
+                        displayError(`Unknown requirements provider: ${providerName}`);
+                    }
                 }
             }
 
