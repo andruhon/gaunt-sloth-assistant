@@ -9,7 +9,7 @@ git push --tags
 
 For minor, e.g., from 0.0.8 to 0.1.0
 ```shell
-npm version patch
+npm version minor
 git push
 git push --tags
 ```
