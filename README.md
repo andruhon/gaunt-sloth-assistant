@@ -53,9 +53,11 @@ export async function configure(importFunction, global) {
         }),
         requirementsProvider: 'jira-legacy',
         requirementsProviderConfig: {
-            username: 'andrei.kondratev@unimarket.com', // Your Jira username/email
-            token: 'YOURSECRETTOKEN',     // Replace with your real Jira API token
-            baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
+            'jira-legacy': {
+                username: 'andrei.kondratev@unimarket.com', // Your Jira username/email
+                token: 'YOURSECRETTOKEN',     // Replace with your real Jira API token
+                baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
+            }
         }
     }
 }
