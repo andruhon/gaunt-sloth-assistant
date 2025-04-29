@@ -1,9 +1,11 @@
 import * as td from 'testdouble';
 
-// FIXME these tests are flaky
 describe('questionAnsweringModule', function (){
 
     beforeEach(async function() {
+        // Reset testdouble before each test
+        td.reset();
+
         // Create a mock context
         this.mockLlmInvoke = td.function();
         this.context = {
@@ -20,13 +22,10 @@ describe('questionAnsweringModule', function (){
             writeFileSync: td.function()
         };
 
-        // Replace modules with mocks
-        await td.replaceEsm("node:fs", this.fs);
-
+        // Create path mock
         this.path = {
             resolve: td.function()
         };
-        await td.replaceEsm("node:path", this.path);
 
         // Create consoleUtils mock
         this.consoleUtils = {
@@ -34,9 +33,6 @@ describe('questionAnsweringModule', function (){
             displaySuccess: td.function(),
             displayError: td.function()
         };
-
-        // Replace consoleUtils module
-        await td.replaceEsm("../src/consoleUtils.js", this.consoleUtils);
 
         // Create utils mock functions
         const extractLastMessageContent = td.function();
@@ -61,20 +57,7 @@ describe('questionAnsweringModule', function (){
             spawnCommand
         };
 
-        // Replace the utils module
-        await td.replaceEsm("../src/utils.js", this.utils);
-
-        // Mock slothContext and other config exports
-        this.slothContext = await td.replaceEsm("../src/config.js", {
-            slothContext: this.context,
-            SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
-            USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
-            USER_PROJECT_CONFIG_FILE: '.gsloth.config.js',
-            initConfig: td.function()
-        });
-
         // Set up path.resolve mock
-        this.path.resolve = td.function();
         td.when(this.path.resolve(td.matchers.anything(), td.matchers.contains('sloth-ASK'))).thenReturn('test-file-path.md');
 
         // Mock ProgressIndicator
@@ -82,14 +65,30 @@ describe('questionAnsweringModule', function (){
             indicate: td.function()
         };
         td.when(new this.utils.ProgressIndicator(td.matchers.anything())).thenReturn(this.progressIndicator);
+
+        // Replace modules with mocks - do this after setting up all mocks
+        await td.replaceEsm("node:fs", this.fs);
+        await td.replaceEsm("node:path", this.path);
+        await td.replaceEsm("../src/consoleUtils.js", this.consoleUtils);
+        await td.replaceEsm("../src/utils.js", this.utils);
+
+        // Mock slothContext and other config exports
+        await td.replaceEsm("../src/config.js", {
+            slothContext: this.context,
+            SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
+            USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
+            USER_PROJECT_CONFIG_FILE: '.gsloth.config.js',
+            initConfig: td.function()
+        });
     });
 
     it('Should call LLM with correct messages', async function() {
-        const { askQuestionInner } = await import("../src/modules/questionAnsweringModule.js");
-
         // Mock the LLM response
         const llmResponse = [{ role: 'assistant', content: 'LLM Response' }];
         td.when(this.mockLlmInvoke(td.matchers.anything())).thenResolve(llmResponse);
+
+        // Import the module after setting up mocks
+        const { askQuestionInner } = await import("../src/modules/questionAnsweringModule.js");
 
         // Call the function
         const result = await askQuestionInner(this.context, () => {}, 'Test Preamble', 'Test Content');
@@ -99,16 +98,17 @@ describe('questionAnsweringModule', function (){
     });
 
     it('Should write output to file', async function() {
-        const { askQuestion } = await import("../src/modules/questionAnsweringModule.js");
-
         // Mock the LLM response
         const llmResponse = [{ role: 'assistant', content: 'LLM Response' }];
         td.when(this.mockLlmInvoke(td.matchers.anything())).thenResolve(llmResponse);
 
-        // Call the function
+        // Import the module after setting up mocks
+        const { askQuestion } = await import("../src/modules/questionAnsweringModule.js");
+
+        // Call the function and wait for it to complete
         await askQuestion('sloth-ASK', 'Test Preamble', 'Test Content');
 
-        // Verify the file was written
+        // Verify the file was written with the correct content
         td.verify(this.fs.writeFileSync('test-file-path.md', 'LLM Response'));
 
         // Verify success message was displayed
@@ -116,8 +116,6 @@ describe('questionAnsweringModule', function (){
     });
 
     it('Should handle file write errors', async function() {
-        const { askQuestion } = await import("../src/modules/questionAnsweringModule.js");
-
         // Mock the LLM response
         const llmResponse = [{ role: 'assistant', content: 'LLM Response' }];
         td.when(this.mockLlmInvoke(td.matchers.anything())).thenResolve(llmResponse);
@@ -126,7 +124,10 @@ describe('questionAnsweringModule', function (){
         const error = new Error('File write error');
         td.when(this.fs.writeFileSync('test-file-path.md', 'LLM Response')).thenThrow(error);
 
-        // Call the function
+        // Import the module after setting up mocks
+        const { askQuestion } = await import("../src/modules/questionAnsweringModule.js");
+
+        // Call the function and wait for it to complete
         await askQuestion('sloth-ASK', 'Test Preamble', 'Test Content');
 
         // Verify error message was displayed

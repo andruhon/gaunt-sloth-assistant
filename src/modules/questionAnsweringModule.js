@@ -20,12 +20,10 @@ import { fileSafeLocalDate, toFileSafeString, ProgressIndicator, extractLastMess
 export async function askQuestion(source, preamble, content) {
     const progressIndicator = new ProgressIndicator("Thinking.");
     const outputContent = await askQuestionInner(slothContext, () => progressIndicator.indicate(), preamble, content);
-    process.stdout.write("\n");
     const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
-    display(`writing ${filePath}`);
-    process.stdout.write("\n");
+    display(`\nwriting ${filePath}`);
     // TODO highlight LLM output with something like Prism.JS
-    display(outputContent);
+    display('\n' + outputContent);
     try {
         writeFileSync(filePath, outputContent);
         displaySuccess(`This report can be found in ${filePath}`);
