@@ -105,7 +105,7 @@ export function reviewCommand(program, context) {
             // Get PR diff using the 'gh' provider
             const providerPath = `../providers/${CONTENT_PROVIDERS['gh']}`;
             const {get} = await import(providerPath);
-            content.push(await get(prId));
+            content.push(await get(null, prId));
 
             const {review} = await import('../modules/reviewModule.js');
             await review(`sloth-PR-${prId}-review`, preamble.join("\n"), content.join("\n"));
