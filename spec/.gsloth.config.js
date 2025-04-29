@@ -5,10 +5,18 @@ export async function configure(importFunction, global) {
             responses: ["First LLM message", "Second LLM message"],
         }),
         requirementsProviderConfig: {
-            username: 'user.name@company.com', // Your Jira username/email
-            token: 'YoUrToKeN',     // Replace with your real Jira API token
-            baseUrl: 'https://company.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
+            'jira-legacy': {
+                username: 'user.name@company.com', // Your Jira username/email
+                token: 'YoUrToKeN',     // Replace with your real Jira API token
+                baseUrl: 'https://company.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
+            }
         },
-        requirementsProvider: "jiraIssueLegacyAccessTokenProvider"
+        requirementsProvider: "jira-legacy",
+        contentProvider: "somethingSpecial",
+        contentProviderConfig: {
+            somethingSpecial: {
+                test: 'example'
+            }
+        }
     }
 }

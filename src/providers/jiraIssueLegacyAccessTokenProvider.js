@@ -1,4 +1,4 @@
-import {display} from "../consoleUtils.js";
+import {display, displayWarning} from "../consoleUtils.js";
 
 export async function get(config, prId) {
     const issueData = await getJiraIssue(config, prId);
@@ -19,9 +19,13 @@ export async function get(config, prId) {
  */
 async function getJiraIssue(config, jiraKey) {
     const { username, token, baseUrl } = config;
+    if (!jiraKey) {
+        displayWarning("No jiraKey provided, skipping Jira issue fetching.")
+        return "";
+    }
 
     // Validate essential inputs
-    if (!username || !token || !baseUrl || !jiraKey) {
+    if (!username || !token || !baseUrl) {
         throw new Error('Missing required parameters in config (username, token, baseUrl) or missing jiraKey.');
     }
 

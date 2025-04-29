@@ -1,92 +1,75 @@
-import { Option } from 'commander';
-import { USER_PROJECT_REVIEW_PREAMBLE } from "../config.js";
-import { readInternalPreamble, readPreamble } from "../prompt.js";
-import { readFileFromCurrentDir } from "../utils.js";
-import { displayError } from "../consoleUtils.js";
+import {Option} from 'commander';
+import {USER_PROJECT_REVIEW_PREAMBLE} from "../config.js";
+import {readInternalPreamble, readPreamble} from "../prompt.js";
+import {readFileFromCurrentDir} from "../utils.js";
+import {displayError} from "../consoleUtils.js";
 
 /**
  * Requirements providers. Expected to be in `.providers/` dir
  */
 const REQUIREMENTS_PROVIDERS = {
-    'jira-legacy': 'jiraIssueLegacyAccessTokenProvider.js'
+    'jira-legacy': 'jiraIssueLegacyAccessTokenProvider.js',
+    'text': 'text.js'
 };
 
 /**
  * Content providers. Expected to be in `.providers/` dir
  */
 const CONTENT_PROVIDERS = {
-    'gh': 'ghPrDiffProvider.js'
+    'gh': 'ghPrDiffProvider.js',
+    'text': 'text.js'
 };
 
 export function reviewCommand(program, context) {
+
     program.command('review')
         .description('Review provided diff or other content')
         .argument('[contentId]', 'Optional content ID argument to retrieve content with content provider')
-        .argument('[requirementsId]', 'Optional requirements ID argument to retrieve requirements with requirements provider')
         .alias('r')
         // TODO add provider to get results of git --no-pager diff
         // TODO add support to include multiple files
         .option('-f, --file <file>', 'Input file. Content of this file will be added BEFORE the diff, but after requirements')
         // TODO figure out what to do with this (we probably want to merge it with requirementsId)?
-        // .option('-r, --requirements <requirements>', 'Requirements for this review.')
+        .option('-r, --requirements <requirements>', 'Requirements for this review.')
         .addOption(
             new Option('-p, --requirements-provider <requirementsProvider>', 'Requirements provider for this review.')
-            .choices(Object.keys(REQUIREMENTS_PROVIDERS))
+                .choices(Object.keys(REQUIREMENTS_PROVIDERS))
         )
-        // TODO figure out what to do with this (we probably want to merge it with contentId)?
-        // .option('-c, --content <content>', 'Content (usually code) to review')
         .addOption(
             new Option('--content-provider <contentProvider>', 'Content  provider')
-            .choices(Object.keys(CONTENT_PROVIDERS))
+                .choices(Object.keys(CONTENT_PROVIDERS))
         )
         .option('-m, --message <message>', 'Extra message to provide just before the content')
-        .action(async (contentId, requirementsId, options) => {
-            // if (!context.stdin || options.file) {
-            //     displayError('gsloth review expects stdin with github diff stdin or a file');
-            //     return
-            // }
-            const { initConfig } = await import("../config.js");
+        .action(async (contentId, options) => {
+            const {initConfig} = await import("../config.js");
             await initConfig();
             const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
             const content = [];
+            const requirementsId = options.requirements;
+            const requirementsProvider = options.requirementsProvider ?? context.config?.requirementsProvider;
+            const contentProvider = options.contentProvider ?? context.config?.contentProvider;
 
-            if (requirementsId) {
-                if (typeof context.config?.requirementsProvider === 'function') {
-                    content.push(await context.config.requirementsProvider(context.config?.requirementsProviderConfig, requirementsId));
-                } else if (typeof context.config?.requirementsProvider === 'string') {
-                    // Use one of the predefined requirements providers
-                    const providerName = context.config.requirementsProvider;
-                    if (REQUIREMENTS_PROVIDERS[providerName]) {
-                        const providerPath = `../providers/${REQUIREMENTS_PROVIDERS[providerName]}`;
-                        const {get} = await import(providerPath);
-                        content.push(await get(context.config?.requirementsProviderConfig, requirementsId));
-                    } else {
-                        displayError(`Unknown requirements provider: ${providerName}. Continuing without requirements.`);
-                    }
-                }
+            // TODO consider calling these in parallel
+            const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
+            if (requirements) {
+                content.push(requirements);
             }
-            if (contentId) {
-                if (typeof context.config?.contentProvider === 'function') {
-                    content.push(await context.config.contentProvider(context.config?.contentProviderConfig, contentId));
-                } else if (typeof context.config?.contentProvider === 'string') {
-                    // Use one of the predefined content providers
-                    const providerName = context.config.contentProvider;
-                    if (CONTENT_PROVIDERS[providerName]) {
-                        const providerPath = `../providers/${CONTENT_PROVIDERS[providerName]}`;
-                        const {get} = await import(providerPath);
-                        content.push(await get(contentId));
-                    } else {
-                        displayError(`Unknown content provider: ${providerName}. Continuing with other content if provided.`);
-                    }
-                }
+
+            const providedContent = await getContentFromProvider(contentProvider, contentId);
+            if (providedContent) {
+                content.push(providedContent);
             }
+
             if (options.file) {
-                content.push(readFileFromCurrentDir(options.file));
+                content.push(`${options.file}:\n\`\`\`\n${readFileFromCurrentDir(options.file)}\n\`\`\``);
             }
             if (context.stdin) {
                 content.push(context.stdin);
             }
-            const { review } = await import('../modules/reviewModule.js');
+            if (options.message) {
+                content.push(options.message);
+            }
+            const {review} = await import('../modules/reviewModule.js');
             await review('sloth-DIFF-review', preamble.join("\n"), content.join("\n"));
         });
 
@@ -98,40 +81,67 @@ export function reviewCommand(program, context) {
         .argument('[requirementsId]', 'Optional requirements ID argument to retrieve requirements with requirements provider')
         .addOption(
             new Option('-p, --requirements-provider <requirementsProvider>', 'Requirements provider for this review.')
-            .choices(Object.keys(REQUIREMENTS_PROVIDERS))
+                .choices(Object.keys(REQUIREMENTS_PROVIDERS))
         )
+        .option('-f, --file <file>', 'Input file. Content of this file will be added BEFORE the diff, but after requirements')
         .action(async (prId, requirementsId, options) => {
-            const { initConfig } = await import("../config.js");
+            const {initConfig} = await import("../config.js");
             await initConfig();
 
             const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
             const content = [];
+            const requirementsProvider = options.requirementsProvider ?? context.config?.requirementsProvider;
 
             // Handle requirements
-            if (requirementsId) {
-                if (typeof context.config?.requirementsProvider === 'function') {
-                    content.push(await context.config.requirementsProvider(context.config?.requirementsProviderConfig, requirementsId));
-                } else if (typeof context.config?.requirementsProvider === 'string') {
-                    const providerName = context.config.requirementsProvider;
-                    if (REQUIREMENTS_PROVIDERS[providerName]) {
-                        const providerPath = `../providers/${REQUIREMENTS_PROVIDERS[providerName]}`;
-                        const {get} = await import(providerPath);
-                        content.push(await get(context.config?.requirementsProviderConfig, requirementsId));
-                    } else {
-                        displayError(`Unknown requirements provider: ${providerName}`);
-                    }
-                }
+            const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
+            if (requirements) {
+                content.push(requirements);
             }
 
-            // TODO this should still be possible to override default content provider in config.
-            // TODO Should there be a separate option to override PR content provider specifically?
+            if (options.file) {
+                content.push(`${options.file}:\n\`\`\`\n${readFileFromCurrentDir(options.file)}\n\`\`\``);
+            }
 
             // Get PR diff using the 'gh' provider
             const providerPath = `../providers/${CONTENT_PROVIDERS['gh']}`;
-            const { get } = await import(providerPath);
+            const {get} = await import(providerPath);
             content.push(await get(prId));
 
-            const { review } = await import('../modules/reviewModule.js');
+            const {review} = await import('../modules/reviewModule.js');
             await review(`sloth-PR-${prId}-review`, preamble.join("\n"), content.join("\n"));
         });
+
+    async function getRequirementsFromProvider(requirementsProvider, requirementsId) {
+        return getFromProvider(
+            requirementsProvider,
+            requirementsId,
+            (context.config?.requirementsProviderConfig ?? {})[requirementsProvider],
+            REQUIREMENTS_PROVIDERS
+        );
+    }
+
+    async function getContentFromProvider(contentProvider, contentId) {
+        return getFromProvider(
+            contentProvider,
+            contentId,
+            (context.config?.contentProviderConfig ?? {})[contentProvider],
+            CONTENT_PROVIDERS
+        )
+    }
+
+    async function getFromProvider(provider, id, config, legitPredefinedProviders) {
+        if (typeof provider === 'string') {
+            // Use one of the predefined providers
+            if (legitPredefinedProviders[provider]) {
+                const providerPath = `../providers/${legitPredefinedProviders[provider]}`;
+                const {get} = await import(providerPath);
+                return await get(config, id);
+            } else {
+                displayError(`Unknown provider: ${provider}. Continuing without it.`);
+            }
+        } else if (typeof provider === 'function') {
+            return await provider(id);
+        }
+        return '';
+    }
 }

@@ -19,12 +19,16 @@ describe('reviewCommand',  function (){
         ).thenDo(this.review);
     });
 
-    it('Should pall review with file contents', async function() {
+    it('Should call review with file contents', async function() {
         const { reviewCommand } = await import("../src/commands/reviewCommand.js");
         const program = new Command()
         await reviewCommand(program, {});
         await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
-        td.verify(this.review('sloth-DIFF-review', "INTERNAL PREAMBLE\nPROJECT PREAMBLE", "FILE TO REVIEW"));
+        td.verify(this.review(
+            'sloth-DIFF-review',
+            "INTERNAL PREAMBLE\nPROJECT PREAMBLE",
+            "test.file:\n```\nFILE TO REVIEW\n```")
+        );
     });
 
     it('Should display predefined providers in help', async function() {
@@ -45,23 +49,25 @@ describe('reviewCommand',  function (){
 
         // Verify content providers are displayed
         expect(testOutput.text).toContain('--content-provider <contentProvider>');
-        expect(testOutput.text).toContain('(choices: "gh")');
+        expect(testOutput.text).toContain('(choices: "gh", "text")');
 
         // Verify requirements providers are displayed
         expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
-        expect(testOutput.text).toContain('(choices: "jira-legacy")');
+        expect(testOutput.text).toContain('(choices: "jira-legacy", "text")');
     });
 
-    it('Should test predefined requirements provider', async function() {
+    it('Should call review with predefined requirements provider', async function() {
         const { reviewCommand } = await import("../src/commands/reviewCommand.js");
         const program = new Command();
         const context = {
             config: {
                 requirementsProvider: 'jira-legacy',
                 requirementsProviderConfig: {
-                    username: 'test-user',
-                    token: 'test-token',
-                    baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/'
+                    'jira-legacy': {
+                        username: 'test-user',
+                        token: 'test-token',
+                        baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/'
+                    }
                 }
             }
         };
@@ -76,24 +82,23 @@ describe('reviewCommand',  function (){
         });
 
         await reviewCommand(program, context);
-        await program.parseAsync(['na', 'na', 'review', 'content-id', 'JIRA-123']);
+        await program.parseAsync(['na', 'na', 'review', 'content-id', '-r', 'JIRA-123']);
 
         td.verify(this.review('sloth-DIFF-review', "INTERNAL PREAMBLE\nPROJECT PREAMBLE", "JIRA Requirements"));
     });
 
-    it('Should test predefined content provider', async function() {
+    it('Should call review with predefined content provider', async function() {
         const { reviewCommand } = await import("../src/commands/reviewCommand.js");
         const program = new Command();
         const context = {
             config: {
-                contentProvider: 'gh',
-                contentProviderConfig: {}
+                contentProvider: 'gh'
             }
         };
 
         // Mock the gh provider
         const ghProvider = td.func();
-        td.when(ghProvider('123')).thenResolve('PR Diff Content');
+        td.when(ghProvider(td.matchers.anything(), '123')).thenResolve('PR Diff Content');
 
         // Replace the dynamic import with our mock
         await td.replaceEsm('../src/providers/ghPrDiffProvider.js', {
@@ -106,7 +111,7 @@ describe('reviewCommand',  function (){
         td.verify(this.review('sloth-DIFF-review', "INTERNAL PREAMBLE\nPROJECT PREAMBLE", "PR Diff Content"));
     });
 
-    it('Should test pr command', async function() {
+    it('Should call pr command', async function() {
         // Create a spy for the review function
         const reviewSpy = td.func();
 
