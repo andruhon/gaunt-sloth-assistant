@@ -7,11 +7,13 @@ import { initCommand } from "./src/commands/initCommand.js";
 import { askCommand } from "./src/commands/askCommand.js";
 import { slothContext } from "./src/config.js";
 import { getSlothVersion, readStdin } from "./src/utils.js";
+import {getCurrentDir, getInstallDir, setInstallDir} from "./src/systemUtils.js";
 
 const program = new Command();
 
-slothContext.currentDir = process.cwd();
-slothContext.installDir = dirname(fileURLToPath(import.meta.url))
+setInstallDir(dirname(fileURLToPath(import.meta.url)));
+slothContext.currentDir = getCurrentDir();
+slothContext.installDir = getInstallDir();
 
 program
     .name('gsloth')

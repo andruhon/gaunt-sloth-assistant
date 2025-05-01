@@ -4,13 +4,33 @@ import * as td from 'testdouble';
 describe('askCommand', function (){
 
     beforeEach(async function() {
+        td.reset();
         this.askQuestion = td.function();
         this.prompt = await td.replaceEsm("../src/prompt.js");
         td.when(this.prompt.readInternalPreamble()).thenReturn("INTERNAL PREAMBLE");
         this.questionAnsweringMock = await td.replaceEsm("../src/modules/questionAnsweringModule.js");
-        await td.replaceEsm("../src/config.js");
-        this.utils = await td.replaceEsm("../src/utils.js");
-        td.when(this.utils.readFileFromCurrentDir("test.file")).thenReturn("FILE CONTENT");
+        await td.replaceEsm("../src/config.js", {
+            SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
+            USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
+            slothContext: {
+                config: {},
+                currentDir: '/mock/current/dir'
+            },
+            initConfig: td.function()
+        });
+        const readFileFromCurrentDir = td.function();
+        const extractLastMessageContent = td.function();
+        const toFileSafeString = td.function();
+        const fileSafeLocalDate = td.function();
+        this.utilsMock = {
+            readFileFromCurrentDir,
+            ProgressIndicator: td.constructor(),
+            extractLastMessageContent,
+            toFileSafeString,
+            fileSafeLocalDate
+        };
+        await td.replaceEsm("../src/utils.js", this.utilsMock);
+        td.when(this.utilsMock.readFileFromCurrentDir("test.file")).thenReturn("FILE CONTENT");
         td.when(this.questionAnsweringMock.askQuestion(
             'sloth-ASK',
             td.matchers.anything(),

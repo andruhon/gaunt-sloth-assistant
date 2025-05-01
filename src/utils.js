@@ -3,6 +3,8 @@ import {existsSync, readFileSync, writeFileSync} from "node:fs";
 import {slothContext} from "./config.js";
 import {resolve} from "node:path";
 import {spawn} from "node:child_process";
+import {exit, stdin, stdout, argv} from "./systemUtils.js";
+import url from "node:url";
 
 export function toFileSafeString(string) {
     return string.replace(/[^A-Za-z0-9]/g, '-');
@@ -45,27 +47,28 @@ export function readFileSyncWithMessages(filePath, errorMessageIn, noFileMessage
         } else {
             displayError(error.message);
         }
-        process.exit(1); // Exit gracefully after error
+        exit(1); // Exit gracefully after error
     }
 }
 
 export function readStdin(program) {
     return new Promise((resolve) => {
-        if(process.stdin.isTTY) {
+        // TODO use progress indicator here
+        if(stdin.isTTY) {
             program.parseAsync().then(resolve);
         } else {
             // Support piping diff into gsloth
-            process.stdout.write('reading STDIN.');
-            process.stdin.on('readable', function() {
+            stdout.write('reading STDIN.');
+            stdin.on('readable', function() {
                 const chunk = this.read();
-                process.stdout.write('.');
+                stdout.write('.');
                 if (chunk !== null) {
                     slothContext.stdin += chunk;
                 }
             });
-            process.stdin.on('end', function() {
-                process.stdout.write('.\n');
-                program.parseAsync(process.argv).then(resolve);
+            stdin.on('end', function() {
+                stdout.write('.\n');
+                program.parseAsync(argv).then(resolve);
             });
         }
     });
@@ -115,10 +118,10 @@ export class ProgressIndicator {
 
     indicate() {
         if (this.hasBeenCalled) {
-            process.stdout.write('.');
+            stdout.write('.');
         } else {
             this.hasBeenCalled = true;
-            process.stdout.write(this.initialMessage);
+            stdout.write(this.initialMessage);
         }
     }
 
@@ -135,3 +138,20 @@ export function extractLastMessageContent(output) {
     }
     return output.messages[output.messages.length - 1].content;
 }
+
+/**
+ * Dynamically imports a module from a file path from the outside of the installation dir
+ * @param {string} filePath - The path to the file to import
+ * @returns {Promise} A promise that resolves to the imported module
+ */
+export function importExternalFile(filePath) {
+    const configFileUrl = url.pathToFileURL(filePath);
+    return import(configFileUrl);
+}
+
+/**
+ * Alias for importExternalFile for backward compatibility with tests
+ * @param {string} filePath - The path to the file to import
+ * @returns {Promise} A promise that resolves to the imported module
+ */
+export const importFromFilePath = importExternalFile;

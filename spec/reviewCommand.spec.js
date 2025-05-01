@@ -4,14 +4,34 @@ import * as td from 'testdouble';
 describe('reviewCommand',  function (){
 
     beforeEach(async function() {
+        td.reset();
         this.review = td.function();
         this.prompt = await td.replaceEsm("../src/prompt.js");
         td.when(this.prompt.readInternalPreamble()).thenReturn("INTERNAL PREAMBLE");
         td.when(this.prompt.readPreamble(".gsloth.preamble.review.md")).thenReturn("PROJECT PREAMBLE");
         this.codeReviewMock = await td.replaceEsm("../src/modules/reviewModule.js");
-        await td.replaceEsm("../src/config.js");
-        this.utils = await td.replaceEsm("../src/utils.js");
-        td.when(this.utils.readFileFromCurrentDir("test.file")).thenReturn("FILE TO REVIEW");
+        await td.replaceEsm("../src/config.js", {
+            SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
+            USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
+            slothContext: {
+                config: {},
+                currentDir: '/mock/current/dir'
+            },
+            initConfig: td.function()
+        });
+        const readFileFromCurrentDir = td.function();
+        const extractLastMessageContent = td.function();
+        const toFileSafeString = td.function();
+        const fileSafeLocalDate = td.function();
+        this.utilsMock = {
+            readFileFromCurrentDir,
+            ProgressIndicator: td.constructor(),
+            extractLastMessageContent,
+            toFileSafeString,
+            fileSafeLocalDate
+        };
+        await td.replaceEsm("../src/utils.js", this.utilsMock);
+        td.when(this.utilsMock.readFileFromCurrentDir("test.file")).thenReturn("FILE TO REVIEW");
         td.when(this.codeReviewMock.review(
             'sloth-DIFF-review',
             td.matchers.anything(),
@@ -43,7 +63,7 @@ describe('reviewCommand',  function (){
 
         await reviewCommand(program, {});
 
-        const commandUnderTest = program.commands.find(c => c.name() == 'review');
+        const commandUnderTest = program.commands.find(c => c.name() === 'review');
         expect(commandUnderTest).toBeDefined();
         commandUnderTest.outputHelp();
 
@@ -129,7 +149,7 @@ describe('reviewCommand',  function (){
 
         // Mock the gh provider
         const ghProvider = td.func();
-        td.when(ghProvider('123')).thenResolve('PR Diff Content');
+        td.when(ghProvider(td.matchers.anything(), '123')).thenResolve('PR Diff Content');
 
         // Replace the dynamic import with our mock
         await td.replaceEsm('../src/providers/ghPrDiffProvider.js', {

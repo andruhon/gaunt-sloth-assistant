@@ -1,23 +1,33 @@
 import chalk from 'chalk';
+import {debug as systemDebug, error as systemError, log} from './systemUtils.js';
 
 // TODO it seems like commander supports coloured output, maybe dependency to chalk can be removed
 
 export function displayError (message) {
-    console.error(chalk.red(message));
+    systemError(chalk.red(message));
 }
 
 export function displayWarning (message) {
-    console.error(chalk.yellow(message));
+    systemError(chalk.yellow(message));
 }
 
 export function displaySuccess (message) {
-    console.error(chalk.green(message));
+    systemError(chalk.green(message));
 }
 
 export function displayInfo (message) {
-    console.error(chalk.blue(message));
+    systemError(chalk.blue(message));
 }
 
 export function display(message) {
-    console.log(message);
+    log(message);
+}
+
+export function displayDebug(message) {
+    // TODO make it controlled by config
+    if (message?.stack) {
+        systemDebug(message.stack);
+    } else {
+        systemDebug(message);
+    }
 }

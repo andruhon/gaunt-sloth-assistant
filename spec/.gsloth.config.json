@@ -1,0 +1,20 @@
+{
+  "llm": {
+    "type": "fake",
+    "responses": ["First LLM message", "Second LLM message"]
+  },
+  "requirementsProviderConfig": {
+    "jira-legacy": {
+      "username": "user.name@company.com",
+      "token": "YoUrToKeN",
+      "baseUrl": "https://company.atlassian.net/rest/api/2/issue/"
+    }
+  },
+  "requirementsProvider": "jira-legacy",
+  "contentProvider": "somethingSpecial",
+  "contentProviderConfig": {
+    "somethingSpecial": {
+      "test": "example"
+    }
+  }
+}

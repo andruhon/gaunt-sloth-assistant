@@ -1,8 +1,13 @@
 import { reviewInner } from '../src/modules/reviewModule.js';
 import { slothContext } from '../src/config.js';
 import { FakeListChatModel } from "@langchain/core/utils/testing";
+import * as td from "testdouble";
 
 describe('reviewModule', () => {
+
+  beforeEach(async function() {
+    td.reset();
+  });
 
   it('should invoke LLM', async () => {
     // Setup mock for slothContext

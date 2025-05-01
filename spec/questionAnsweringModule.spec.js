@@ -18,17 +18,18 @@ describe('questionAnsweringModule', function (){
         };
 
         // Create fs mock
-        this.fs = {
+        this.fsMock = {
             writeFileSync: td.function()
         };
 
         // Create path mock
         this.path = {
-            resolve: td.function()
+            resolve: td.function(),
+            dirname: td.function()
         };
 
         // Create consoleUtils mock
-        this.consoleUtils = {
+        this.consoleUtilsMock = {
             display: td.function(),
             displaySuccess: td.function(),
             displayError: td.function()
@@ -48,7 +49,7 @@ describe('questionAnsweringModule', function (){
         td.when(fileSafeLocalDate()).thenReturn('2025-01-01T00-00-00');
 
         // Create the utils mock
-        this.utils = {
+        this.utilsMock = {
             extractLastMessageContent,
             toFileSafeString,
             fileSafeLocalDate,
@@ -64,20 +65,19 @@ describe('questionAnsweringModule', function (){
         this.progressIndicator = {
             indicate: td.function()
         };
-        td.when(new this.utils.ProgressIndicator(td.matchers.anything())).thenReturn(this.progressIndicator);
+        td.when(new this.utilsMock.ProgressIndicator(td.matchers.anything())).thenReturn(this.progressIndicator);
 
         // Replace modules with mocks - do this after setting up all mocks
-        await td.replaceEsm("node:fs", this.fs);
+        await td.replaceEsm("node:fs", this.fsMock);
         await td.replaceEsm("node:path", this.path);
-        await td.replaceEsm("../src/consoleUtils.js", this.consoleUtils);
-        await td.replaceEsm("../src/utils.js", this.utils);
+        await td.replaceEsm("../src/consoleUtils.js", this.consoleUtilsMock);
+        await td.replaceEsm("../src/utils.js", this.utilsMock);
 
         // Mock slothContext and other config exports
         await td.replaceEsm("../src/config.js", {
             slothContext: this.context,
             SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
             USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
-            USER_PROJECT_CONFIG_FILE: '.gsloth.config.js',
             initConfig: td.function()
         });
     });
@@ -109,10 +109,10 @@ describe('questionAnsweringModule', function (){
         await askQuestion('sloth-ASK', 'Test Preamble', 'Test Content');
 
         // Verify the file was written with the correct content
-        td.verify(this.fs.writeFileSync('test-file-path.md', 'LLM Response'));
+        td.verify(this.fsMock.writeFileSync('test-file-path.md', 'LLM Response'));
 
         // Verify success message was displayed
-        td.verify(this.consoleUtils.displaySuccess(td.matchers.contains('test-file-path.md')));
+        td.verify(this.consoleUtilsMock.displaySuccess(td.matchers.contains('test-file-path.md')));
     });
 
     it('Should handle file write errors', async function() {
@@ -122,7 +122,7 @@ describe('questionAnsweringModule', function (){
 
         // Mock file write to throw an error
         const error = new Error('File write error');
-        td.when(this.fs.writeFileSync('test-file-path.md', 'LLM Response')).thenThrow(error);
+        td.when(this.fsMock.writeFileSync('test-file-path.md', 'LLM Response')).thenThrow(error);
 
         // Import the module after setting up mocks
         const { askQuestion } = await import("../src/modules/questionAnsweringModule.js");
@@ -131,7 +131,7 @@ describe('questionAnsweringModule', function (){
         await askQuestion('sloth-ASK', 'Test Preamble', 'Test Content');
 
         // Verify error message was displayed
-        td.verify(this.consoleUtils.displayError(td.matchers.contains('test-file-path.md')));
-        td.verify(this.consoleUtils.displayError('File write error'));
+        td.verify(this.consoleUtilsMock.displayError(td.matchers.contains('test-file-path.md')));
+        td.verify(this.consoleUtilsMock.displayError('File write error'));
     });
 });
