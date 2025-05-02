@@ -83,6 +83,12 @@ gsloth ask "which types of primitives are available in JavaScript?"
 gsloth ask "Please have a look at this file" -f index.js
 ```
 
+Multiple files may be provided as well
+
+```shell
+gsloth ask "Please have a look at these files" -f index.js test.js
+```
+
 ## Installation
 
 Tested with Node 22 LTS.
