@@ -1,9 +1,20 @@
 import {writeFileIfNotExistsWithMessages} from "../utils.js";
 import path from "node:path";
 import {displayInfo, displayWarning} from "../consoleUtils.js";
-import {USER_PROJECT_CONFIG_FILE} from "../config.js";
+import {env} from "../systemUtils.js";
 
-const content = `/* eslint-disable */
+// Function to process JSON config and create Groq LLM instance
+export async function processJsonConfig(llmConfig) {
+    const groq = await import('@langchain/groq');
+    // Use environment variable if available, otherwise use the config value
+    const groqApiKey = env.GROQ_API_KEY || llmConfig.apiKey;
+    return new groq.ChatGroq({
+        apiKey: groqApiKey,
+        model: llmConfig.model || "deepseek-r1-distill-llama-70b"
+    });
+}
+
+const jsContent = `/* eslint-disable */
 export async function configure(importFunction, global) {
     // this is going to be imported from sloth dependencies,
     // but can potentially be pulled from global node modules or from this project
@@ -17,9 +28,21 @@ export async function configure(importFunction, global) {
 }
 `;
 
+const jsonContent = `{
+  "llm": {
+    "type": "groq",
+    "model": "deepseek-r1-distill-llama-70b",
+    "apiKey": "your-api-key-here"
+  }
+}`;
+
 export function init(configFileName, context) {
     path.join(context.currentDir, configFileName);
+
+    // Determine which content to use based on file extension
+    const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
+
     writeFileIfNotExistsWithMessages(configFileName, content);
     displayInfo(`You can define GROQ_API_KEY environment variable with your Groq API key and it will work with default model.`);
-    displayWarning(`You need to edit your ${USER_PROJECT_CONFIG_FILE} to to configure model.`);
+    displayWarning(`You need to edit your ${configFileName} to configure model.`);
 }

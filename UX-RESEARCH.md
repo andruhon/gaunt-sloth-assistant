@@ -34,7 +34,7 @@ Arguments:
   prNumber           PR number to review
 
 Options:
-  -f, --file <file>  Input file. Context of this file will be added BEFORE the
+  -f, --file <file>  Input file. Content of this file will be added BEFORE the
                      diff
   -h, --help         display help for command
 ```

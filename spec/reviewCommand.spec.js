@@ -4,14 +4,37 @@ import * as td from 'testdouble';
 describe('reviewCommand',  function (){
 
     beforeEach(async function() {
+        td.reset();
         this.review = td.function();
         this.prompt = await td.replaceEsm("../src/prompt.js");
         td.when(this.prompt.readInternalPreamble()).thenReturn("INTERNAL PREAMBLE");
         td.when(this.prompt.readPreamble(".gsloth.preamble.review.md")).thenReturn("PROJECT PREAMBLE");
         this.codeReviewMock = await td.replaceEsm("../src/modules/reviewModule.js");
-        await td.replaceEsm("../src/config.js");
-        this.utils = await td.replaceEsm("../src/utils.js");
-        td.when(this.utils.readFileFromCurrentDir("test.file")).thenReturn("FILE TO REVIEW");
+        await td.replaceEsm("../src/config.js", {
+            SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
+            USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
+            slothContext: {
+                config: {},
+                currentDir: '/mock/current/dir'
+            },
+            initConfig: td.function()
+        });
+        const readFileFromCurrentDir = td.function();
+        const readMultipleFilesFromCurrentDir = td.function();
+        const extractLastMessageContent = td.function();
+        const toFileSafeString = td.function();
+        const fileSafeLocalDate = td.function();
+        this.utilsMock = {
+            readFileFromCurrentDir,
+            readMultipleFilesFromCurrentDir,
+            ProgressIndicator: td.constructor(),
+            extractLastMessageContent,
+            toFileSafeString,
+            fileSafeLocalDate
+        };
+        await td.replaceEsm("../src/utils.js", this.utilsMock);
+        td.when(this.utilsMock.readFileFromCurrentDir("test.file")).thenReturn("FILE TO REVIEW");
+        td.when(this.utilsMock.readMultipleFilesFromCurrentDir(["test.file"])).thenReturn("test.file:\n```\nFILE TO REVIEW\n```");
         td.when(this.codeReviewMock.review(
             'sloth-DIFF-review',
             td.matchers.anything(),
@@ -21,13 +44,27 @@ describe('reviewCommand',  function (){
 
     it('Should call review with file contents', async function() {
         const { reviewCommand } = await import("../src/commands/reviewCommand.js");
-        const program = new Command()
+        const program = new Command();
         await reviewCommand(program, {});
         await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
         td.verify(this.review(
             'sloth-DIFF-review',
             "INTERNAL PREAMBLE\nPROJECT PREAMBLE",
             "test.file:\n```\nFILE TO REVIEW\n```")
+        );
+    });
+
+    it('Should call review with multiple file contents', async function() {
+        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const program = new Command();
+        await reviewCommand(program, {});
+        td.when(this.utilsMock.readMultipleFilesFromCurrentDir(["test.file", "test2.file"]))
+            .thenReturn("test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```");
+        await program.parseAsync(['na', 'na', 'review', '-f', 'test.file', 'test2.file']);
+        td.verify(this.review(
+            'sloth-DIFF-review',
+            "INTERNAL PREAMBLE\nPROJECT PREAMBLE",
+            "test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```")
         );
     });
 
@@ -43,17 +80,18 @@ describe('reviewCommand',  function (){
 
         await reviewCommand(program, {});
 
-        const commandUnderTest = program.commands.find(c => c.name() == 'review');
+        const commandUnderTest = program.commands.find(c => c.name() === 'review');
+
         expect(commandUnderTest).toBeDefined();
         commandUnderTest.outputHelp();
 
         // Verify content providers are displayed
         expect(testOutput.text).toContain('--content-provider <contentProvider>');
-        expect(testOutput.text).toContain('(choices: "gh", "text")');
+        expect(testOutput.text).toContain('(choices: "gh", "text", "file")');
 
         // Verify requirements providers are displayed
         expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
-        expect(testOutput.text).toContain('(choices: "jira-legacy", "text")');
+        expect(testOutput.text).toContain('(choices: "jira-legacy", "text", "file")');
     });
 
     it('Should call review with predefined requirements provider', async function() {
@@ -129,7 +167,7 @@ describe('reviewCommand',  function (){
 
         // Mock the gh provider
         const ghProvider = td.func();
-        td.when(ghProvider('123')).thenResolve('PR Diff Content');
+        td.when(ghProvider(td.matchers.anything(), '123')).thenResolve('PR Diff Content');
 
         // Replace the dynamic import with our mock
         await td.replaceEsm('../src/providers/ghPrDiffProvider.js', {

@@ -1,15 +1,10 @@
-import {
-    END,
-    MemorySaver,
-    MessagesAnnotation,
-    START,
-    StateGraph,
-} from "@langchain/langgraph";
-import { writeFileSync } from "node:fs";
+import {END, MemorySaver, MessagesAnnotation, START, StateGraph,} from "@langchain/langgraph";
+import {writeFileSync} from "node:fs";
 import * as path from "node:path";
-import { slothContext } from "../config.js";
-import { display, displayError, displaySuccess } from "../consoleUtils.js";
-import { fileSafeLocalDate, toFileSafeString, ProgressIndicator, extractLastMessageContent } from "../utils.js";
+import {slothContext} from "../config.js";
+import {display, displayError, displaySuccess} from "../consoleUtils.js";
+import {extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString} from "../utils.js";
+import {getCurrentDir} from "../systemUtils.js";
 
 /**
  * Ask a question and get an answer from the LLM
@@ -20,7 +15,7 @@ import { fileSafeLocalDate, toFileSafeString, ProgressIndicator, extractLastMess
 export async function askQuestion(source, preamble, content) {
     const progressIndicator = new ProgressIndicator("Thinking.");
     const outputContent = await askQuestionInner(slothContext, () => progressIndicator.indicate(), preamble, content);
-    const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
+    const filePath = path.resolve(getCurrentDir(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
     display(`\nwriting ${filePath}`);
     // TODO highlight LLM output with something like Prism.JS
     display('\n' + outputContent);
@@ -30,8 +25,8 @@ export async function askQuestion(source, preamble, content) {
     } catch (error) {
         displayError(`Failed to write answer to file: ${filePath}`);
         displayError(error.message);
-        // Consider if you want to exit or just log the error
-        // process.exit(1);
+        // TODO Consider if we want to exit or just log the error
+        // exit(1);
     }
 }
 

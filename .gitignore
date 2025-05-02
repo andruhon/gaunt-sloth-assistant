@@ -5,3 +5,5 @@
 .idea
 gaunt-sloth-assistant.iml
 /.gsloth.config.js
+/.gsloth.config.json
+/.gsloth.config.mjs

@@ -2,7 +2,7 @@ import {writeFileIfNotExistsWithMessages} from "../utils.js";
 import path from "node:path";
 import {displayWarning} from "../consoleUtils.js";
 
-const content = `/* eslint-disable */
+const jsContent = `/* eslint-disable */
 export async function configure(importFunction, global) {
     // this is going to be imported from sloth dependencies,
     // but can potentially be pulled from global node modules or from this project
@@ -19,8 +19,29 @@ export async function configure(importFunction, global) {
 }
 `;
 
+const jsonContent = `{
+  "llm": {
+    "type": "vertexai",
+    "model": "gemini-2.5-pro-exp-03-25",
+    "temperature": 0
+  }
+}`;
+
 export function init(configFileName, context) {
     path.join(context.currentDir, configFileName);
+
+    // Determine which content to use based on file extension
+    const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
+
     writeFileIfNotExistsWithMessages(configFileName, content);
     displayWarning("For Google VertexAI you likely to need to do `gcloud auth login` and `gcloud auth application-default login`.");
+}
+
+// Function to process JSON config and create VertexAI LLM instance
+export async function processJsonConfig(llmConfig) {
+    const vertexAi = await import('@langchain/google-vertexai');
+    return new vertexAi.ChatVertexAI({
+        ...llmConfig,
+        model: llmConfig.model || "gemini-pro"
+    });
 }

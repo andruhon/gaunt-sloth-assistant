@@ -1,5 +1,5 @@
 import { readInternalPreamble } from "../prompt.js";
-import { readFileFromCurrentDir } from "../utils.js";
+import { readMultipleFilesFromCurrentDir } from "../utils.js";
 import { initConfig } from "../config.js";
 
 /**
@@ -7,17 +7,18 @@ import { initConfig } from "../config.js";
  * @param {Object} program - The commander program
  * @param {Object} context - The context object
  */
+// eslint-disable-next-line no-unused-vars
 export function askCommand(program, context) {
     program.command('ask')
         .description('Ask a question')
         .argument('<message>', 'A message')
-        .option('-f, --file <file>', 'Input file. Content of this file will be added BEFORE the diff')
+        .option('-f, --file [files...]', 'Input files. Content of these files will be added BEFORE the message')
         // TODO add option consuming extra message as argument
         .action(async (message, options) => {
             const preamble = [readInternalPreamble()];
             const content = [message];
             if (options.file) {
-                content.push(readFileFromCurrentDir(options.file));
+                content.push(readMultipleFilesFromCurrentDir(options.file));
             }
             await initConfig();
             const { askQuestion } = await import('../modules/questionAnsweringModule.js');

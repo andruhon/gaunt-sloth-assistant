@@ -1,9 +1,20 @@
 import {writeFileIfNotExistsWithMessages} from "../utils.js";
 import path from "node:path";
 import {displayWarning} from "../consoleUtils.js";
-import {USER_PROJECT_CONFIG_FILE} from "../config.js";
+import { env } from "systemUtils.js";
 
-const content = `/* eslint-disable */
+// Function to process JSON config and create Anthropic LLM instance
+export async function processJsonConfig(llmConfig) {
+    const anthropic = await import('@langchain/anthropic');
+    // Use environment variable if available, otherwise use the config value
+    const anthropicApiKey = env.ANTHROPIC_API_KEY || llmConfig.apiKey;
+    return new anthropic.ChatAnthropic({
+        apiKey: anthropicApiKey,
+        model: llmConfig.model || "claude-3-5-sonnet-20241022"
+    });
+}
+
+const jsContent = `/* eslint-disable */
 export async function configure(importFunction, global) {
     // this is going to be imported from sloth dependencies,
     // but can potentially be pulled from global node modules or from this project
@@ -18,8 +29,20 @@ export async function configure(importFunction, global) {
 }
 `;
 
+const jsonContent = `{
+  "llm": {
+    "type": "anthropic",
+    "apiKey": "your-api-key-here",
+    "model": "claude-3-5-sonnet-20241022"
+  }
+}`;
+
 export function init(configFileName, context) {
     path.join(context.currentDir, configFileName);
+
+    // Determine which content to use based on file extension
+    const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
+
     writeFileIfNotExistsWithMessages(configFileName, content);
-    displayWarning(`You need to update your ${USER_PROJECT_CONFIG_FILE} to add your Anthropic API key.`);
+    displayWarning(`You need to update your ${configFileName} to add your Anthropic API key.`);
 }

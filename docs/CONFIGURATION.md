@@ -5,10 +5,13 @@ Proper preamble is a paramount for good inference.
 Check [.gsloth.preamble.review.md](../.gsloth.preamble.review.md) for example.
 
 Your project should have the following files in order for gsloth to function:
-- `.gsloth.config.js`
+- Configuration file (one of):
+  - `.gsloth.config.js` (JavaScript module)
+  - `.gsloth.config.json` (JSON file)
+  - `.gsloth.config.mjs` (JavaScript module with explicit module extension)
 - `.gsloth.preamble.review.md`
 
-> Gaunt Sloth currently only functions from the directory which has `.gsloth.config.js` and `.gsloth.preamble.review.md`.
+> Gaunt Sloth currently only functions from the directory which has one of the configuration files and `.gsloth.preamble.review.md`.
 > Global configuration to invoke gsloth anywhere is in [ROADMAP](../ROADMAP.md).
 
 ## Config initialization
@@ -28,16 +31,18 @@ gcloud auth application-default login
 cd ./your-project
 gsloth init anthropic
 ```
-Make sure you either define `ANTHROPIC_API_KEY` environment variable or edit `.gsloth.config.js` and set up your key.
+Make sure you either define `ANTHROPIC_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ### Groq
 ```shell
 cd ./your-project
 gsloth init groq
 ```
-Make sure you either define `GROQ_API_KEY` environment variable or edit `.gsloth.config.js` and set up your key.
+Make sure you either define `GROQ_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ## Examples of configuration for different providers 
+
+### JavaScript Configuration (.gsloth.config.js or .gsloth.config.mjs)
 
 **Example of .gsloth.config.js for Anthropic**
 ```javascript
@@ -68,6 +73,7 @@ export async function configure(importFunction, global) {
     return {
         llm: new vertexAi.ChatVertexAI({
             model: "gemini-2.5-pro-exp-03-25", // Consider checking for latest recommended model versions
+            // API Key from AI Studio should also work
             temperature: 0,
             //// Other parameters might be relevant depending on Vertex AI API updates.
             //// The project is not in the interface, but it is in documentation and it seems to work.
@@ -91,6 +97,43 @@ export async function configure(importFunction, global) {
             apiKey: process.env.GROQ_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
         })
     };
+}
+```
+
+### JSON Configuration (.gsloth.config.json)
+
+JSON configuration is simpler but less flexible than JavaScript configuration. It should directly contain the configuration object.
+
+**Example of .gsloth.config.json for Anthropic**
+```json
+{
+  "llm": {
+    "type": "anthropic",
+    "apiKey": "your-api-key-here",
+    "model": "claude-3-5-sonnet-20241022"
+  }
+}
+```
+
+**Example of .gsloth.config.json for VertexAI**
+```json
+{
+  "llm": {
+    "type": "vertexai",
+    "model": "gemini-2.5-pro-exp-03-25",
+    "temperature": 0
+  }
+}
+```
+
+**Example of .gsloth.config.json for Groq**
+```json
+{
+  "llm": {
+    "type": "groq",
+    "model": "deepseek-r1-distill-llama-70b",
+    "apiKey": "your-api-key-here"
+  }
 }
 ```
 

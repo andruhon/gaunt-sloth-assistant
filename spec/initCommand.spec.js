@@ -4,6 +4,7 @@ import * as td from 'testdouble';
 describe('initCommand', function (){
 
     beforeEach(async function() {
+        td.reset();
         // Create a mock for createProjectConfig
         this.createProjectConfig = td.function();
 
@@ -13,7 +14,6 @@ describe('initCommand', function (){
             availableDefaultConfigs: ['vertexai', 'anthropic', 'groq'],
             SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
             USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
-            USER_PROJECT_CONFIG_FILE: '.gsloth.config.js',
             slothContext: {
                 installDir: '/mock/install/dir',
                 currentDir: '/mock/current/dir',
@@ -43,7 +43,8 @@ describe('initCommand', function (){
 
         await initCommand(program, {});
 
-        const commandUnderTest = program.commands.find(c => c.name() == 'init');
+        const commandUnderTest = program.commands.find(c => c.name() === 'init');
+
         expect(commandUnderTest).toBeDefined();
         commandUnderTest.outputHelp();
 

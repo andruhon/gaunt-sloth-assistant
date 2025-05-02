@@ -1,33 +1,28 @@
-import {
-    END,
-    MemorySaver,
-    MessagesAnnotation,
-    START,
-    StateGraph,
-} from "@langchain/langgraph";
-import { writeFileSync } from "node:fs";
+import {END, MemorySaver, MessagesAnnotation, START, StateGraph,} from "@langchain/langgraph";
+import {writeFileSync} from "node:fs";
 import path from "node:path";
-import { initConfig, slothContext } from "../config.js";
-import { display, displayError, displaySuccess } from "../consoleUtils.js";
-import { fileSafeLocalDate, toFileSafeString, ProgressIndicator, extractLastMessageContent } from "../utils.js";
+import {slothContext} from "../config.js";
+import {display, displayDebug, displayError, displaySuccess} from "../consoleUtils.js";
+import {extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString} from "../utils.js";
+import {getCurrentDir, stdout} from "../systemUtils.js";
 
 export async function review(source, preamble, diff) {
     const progressIndicator = new ProgressIndicator("Reviewing.");
     const outputContent = await reviewInner(slothContext, () => progressIndicator.indicate(), preamble, diff);
-    const filePath = path.resolve(process.cwd(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
-    process.stdout.write("\n");
+    const filePath = path.resolve(getCurrentDir(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
+    stdout.write("\n");
     display(`writing ${filePath}`);
-    process.stdout.write("\n");
+    stdout.write("\n");
     // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
     display(outputContent);
     try {
         writeFileSync(filePath, outputContent);
         displaySuccess(`This report can be found in ${filePath}`);
     } catch (error) {
+        displayDebug(error);
         displayError(`Failed to write review to file: ${filePath}`);
-        displayError(error.message);
         // Consider if you want to exit or just log the error
-        // process.exit(1);
+        // exit(1);
     }
 }
 

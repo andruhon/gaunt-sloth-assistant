@@ -83,6 +83,12 @@ gsloth ask "which types of primitives are available in JavaScript?"
 gsloth ask "Please have a look at this file" -f index.js
 ```
 
+Multiple files may be provided as well
+
+```shell
+gsloth ask "Please have a look at these files" -f index.js test.js
+```
+
 ## Installation
 
 Tested with Node 22 LTS.
@@ -94,8 +100,8 @@ npm install gaunt-sloth-assistant -g
 
 ## Configuration
 
-> Gaunt Sloth currently only functions from the directory which has `.gsloth.config.js` and `.gsloth.preamble.review.md`.
-> Global configuration to invoke gsloth anywhere is in [ROADMAP](../ROADMAP.md).
+> Gaunt Sloth currently only functions from the directory which has a configuration file (`.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs`) and `.gsloth.preamble.review.md`.
+> Global configuration to invoke gsloth anywhere is in [ROADMAP](ROADMAP.md).
 
 Configuration can be created with `gsloth init [vendor]` command.
 Currently, vertexai, anthropic and groq can be configured with `gsloth init [vendor]`.
@@ -111,22 +117,23 @@ gcloud auth application-default login
 ```
 
 ### Anthropic
+
 ```shell
 cd ./your-project
 gsloth init anthropic
 ```
-Make sure you either define `ANTHROPIC_API_KEY` environment variable or edit `.gsloth.config.js` and set up your key.
+
+Make sure you either define `ANTHROPIC_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ### Groq
 ```shell
 cd ./your-project
 gsloth init groq
 ```
-Make sure you either define `GROQ_API_KEY` environment variable or edit `.gsloth.config.js` and set up your key.
+Make sure you either define `GROQ_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ## Building from repo
 See [DEVELOPMENT.md](./docs/DEVELOPMENT.md)
 
 ## License
 License is [MIT](https://opensource.org/license/mit). See [LICENSE](LICENSE)
-
