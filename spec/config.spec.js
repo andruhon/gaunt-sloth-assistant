@@ -108,7 +108,12 @@ describe('config', function () {
             // Function under test
             await initConfig();
 
-            expect(slothContext.config).toEqual(jsonConfig);
+            expect(slothContext.config).toEqual({
+                llm: {type: 'vertexai'},
+                contentProvider: 'file',
+                requirementsProvider: 'file',
+                commands: {pr: {contentProvider: 'gh'}}
+            });
 
             td.verify(ctx.consoleUtilsMock.displayWarning(
                 "Config module for vertexai does not have processJsonConfig function."
@@ -142,7 +147,12 @@ describe('config', function () {
             // Function under test
             await initConfig();
 
-            expect(slothContext.config).toEqual(mockConfig);
+            expect(slothContext.config).toEqual({
+                llm: {type: 'anthropic'},
+                contentProvider: 'file',
+                requirementsProvider: 'file',
+                commands: {pr: {contentProvider: 'gh'}}
+            });
             td.verify(ctx.consoleUtilsMock.displayDebug(
                 td.matchers.argThat((e) => String(e).includes("is not valid JSON")))
             );
@@ -179,7 +189,12 @@ describe('config', function () {
             // Function under test
             await initConfig();
 
-            expect(slothContext.config).toEqual(mockConfig);
+            expect(slothContext.config).toEqual({
+                llm: {type: 'groq'},
+                contentProvider: 'file',
+                requirementsProvider: 'file',
+                commands: {pr: {contentProvider: 'gh'}}
+            });
             td.verify(ctx.consoleUtilsMock.displayWarning(td.matchers.anything()), {times: 0});
             td.verify(ctx.consoleUtilsMock.displayDebug(td.matchers.anything()), {times: 0});
             td.verify(ctx.consoleUtilsMock.display(td.matchers.anything()), {times: 0});
@@ -263,7 +278,12 @@ describe('config', function () {
             // Function under test
             await tryJsonConfig(jsonConfig);
 
-            expect(slothContext.config).toEqual(jsonConfig);
+            expect(slothContext.config).toEqual({
+                llm: { type: 'invalid-type', model: 'test-model' },
+                contentProvider: 'file',
+                requirementsProvider: 'file',
+                commands: { pr: { contentProvider: 'gh' } }
+            });
 
             td.verify(ctx.consoleUtilsMock.displayError(
                 "Unsupported LLM type: invalid-type. Available types are: vertexai, anthropic, groq"
@@ -286,7 +306,12 @@ describe('config', function () {
 
             await tryJsonConfig(jsonConfig);
 
-            expect(slothContext.config).toEqual(jsonConfig);
+            expect(slothContext.config).toEqual({
+                llm: { type: 'vertexai', model: 'test-model' },
+                contentProvider: 'file',
+                requirementsProvider: 'file',
+                commands: { pr: { contentProvider: 'gh' } }
+            });
 
 
             td.verify(ctx.consoleUtilsMock.displayWarning(
@@ -328,10 +353,10 @@ describe('config', function () {
 
             td.verify(ctx.consoleUtilsMock.displayInfo(
                 td.matchers.contains("Setting up your project")
-            ), { times: 1 });
+            ), {times: 1});
             td.verify(ctx.consoleUtilsMock.displayInfo(
                 td.matchers.contains("Creating project config for vertexai")
-            ), { times: 1 });
+            ), {times: 1});
             td.verify(ctx.consoleUtilsMock.displayWarning(td.matchers.contains(
                 "Make sure you add as much detail as possible to your .gsloth.preamble.review.md."
             )));

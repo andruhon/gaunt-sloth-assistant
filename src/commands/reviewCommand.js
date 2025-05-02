@@ -9,7 +9,8 @@ import {displayError} from "../consoleUtils.js";
  */
 const REQUIREMENTS_PROVIDERS = {
     'jira-legacy': 'jiraIssueLegacyAccessTokenProvider.js',
-    'text': 'text.js'
+    'text': 'text.js',
+    'file': 'file.js'
 };
 
 /**
@@ -17,7 +18,8 @@ const REQUIREMENTS_PROVIDERS = {
  */
 const CONTENT_PROVIDERS = {
     'gh': 'ghPrDiffProvider.js',
-    'text': 'text.js'
+    'text': 'text.js',
+    'file': 'file.js'
 };
 
 export function reviewCommand(program, context) {
@@ -46,8 +48,12 @@ export function reviewCommand(program, context) {
             const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
             const content = [];
             const requirementsId = options.requirements;
-            const requirementsProvider = options.requirementsProvider ?? context.config?.requirementsProvider;
-            const contentProvider = options.contentProvider ?? context.config?.contentProvider;
+            const requirementsProvider = options.requirementsProvider
+                ?? context.config?.review?.requirementsProvider
+                ?? context.config?.requirementsProvider;
+            const contentProvider = options.contentProvider
+                ?? context.config?.review?.contentProvider
+                ?? context.config?.contentProvider;
 
             // TODO consider calling these in parallel
             const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
@@ -90,7 +96,9 @@ export function reviewCommand(program, context) {
 
             const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
             const content = [];
-            const requirementsProvider = options.requirementsProvider ?? context.config?.requirementsProvider;
+            const requirementsProvider = options.requirementsProvider
+                ?? context.config?.pr?.requirementsProvider
+                ?? context.config?.requirementsProvider;
 
             // Handle requirements
             const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);

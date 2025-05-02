@@ -13,6 +13,17 @@ export const USER_PROJECT_REVIEW_PREAMBLE = '.gsloth.preamble.review.md';
 
 export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'];
 
+export const DEFAULT_CONFIG = {
+    llm: undefined,
+    contentProvider: "file",
+    requirementsProvider: "file",
+    commands: {
+        pr: {
+            contentProvider: "gh"
+        }
+    }
+};
+
 export const slothContext = {
     /**
      * Directory where the sloth is installed.
@@ -24,7 +35,7 @@ export const slothContext = {
      * index.js should set up this.
      */
     currentDir: null,
-    config: null,
+    config: DEFAULT_CONFIG,
     stdin: '',
     session: {configurable: {thread_id: uuidv4()}}
 };
@@ -44,7 +55,7 @@ export async function initConfig() {
             if (jsonConfig.llm && jsonConfig.llm.type) {
                 await tryJsonConfig(jsonConfig);
             } else {
-                slothContext.config = {...jsonConfig};
+                slothContext.config = {...slothContext.config, ...jsonConfig};
             }
         } catch (e) {
             displayDebug(e)
@@ -63,7 +74,7 @@ export async function initConfig() {
             return importExternalFile(jsConfigPath)
                 .then((i) => i.configure((module) => import(module)))
                 .then((config) => {
-                    slothContext.config = {...config};
+                    slothContext.config = {...slothContext.config, ...config};
                 })
                 .catch((e) => {
                     displayDebug(e);
@@ -83,7 +94,7 @@ export async function initConfig() {
             return importExternalFile(mjsConfigPath)
                 .then((i) => i.configure((module) => import(module)))
                 .then((config) => {
-                    slothContext.config = {...config};
+                    slothContext.config = {...slothContext.config, ...config};
                 })
                 .catch((e) => {
                     displayDebug(e);
@@ -111,7 +122,7 @@ export async function tryJsonConfig(jsonConfig) {
     // Check if the LLM type is in availableDefaultConfigs
     if (!availableDefaultConfigs.includes(llmType)) {
         displayError(`Unsupported LLM type: ${llmType}. Available types are: ${availableDefaultConfigs.join(', ')}`);
-        slothContext.config = {...jsonConfig};
+        slothContext.config = {...slothContext.config, ...jsonConfig};
         return;
     }
 
@@ -133,7 +144,7 @@ export async function tryJsonConfig(jsonConfig) {
         displayError(`Error creating LLM instance for type ${llmType}.`);
     }
 
-    slothContext.config = {...jsonConfig};
+    slothContext.config = {...slothContext.config, ...jsonConfig};
 }
 
 export async function createProjectConfig(configType) {

@@ -10,11 +10,16 @@
       "baseUrl": "https://company.atlassian.net/rest/api/2/issue/"
     }
   },
-  "requirementsProvider": "jira-legacy",
+  "requirementsProvider": "file",
   "contentProvider": "somethingSpecial",
   "contentProviderConfig": {
     "somethingSpecial": {
       "test": "example"
+    }
+  },
+  "commands": {
+    "pr": {
+      "requirementsProvider": "jira-legacy"
     }
   }
 }

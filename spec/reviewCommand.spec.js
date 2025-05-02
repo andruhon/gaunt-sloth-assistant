@@ -69,11 +69,11 @@ describe('reviewCommand',  function (){
 
         // Verify content providers are displayed
         expect(testOutput.text).toContain('--content-provider <contentProvider>');
-        expect(testOutput.text).toContain('(choices: "gh", "text")');
+        expect(testOutput.text).toContain('(choices: "gh", "text", "file")');
 
         // Verify requirements providers are displayed
         expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
-        expect(testOutput.text).toContain('(choices: "jira-legacy", "text")');
+        expect(testOutput.text).toContain('(choices: "jira-legacy", "text", "file")');
     });
 
     it('Should call review with predefined requirements provider', async function() {
