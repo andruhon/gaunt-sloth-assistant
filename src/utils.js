@@ -155,3 +155,19 @@ export function importExternalFile(filePath) {
  * @returns {Promise} A promise that resolves to the imported module
  */
 export const importFromFilePath = importExternalFile;
+
+/**
+ * Reads multiple files from the current directory and returns their contents
+ * @param {string[]} fileNames - Array of file names to read
+ * @returns {string} Combined content of all files with proper formatting
+ */
+export function readMultipleFilesFromCurrentDir(fileNames) {
+    if (!Array.isArray(fileNames)) {
+        return readFileFromCurrentDir(fileNames);
+    }
+    
+    return fileNames.map(fileName => {
+        const content = readFileFromCurrentDir(fileName);
+        return `${fileName}:\n\`\`\`\n${content}\n\`\`\``;
+    }).join('\n\n');
+}

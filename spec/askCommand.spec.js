@@ -19,11 +19,13 @@ describe('askCommand', function (){
             initConfig: td.function()
         });
         const readFileFromCurrentDir = td.function();
+        const readMultipleFilesFromCurrentDir = td.function();
         const extractLastMessageContent = td.function();
         const toFileSafeString = td.function();
         const fileSafeLocalDate = td.function();
         this.utilsMock = {
             readFileFromCurrentDir,
+            readMultipleFilesFromCurrentDir,
             ProgressIndicator: td.constructor(),
             extractLastMessageContent,
             toFileSafeString,
@@ -31,6 +33,7 @@ describe('askCommand', function (){
         };
         await td.replaceEsm("../src/utils.js", this.utilsMock);
         td.when(this.utilsMock.readFileFromCurrentDir("test.file")).thenReturn("FILE CONTENT");
+        td.when(this.utilsMock.readMultipleFilesFromCurrentDir(["test.file"])).thenReturn("test.file:\n```\nFILE CONTENT\n```");
         td.when(this.questionAnsweringMock.askQuestion(
             'sloth-ASK',
             td.matchers.anything(),
@@ -51,7 +54,17 @@ describe('askCommand', function (){
         const program = new Command();
         await askCommand(program, {});
         await program.parseAsync(['na', 'na', 'ask', 'test message', '-f', 'test.file']);
-        td.verify(this.askQuestion('sloth-ASK', "INTERNAL PREAMBLE", "test message\nFILE CONTENT"));
+        td.verify(this.askQuestion('sloth-ASK', "INTERNAL PREAMBLE", "test message\ntest.file:\n```\nFILE CONTENT\n```"));
+    });
+
+    it('Should call askQuestion with message and multiple file contents', async function() {
+        const { askCommand } = await import("../src/commands/askCommand.js");
+        const program = new Command();
+        await askCommand(program, {});
+        td.when(this.utilsMock.readMultipleFilesFromCurrentDir(["test.file", "test2.file"]))
+            .thenReturn("test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```");
+        await program.parseAsync(['na', 'na', 'ask', 'test message', '-f', 'test.file', 'test2.file']);
+        td.verify(this.askQuestion('sloth-ASK', "INTERNAL PREAMBLE", "test message\ntest.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```"));
     });
 
     it('Should display help correctly', async function() {

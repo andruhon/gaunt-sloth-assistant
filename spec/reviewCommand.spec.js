@@ -20,11 +20,13 @@ describe('reviewCommand',  function (){
             initConfig: td.function()
         });
         const readFileFromCurrentDir = td.function();
+        const readMultipleFilesFromCurrentDir = td.function();
         const extractLastMessageContent = td.function();
         const toFileSafeString = td.function();
         const fileSafeLocalDate = td.function();
         this.utilsMock = {
             readFileFromCurrentDir,
+            readMultipleFilesFromCurrentDir,
             ProgressIndicator: td.constructor(),
             extractLastMessageContent,
             toFileSafeString,
@@ -32,6 +34,7 @@ describe('reviewCommand',  function (){
         };
         await td.replaceEsm("../src/utils.js", this.utilsMock);
         td.when(this.utilsMock.readFileFromCurrentDir("test.file")).thenReturn("FILE TO REVIEW");
+        td.when(this.utilsMock.readMultipleFilesFromCurrentDir(["test.file"])).thenReturn("test.file:\n```\nFILE TO REVIEW\n```");
         td.when(this.codeReviewMock.review(
             'sloth-DIFF-review',
             td.matchers.anything(),
@@ -48,6 +51,20 @@ describe('reviewCommand',  function (){
             'sloth-DIFF-review',
             "INTERNAL PREAMBLE\nPROJECT PREAMBLE",
             "test.file:\n```\nFILE TO REVIEW\n```")
+        );
+    });
+
+    it('Should call review with multiple file contents', async function() {
+        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const program = new Command()
+        await reviewCommand(program, {});
+        td.when(this.utilsMock.readMultipleFilesFromCurrentDir(["test.file", "test2.file"]))
+            .thenReturn("test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```");
+        await program.parseAsync(['na', 'na', 'review', '-f', 'test.file', 'test2.file']);
+        td.verify(this.review(
+            'sloth-DIFF-review',
+            "INTERNAL PREAMBLE\nPROJECT PREAMBLE",
+            "test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```")
         );
     });
 

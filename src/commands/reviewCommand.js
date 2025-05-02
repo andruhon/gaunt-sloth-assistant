@@ -1,7 +1,7 @@
 import {Option} from 'commander';
 import {USER_PROJECT_REVIEW_PREAMBLE} from "../config.js";
 import {readInternalPreamble, readPreamble} from "../prompt.js";
-import {readFileFromCurrentDir} from "../utils.js";
+import {readMultipleFilesFromCurrentDir} from "../utils.js";
 import {displayError} from "../consoleUtils.js";
 
 /**
@@ -29,8 +29,7 @@ export function reviewCommand(program, context) {
         .argument('[contentId]', 'Optional content ID argument to retrieve content with content provider')
         .alias('r')
         // TODO add provider to get results of git --no-pager diff
-        // TODO add support to include multiple files
-        .option('-f, --file <file>', 'Input file. Content of this file will be added BEFORE the diff, but after requirements')
+        .option('-f, --file [files...]', 'Input files. Content of these files will be added BEFORE the diff, but after requirements')
         // TODO figure out what to do with this (we probably want to merge it with requirementsId)?
         .option('-r, --requirements <requirements>', 'Requirements for this review.')
         .addOption(
@@ -67,7 +66,7 @@ export function reviewCommand(program, context) {
             }
 
             if (options.file) {
-                content.push(`${options.file}:\n\`\`\`\n${readFileFromCurrentDir(options.file)}\n\`\`\``);
+                content.push(readMultipleFilesFromCurrentDir(options.file));
             }
             if (context.stdin) {
                 content.push(context.stdin);
@@ -89,7 +88,7 @@ export function reviewCommand(program, context) {
             new Option('-p, --requirements-provider <requirementsProvider>', 'Requirements provider for this review.')
                 .choices(Object.keys(REQUIREMENTS_PROVIDERS))
         )
-        .option('-f, --file <file>', 'Input file. Content of this file will be added BEFORE the diff, but after requirements')
+        .option('-f, --file [files...]', 'Input files. Content of these files will be added BEFORE the diff, but after requirements')
         .action(async (prId, requirementsId, options) => {
             const {initConfig} = await import("../config.js");
             await initConfig();
@@ -107,7 +106,7 @@ export function reviewCommand(program, context) {
             }
 
             if (options.file) {
-                content.push(`${options.file}:\n\`\`\`\n${readFileFromCurrentDir(options.file)}\n\`\`\``);
+                content.push(readMultipleFilesFromCurrentDir(options.file));
             }
 
             // Get PR diff using the 'gh' provider
