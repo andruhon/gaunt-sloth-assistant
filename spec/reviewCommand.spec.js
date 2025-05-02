@@ -44,7 +44,7 @@ describe('reviewCommand',  function (){
 
     it('Should call review with file contents', async function() {
         const { reviewCommand } = await import("../src/commands/reviewCommand.js");
-        const program = new Command()
+        const program = new Command();
         await reviewCommand(program, {});
         await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
         td.verify(this.review(
@@ -56,7 +56,7 @@ describe('reviewCommand',  function (){
 
     it('Should call review with multiple file contents', async function() {
         const { reviewCommand } = await import("../src/commands/reviewCommand.js");
-        const program = new Command()
+        const program = new Command();
         await reviewCommand(program, {});
         td.when(this.utilsMock.readMultipleFilesFromCurrentDir(["test.file", "test2.file"]))
             .thenReturn("test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```");
@@ -81,6 +81,7 @@ describe('reviewCommand',  function (){
         await reviewCommand(program, {});
 
         const commandUnderTest = program.commands.find(c => c.name() === 'review');
+
         expect(commandUnderTest).toBeDefined();
         commandUnderTest.outputHelp();
 

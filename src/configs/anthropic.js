@@ -1,12 +1,13 @@
 import {writeFileIfNotExistsWithMessages} from "../utils.js";
 import path from "node:path";
 import {displayWarning} from "../consoleUtils.js";
+import { env } from "systemUtils.js";
 
 // Function to process JSON config and create Anthropic LLM instance
 export async function processJsonConfig(llmConfig) {
     const anthropic = await import('@langchain/anthropic');
     // Use environment variable if available, otherwise use the config value
-    const anthropicApiKey = process.env.ANTHROPIC_API_KEY || llmConfig.apiKey;
+    const anthropicApiKey = env.ANTHROPIC_API_KEY || llmConfig.apiKey;
     return new anthropic.ChatAnthropic({
         apiKey: anthropicApiKey,
         model: llmConfig.model || "claude-3-5-sonnet-20241022"

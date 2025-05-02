@@ -7,6 +7,7 @@ import { initConfig } from "../config.js";
  * @param {Object} program - The commander program
  * @param {Object} context - The context object
  */
+// eslint-disable-next-line no-unused-vars
 export function askCommand(program, context) {
     program.command('ask')
         .description('Ask a question')

@@ -6,7 +6,7 @@ import { exit } from "./systemUtils.js";
 
 export function readInternalPreamble() {
     const filePath = resolve(slothContext.installDir, SLOTH_INTERNAL_PREAMBLE);
-    return readFileSyncWithMessages(filePath, "Error reading internal preamble file at:")
+    return readFileSyncWithMessages(filePath, "Error reading internal preamble file at:");
 }
 
 export function readPreamble(preambleFilename) {
@@ -15,7 +15,7 @@ export function readPreamble(preambleFilename) {
         filePath,
         "Error reading preamble file at:",
         "Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options."
-    )
+    );
 }
 
 /**

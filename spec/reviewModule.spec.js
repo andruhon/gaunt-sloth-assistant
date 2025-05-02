@@ -21,6 +21,7 @@ describe('reviewModule', () => {
 
     // Test the function
     const output = await reviewInner(testContext, () => {}, 'test-preamble', 'test-diff');
+
     expect(output).toBe("First LLM message");
   });
 

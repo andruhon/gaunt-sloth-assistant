@@ -1,12 +1,13 @@
 import {writeFileIfNotExistsWithMessages} from "../utils.js";
 import path from "node:path";
 import {displayInfo, displayWarning} from "../consoleUtils.js";
+import {env} from "../systemUtils.js";
 
 // Function to process JSON config and create Groq LLM instance
 export async function processJsonConfig(llmConfig) {
     const groq = await import('@langchain/groq');
     // Use environment variable if available, otherwise use the config value
-    const groqApiKey = process.env.GROQ_API_KEY || llmConfig.apiKey;
+    const groqApiKey = env.GROQ_API_KEY || llmConfig.apiKey;
     return new groq.ChatGroq({
         apiKey: groqApiKey,
         model: llmConfig.model || "deepseek-r1-distill-llama-70b"

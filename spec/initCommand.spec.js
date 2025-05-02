@@ -44,6 +44,7 @@ describe('initCommand', function (){
         await initCommand(program, {});
 
         const commandUnderTest = program.commands.find(c => c.name() === 'init');
+
         expect(commandUnderTest).toBeDefined();
         commandUnderTest.outputHelp();
 

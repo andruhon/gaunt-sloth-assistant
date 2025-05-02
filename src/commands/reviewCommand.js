@@ -133,7 +133,7 @@ export function reviewCommand(program, context) {
             contentId,
             (context.config?.contentProviderConfig ?? {})[contentProvider],
             CONTENT_PROVIDERS
-        )
+        );
     }
 
     async function getFromProvider(provider, id, config, legitPredefinedProviders) {

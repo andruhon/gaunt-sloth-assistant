@@ -1,16 +1,10 @@
-import {
-    END,
-    MemorySaver,
-    MessagesAnnotation,
-    START,
-    StateGraph,
-} from "@langchain/langgraph";
-import { writeFileSync } from "node:fs";
+import {END, MemorySaver, MessagesAnnotation, START, StateGraph,} from "@langchain/langgraph";
+import {writeFileSync} from "node:fs";
 import path from "node:path";
-import { initConfig, slothContext } from "../config.js";
-import {displayDebug, display, displayError, displaySuccess} from "../consoleUtils.js";
-import { fileSafeLocalDate, toFileSafeString, ProgressIndicator, extractLastMessageContent } from "../utils.js";
-import { getCurrentDir, stdout, exit } from "../systemUtils.js";
+import {slothContext} from "../config.js";
+import {display, displayDebug, displayError, displaySuccess} from "../consoleUtils.js";
+import {extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString} from "../utils.js";
+import {getCurrentDir, stdout} from "../systemUtils.js";
 
 export async function review(source, preamble, diff) {
     const progressIndicator = new ProgressIndicator("Reviewing.");

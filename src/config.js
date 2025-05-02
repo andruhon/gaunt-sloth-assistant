@@ -1,9 +1,9 @@
 import path from "node:path/posix";
 import {v4 as uuidv4} from "uuid";
-import {displayDebug, display, displayError, displayInfo, displayWarning} from "./consoleUtils.js";
-import {writeFileIfNotExistsWithMessages, importExternalFile} from "./utils.js";
+import {displayDebug, displayError, displayInfo, displayWarning} from "./consoleUtils.js";
+import {importExternalFile, writeFileIfNotExistsWithMessages} from "./utils.js";
 import {existsSync, readFileSync} from "node:fs";
-import {getCurrentDir, exit} from "./systemUtils.js";
+import {exit, getCurrentDir} from "./systemUtils.js";
 
 export const USER_PROJECT_CONFIG_JS = '.gsloth.config.js';
 export const USER_PROJECT_CONFIG_JSON = '.gsloth.config.json';
@@ -58,7 +58,7 @@ export async function initConfig() {
                 slothContext.config = {...slothContext.config, ...jsonConfig};
             }
         } catch (e) {
-            displayDebug(e)
+            displayDebug(e);
             displayError(`Failed to read config from ${USER_PROJECT_CONFIG_JSON}, will try other formats.`);
             // Continue to try other formats
             return tryJsConfig();
@@ -150,7 +150,7 @@ export async function tryJsonConfig(jsonConfig) {
 export async function createProjectConfig(configType) {
     displayInfo(`Setting up your project\n`);
     writeProjectReviewPreamble();
-    displayWarning(`Make sure you add as much detail as possible to your ${USER_PROJECT_REVIEW_PREAMBLE}.\n`)
+    displayWarning(`Make sure you add as much detail as possible to your ${USER_PROJECT_REVIEW_PREAMBLE}.\n`);
 
     // Check if the config type is in availableDefaultConfigs
     if (!availableDefaultConfigs.includes(configType)) {

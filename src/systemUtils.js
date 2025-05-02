@@ -11,6 +11,7 @@ const innerState = {
     installDir: undefined
 };
 
+/* eslint-disable no-undef */
 // Process-related functions and objects
 export const getCurrentDir = () => process.cwd();
 export const getInstallDir = () => innerState.installDir;
@@ -28,3 +29,4 @@ export const error = (message) => console.error(message);
 export const warn = (message) => console.warn(message);
 export const info = (message) => console.info(message);
 export const debug = (message) => console.debug(message);
+/* eslint-enable no-undef */

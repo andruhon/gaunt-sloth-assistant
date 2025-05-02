@@ -2,7 +2,7 @@ import {display, displayWarning} from "../consoleUtils.js";
 
 export async function get(config, prId) {
     const issueData = await getJiraIssue(config, prId);
-    return `## ${prId} Requirements - ${issueData.fields?.summary}\n\n${issueData.fields?.description}`
+    return `## ${prId} Requirements - ${issueData.fields?.summary}\n\n${issueData.fields?.description}`;
 }
 
 /**
@@ -18,9 +18,9 @@ export async function get(config, prId) {
  * @throws {Error} Throws an error if the fetch fails, authentication is wrong, the issue is not found, or the response status is not OK.
  */
 async function getJiraIssue(config, jiraKey) {
-    const { username, token, baseUrl } = config;
+    const {username, token, baseUrl} = config;
     if (!jiraKey) {
-        displayWarning("No jiraKey provided, skipping Jira issue fetching.")
+        displayWarning("No jiraKey provided, skipping Jira issue fetching.");
         return "";
     }
 
@@ -49,33 +49,27 @@ async function getJiraIssue(config, jiraKey) {
 
     display(`Fetching Jira issue: ${apiUrl}`);
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: headers,
-        });
+    const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: headers,
+    });
 
-        // Check if the response status code indicates success (e.g., 200 OK)
-        if (!response.ok) {
-            let errorBody = 'Could not read error body.';
-            try {
-                // Attempt to get more details from the response body for non-OK statuses
-                errorBody = await response.text();
-            } catch (e) {
-                // Silent fail - we already have a generic error message
-            }
-            // Throw a detailed error including status, status text, URL, and body if available
-            throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}. URL: ${apiUrl}. Response Body: ${errorBody}`);
+    // Check if the response status code indicates success (e.g., 200 OK)
+    if (!response.ok) {
+        let errorBody = 'Could not read error body.';
+        try {
+            // Attempt to get more details from the response body for non-OK statuses
+            errorBody = await response.text();
+            // eslint-disable-next-line no-unused-vars
+        } catch (e) {
+            // Silent fail - we already have a generic error message
         }
-
-        // Parse the JSON response body if the request was successful
-        const issueData = await response.json();
-        return issueData;
-
-    } catch (error) {
-        // Handle network errors (e.g., DNS resolution failure, connection refused)
-        // or errors thrown from the non-OK response check above
-        // Re-throw the error so the caller can handle it appropriately
-        throw error;
+        // Throw a detailed error including status, status text, URL, and body if available
+        throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}. URL: ${apiUrl}. Response Body: ${errorBody}`);
     }
+
+    // Parse the JSON response body if the request was successful
+    const issueData = await response.json();
+    return issueData;
+
 }

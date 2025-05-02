@@ -73,8 +73,8 @@ describe('config', function () {
         td.when(ctx.urlMock.default.pathToFileURL('/mock/current/dir/.gsloth.config.js')).thenReturn(jsFileUrl);
         td.when(ctx.urlMock.default.pathToFileURL('/mock/current/dir/.gsloth.config.mjs')).thenReturn(mjsFileUrl);
 
-        td.when(ctx.systemUtilsMock.getInstallDir()).thenReturn("/mock/install/dir")
-        td.when(ctx.systemUtilsMock.getCurrentDir()).thenReturn("/mock/current/dir")
+        td.when(ctx.systemUtilsMock.getInstallDir()).thenReturn("/mock/install/dir");
+        td.when(ctx.systemUtilsMock.getCurrentDir()).thenReturn("/mock/current/dir");
 
         // Replace modules with mocks
         await td.replaceEsm('node:fs', ctx.fsMock);

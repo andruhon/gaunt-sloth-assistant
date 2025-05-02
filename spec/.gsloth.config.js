@@ -18,5 +18,5 @@ export async function configure(importFunction, global) {
                 test: 'example'
             }
         }
-    }
+    };
 }

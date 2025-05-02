@@ -80,6 +80,7 @@ describe('askCommand', function (){
         await askCommand(program, {});
 
         const commandUnderTest = program.commands.find(c => c.name() == 'ask');
+
         expect(commandUnderTest).toBeDefined();
         commandUnderTest.outputHelp();
 

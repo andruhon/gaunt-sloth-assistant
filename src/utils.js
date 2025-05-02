@@ -79,17 +79,17 @@ export async function spawnCommand(command, args, progressMessage, successMessag
         // TODO use progress indicator
         const out = {stdout: '', stderr: ''};
         const spawned = spawn(command, args);
-        spawned.stdout.on('data', async (stdoutChunk, dd) => {
+        spawned.stdout.on('data', async (stdoutChunk) => {
             display(progressMessage);
             out.stdout += stdoutChunk.toString();
         });
         spawned.stderr.on('data', (err) => {
             display(progressMessage);
             out.stderr += err.toString();
-        })
+        });
         spawned.on('error', (err) => {
             reject(err.toString());
-        })
+        });
         spawned.on('close', (code) => {
             if (code === 0) {
                 display(successMessage);
