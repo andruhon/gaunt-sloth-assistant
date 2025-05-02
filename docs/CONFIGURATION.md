@@ -73,6 +73,7 @@ export async function configure(importFunction, global) {
     return {
         llm: new vertexAi.ChatVertexAI({
             model: "gemini-2.5-pro-exp-03-25", // Consider checking for latest recommended model versions
+            // API Key from AI Studio should also work
             temperature: 0,
             //// Other parameters might be relevant depending on Vertex AI API updates.
             //// The project is not in the interface, but it is in documentation and it seems to work.
