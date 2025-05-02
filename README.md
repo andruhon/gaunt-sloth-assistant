@@ -1,5 +1,5 @@
 # Gaunt Sloth Assistant
-[![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml)
+[![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml)
 
 Simplistic AI assistant helping to do **code reviews from command line** based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
 
