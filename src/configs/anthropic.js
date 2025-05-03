@@ -1,7 +1,7 @@
 import {writeFileIfNotExistsWithMessages} from "../utils.js";
 import path from "node:path";
 import {displayWarning} from "../consoleUtils.js";
-import { env } from "systemUtils.js";
+import { env } from "../systemUtils.js";
 
 // Function to process JSON config and create Anthropic LLM instance
 export async function processJsonConfig(llmConfig) {
