@@ -1,9 +1,32 @@
 # Gaunt Sloth Assistant
 [![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml)
 
-Simplistic AI assistant helping to do **code reviews from command line** based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
+Gaunt Sloth Assistant is a Simplistic **command line AI assistant**
+for software developers,
+who wish to reduce cognitive load and time spending on **code reviews** (and pull request diff reviews).
 
-## Review PR (Pull Request)
+Based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
+
+## What GSloth does:
+- Reviews code;
+  - Suggests bug fixes;
+  - Explains provided code
+- Reviews Diffs provided with pipe (|);
+- Reviews Pull Requests (PRs);
+  - Fetches descriptions (requirements) from Jira;
+- Answers questions about provided code;
+- Writes code;
+- Saves all responses to the project directory;
+- Anything else you need, when combined with other command line tools.
+
+### To make GSloth work, you need an **API key** from some AI provider, such as:
+- Google Vertex AI;
+- Anthropic;
+- Groq.
+
+## Primary Functions:
+
+### Review PR (Pull Request)
 To review PR by PR number:
 
 First make sure the official [GitHub cli (gh)](https://cli.github.com/) is installed
@@ -21,13 +44,8 @@ Review providing markdown file with requirements and notes.
 ```shell
 gsloth pr 42 -f PROJ-1234.md
 ```
-Jira integration is in [ROADMAP](ROADMAP.md).
-Currently, the easiest ***meaningful*** way to add jira description is to
-open Jira XML with "Export XML" in jira and to copy `<description></description>` block.
-This block contains HTML and AI understands it easily 
-(most importantly it understand nested lists like ul>li).
 
-## JIRA Integration
+### JIRA Integration
 
 When JIRA integration is configured, the JIRA issue text can be included alongside the diff for review.
 The project review preamble can be modified to reject a pull request immediately
@@ -65,7 +83,7 @@ export async function configure(importFunction, global) {
 }
 ```
 
-## Review any Diff
+### Review any Diff
 ```shell
 git --no-pager diff origin/master...yourgitcommithash | gsloth review
 ```
@@ -76,7 +94,7 @@ Review current local changes:
 git --no-pager diff | gsloth review
 ```
 
-## Question Answering
+### Question Answering
 ```shell
 gsloth ask "which types of primitives are available in JavaScript?"
 ```
@@ -95,7 +113,7 @@ gsloth ask "Please have a look at these files" -f index.js test.js
 
 Tested with Node 22 LTS.
 
-## NPM
+### NPM
 ```shell
 npm install gaunt-sloth-assistant -g
 ```
@@ -133,6 +151,9 @@ cd ./your-project
 gsloth init groq
 ```
 Make sure you either define `GROQ_API_KEY` environment variable or edit your configuration file and set up your key.
+
+### Other AI providers
+Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md). 
 
 ## Building from repo
 See [DEVELOPMENT.md](./docs/DEVELOPMENT.md)
