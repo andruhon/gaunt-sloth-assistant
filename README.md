@@ -12,6 +12,7 @@ Based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
   - Suggests bug fixes;
   - Explains provided code
 - Reviews Diffs provided with pipe (|);
+  - You can ask GSloth to review your own code before committing.
 - Reviews Pull Requests (PRs);
   - Fetches descriptions (requirements) from Jira;
 - Answers questions about provided code;
