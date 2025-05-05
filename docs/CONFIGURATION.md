@@ -42,6 +42,43 @@ Make sure you either define `GROQ_API_KEY` environment variable or edit your con
 
 ## Examples of configuration for different providers 
 
+### JSON Configuration (.gsloth.config.json)
+
+JSON configuration is simpler but less flexible than JavaScript configuration. It should directly contain the configuration object.
+
+**Example of .gsloth.config.json for Anthropic**
+```json
+{
+  "llm": {
+    "type": "anthropic",
+    "apiKey": "your-api-key-here",
+    "model": "claude-3-5-sonnet-20241022"
+  }
+}
+```
+
+**Example of .gsloth.config.json for VertexAI**
+```json
+{
+  "llm": {
+    "type": "vertexai",
+    "model": "gemini-2.5-pro-exp-03-25",
+    "temperature": 0
+  }
+}
+```
+
+**Example of .gsloth.config.json for Groq**
+```json
+{
+  "llm": {
+    "type": "groq",
+    "model": "deepseek-r1-distill-llama-70b",
+    "apiKey": "your-api-key-here"
+  }
+}
+```
+
 ### JavaScript Configuration (.gsloth.config.js or .gsloth.config.mjs)
 
 **Example of .gsloth.config.js for Anthropic**
@@ -100,44 +137,54 @@ export async function configure(importFunction, global) {
 }
 ```
 
-### JSON Configuration (.gsloth.config.json)
-
-JSON configuration is simpler but less flexible than JavaScript configuration. It should directly contain the configuration object.
-
-**Example of .gsloth.config.json for Anthropic**
-```json
-{
-  "llm": {
-    "type": "anthropic",
-    "apiKey": "your-api-key-here",
-    "model": "claude-3-5-sonnet-20241022"
-  }
-}
-```
-
-**Example of .gsloth.config.json for VertexAI**
-```json
-{
-  "llm": {
-    "type": "vertexai",
-    "model": "gemini-2.5-pro-exp-03-25",
-    "temperature": 0
-  }
-}
-```
-
-**Example of .gsloth.config.json for Groq**
-```json
-{
-  "llm": {
-    "type": "groq",
-    "model": "deepseek-r1-distill-llama-70b",
-    "apiKey": "your-api-key-here"
-  }
-}
-```
-
-## Using other providers
+## Using other AI providers
 
 The configure function should simply return instance of langchain [chat model](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html).
 See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/) for more details.
+
+## Content providers
+
+### JIRA
+
+Example configuration setting up JIRA integration using a legacy API token for both `review` and `pr` commands.
+Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
+
+A legacy token can be acquired from `Atlassian Account Settings -> Security -> Create and manage API tokens`.
+
+JSON:
+
+```json
+{
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-exp-03-25"},
+  "requirementsProvider": "jira-legacy",
+  "requirementsProviderConfig": {
+    "jira-legacy": {
+      "username": "username@yourcompany.com",
+      "token": "YOUR_JIRA_LEGACY_TOKEN",
+      "baseUrl": "https://yourcompany.atlassian.net/rest/api/2/issue/"
+    }
+  }
+}
+```
+
+JavaScript:
+
+```javascript
+export async function configure(importFunction, global) {
+    const vertexAi = await importFunction('@langchain/google-vertexai');
+    return {
+        llm: new vertexAi.ChatVertexAI({
+            model: "gemini-2.5-pro-exp-03-25"
+        }),
+        requirementsProvider: 'jira-legacy',
+        requirementsProviderConfig: {
+            'jira-legacy': {
+                username: 'username@yourcompany.com', // Your Jira username/email
+                token: 'YOUR_JIRA_LEGACY_TOKEN',     // Replace with your real Jira API token
+                baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
+            }
+        }
+    }
+}
+```
+

@@ -60,27 +60,22 @@ supplies description of JIRA issue with number PP-4242:
 gsloth pr 42 PP-4242
 ```
 
-Example configuration setting up JIRA integration using a legacy API token.
+Example configuration setting up JIRA integration using a legacy API token for both `review` and `pr` commands.
 Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
 
 A legacy token can be acquired from `Atlassian Account Settings -> Security -> Create and manage API tokens`.
 
-```javascript
-export async function configure(importFunction, global) {
-    const vertexAi = await importFunction('@langchain/google-vertexai');
-    return {
-        llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-exp-03-25"
-        }),
-        requirementsProvider: 'jira-legacy',
-        requirementsProviderConfig: {
-            'jira-legacy': {
-                username: 'user.name@company.com', // Your Jira username/email
-                token: 'YOURSECRETTOKEN',     // Replace with your real Jira API token
-                baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
-            }
-        }
+```json
+{
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-exp-03-25"},
+  "requirementsProvider": "jira-legacy",
+  "requirementsProviderConfig": {
+    "jira-legacy": {
+      "username": "user@yourcompany.com",
+      "token": "YOUR_JIRA_LEGACY_TOKEN",
+      "baseUrl": "https://yourcompany.atlassian.net/rest/api/2/issue/"
     }
+  }
 }
 ```
 
