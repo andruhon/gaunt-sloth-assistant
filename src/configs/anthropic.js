@@ -10,7 +10,7 @@ export async function processJsonConfig(llmConfig) {
     const anthropicApiKey = env.ANTHROPIC_API_KEY || llmConfig.apiKey;
     return new anthropic.ChatAnthropic({
         apiKey: anthropicApiKey,
-        model: llmConfig.model || "claude-3-5-sonnet-20241022"
+        model: llmConfig.model || "claude-3-7-sonnet-20250219"
     });
 }
 
@@ -23,7 +23,7 @@ export async function configure(importFunction, global) {
     return {
         llm: new anthropic.ChatAnthropic({
             apiKey: process.env.ANTHROPIC_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
-            model: "claude-3-5-sonnet-20241022" // Don't forget to check new models availability.
+            model: "claude-3-7-sonnet-20250219" // Don't forget to check new models availability.
         })
     };
 }
@@ -33,7 +33,7 @@ const jsonContent = `{
   "llm": {
     "type": "anthropic",
     "apiKey": "your-api-key-here",
-    "model": "claude-3-5-sonnet-20241022"
+    "model": "claude-3-7-sonnet-20250219"
   }
 }`;
 
