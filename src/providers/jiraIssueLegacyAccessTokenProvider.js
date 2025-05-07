@@ -1,4 +1,5 @@
 import {display, displayWarning} from "../consoleUtils.js";
+import { env } from "../systemUtils.js";
 
 export async function get(config, prId) {
     const issueData = await getJiraIssue(config, prId);
@@ -18,15 +19,23 @@ export async function get(config, prId) {
  * @throws {Error} Throws an error if the fetch fails, authentication is wrong, the issue is not found, or the response status is not OK.
  */
 async function getJiraIssue(config, jiraKey) {
-    const {username, token, baseUrl} = config;
+    const {username, baseUrl} = config;
     if (!jiraKey) {
         displayWarning("No jiraKey provided, skipping Jira issue fetching.");
         return "";
     }
+    const token = env.JIRA_LEGACY_API_TOKEN ?? config?.token;
+
+    if (!token) {
+        throw new Error(
+            'Missing JIRA Legacy API token. ' +
+            'The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable or as "token" in config.'
+        );
+    }
 
     // Validate essential inputs
-    if (!username || !token || !baseUrl) {
-        throw new Error('Missing required parameters in config (username, token, baseUrl) or missing jiraKey.');
+    if (!username || !baseUrl) {
+        throw new Error('Missing required parameters in config: username or baseUrl');
     }
 
     // Ensure baseUrl doesn't end with a slash to avoid double slashes in the URL

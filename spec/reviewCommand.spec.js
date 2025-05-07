@@ -125,6 +125,46 @@ describe('reviewCommand',  function (){
         td.verify(this.review('sloth-DIFF-review', "INTERNAL PREAMBLE\nPROJECT PREAMBLE", "JIRA Requirements"));
     });
 
+    it('Should display meaningful error, when JIRA is enabled, but JIRA token is absent', async function() {
+        const testOutput = { text: '' };
+
+        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const program = new Command();
+        program.configureOutput({
+            writeOut: (str) => testOutput.text += str,
+            writeErr: (str) => testOutput.text += str
+        });
+
+        const context = {
+            config: {
+                requirementsProvider: 'jira-legacy',
+                requirementsProviderConfig: {
+                    'jira-legacy': {
+                        username: 'test-user',
+                        baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/'
+                    }
+                }
+            }
+        };
+
+        // Mock the jira provider
+        const jiraProvider = td.func();
+        td.when(jiraProvider(td.matchers.anything(), 'JIRA-123')).thenResolve('JIRA Requirements');
+
+
+        await reviewCommand(program, context);
+        try {
+            await program.parseAsync(['na', 'na', 'pr', 'content-id', 'JIRA-123']);
+        } catch (e) {
+            expect(e.message)
+                .toContain(
+                    'Missing JIRA Legacy API token. ' +
+                    'The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable ' +
+                    'or as "token" in config.'
+                );
+        }
+    });
+
     it('Should call review with predefined content provider', async function() {
         const { reviewCommand } = await import("../src/commands/reviewCommand.js");
         const program = new Command();
