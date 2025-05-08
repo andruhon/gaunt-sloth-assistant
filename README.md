@@ -67,7 +67,7 @@ A legacy token can be acquired from `Atlassian Account Settings -> Security -> C
 
 ```json
 {
-  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-exp-03-25"},
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
   "requirementsProvider": "jira-legacy",
   "requirementsProviderConfig": {
     "jira-legacy": {

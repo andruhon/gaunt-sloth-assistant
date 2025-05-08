@@ -62,7 +62,7 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
 {
   "llm": {
     "type": "vertexai",
-    "model": "gemini-2.5-pro-exp-03-25",
+    "model": "gemini-2.5-pro-preview-05-06",
     "temperature": 0
   }
 }
@@ -109,7 +109,7 @@ export async function configure(importFunction, global) {
     const vertexAi = await importFunction('@langchain/google-vertexai');
     return {
         llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-exp-03-25", // Consider checking for latest recommended model versions
+            model: "gemini-2.5-pro-preview-05-06", // Consider checking for latest recommended model versions
             // API Key from AI Studio should also work
             temperature: 0,
             //// Other parameters might be relevant depending on Vertex AI API updates.
@@ -155,7 +155,7 @@ JSON:
 
 ```json
 {
-  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-exp-03-25"},
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
   "requirementsProvider": "jira-legacy",
   "requirementsProviderConfig": {
     "jira-legacy": {
@@ -174,7 +174,7 @@ export async function configure(importFunction, global) {
     const vertexAi = await importFunction('@langchain/google-vertexai');
     return {
         llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-exp-03-25"
+            model: "gemini-2.5-pro-preview-05-06"
         }),
         requirementsProvider: 'jira-legacy',
         requirementsProviderConfig: {
@@ -187,4 +187,3 @@ export async function configure(importFunction, global) {
     }
 }
 ```
-
