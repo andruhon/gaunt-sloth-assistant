@@ -18,10 +18,10 @@ export function display(message) {
 }
 export function displayDebug(message) {
     // TODO make it controlled by config
-    if (message?.stack) {
-        systemDebug(message.stack);
+    if (message instanceof Error) {
+        systemDebug(message.stack || '');
     }
-    else {
+    else if (message !== undefined) {
         systemDebug(message);
     }
 }

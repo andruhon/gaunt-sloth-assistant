@@ -1,0 +1,24 @@
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import type { BaseMessage } from '@langchain/core/messages';
+export type Message = BaseMessage;
+export interface State {
+    messages: Message[];
+}
+export interface ModelResponse {
+    messages: Message[];
+}
+export interface ProgressCallback {
+    (): void;
+}
+export interface ReviewOptions {
+    source: string;
+    preamble: string;
+    diff: string;
+}
+export interface QuestionOptions {
+    source: string;
+    preamble: string;
+    content: string;
+}
+export declare function createSystemMessage(content: string): SystemMessage;
+export declare function createHumanMessage(content: string): HumanMessage;

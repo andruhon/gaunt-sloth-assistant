@@ -1,1 +1,2 @@
-export function processJsonConfig(llmConfig: any): Promise<import("@langchain/core/utils/testing").FakeListChatModel | null>;
+import type { LLMConfig } from "./types.js";
+export declare function processJsonConfig(llmConfig: LLMConfig): Promise<any>;

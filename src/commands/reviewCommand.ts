@@ -1,8 +1,9 @@
-import {Option} from 'commander';
-import {USER_PROJECT_REVIEW_PREAMBLE} from "../config.js";
-import {readInternalPreamble, readPreamble} from "../prompt.js";
-import {readMultipleFilesFromCurrentDir} from "../utils.js";
-import {displayError} from "../consoleUtils.js";
+import { Command, Option } from 'commander';
+import { USER_PROJECT_REVIEW_PREAMBLE } from "../config.js";
+import { readInternalPreamble, readPreamble } from "../prompt.js";
+import { readMultipleFilesFromCurrentDir } from "../utils.js";
+import { displayError } from "../consoleUtils.js";
+import type { SlothContext } from "../config.js";
 
 /**
  * Requirements providers. Expected to be in `.providers/` dir
@@ -11,7 +12,9 @@ const REQUIREMENTS_PROVIDERS = {
     'jira-legacy': 'jiraIssueLegacyAccessTokenProvider.js',
     'text': 'text.js',
     'file': 'file.js'
-};
+} as const;
+
+type RequirementsProviderType = keyof typeof REQUIREMENTS_PROVIDERS;
 
 /**
  * Content providers. Expected to be in `.providers/` dir
@@ -20,10 +23,24 @@ const CONTENT_PROVIDERS = {
     'gh': 'ghPrDiffProvider.js',
     'text': 'text.js',
     'file': 'file.js'
-};
+} as const;
 
-export function reviewCommand(program, context) {
+type ContentProviderType = keyof typeof CONTENT_PROVIDERS;
 
+interface ReviewCommandOptions {
+    file?: string[];
+    requirements?: string;
+    requirementsProvider?: RequirementsProviderType;
+    contentProvider?: ContentProviderType;
+    message?: string;
+}
+
+interface PrCommandOptions {
+    file?: string[];
+    requirementsProvider?: RequirementsProviderType;
+}
+
+export function reviewCommand(program: Command, context: SlothContext): void {
     program.command('review')
         .description('Review provided diff or other content')
         .argument('[contentId]', 'Optional content ID argument to retrieve content with content provider')
@@ -41,18 +58,18 @@ export function reviewCommand(program, context) {
                 .choices(Object.keys(CONTENT_PROVIDERS))
         )
         .option('-m, --message <message>', 'Extra message to provide just before the content')
-        .action(async (contentId, options) => {
-            const {initConfig} = await import("../config.js");
+        .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
+            const { initConfig } = await import("../config.js");
             await initConfig();
             const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
-            const content = [];
+            const content: string[] = [];
             const requirementsId = options.requirements;
             const requirementsProvider = options.requirementsProvider
-                ?? context.config?.review?.requirementsProvider
-                ?? context.config?.requirementsProvider;
+                ?? context.config?.review?.requirementsProvider as RequirementsProviderType | undefined
+                ?? context.config?.requirementsProvider as RequirementsProviderType | undefined;
             const contentProvider = options.contentProvider
-                ?? context.config?.review?.contentProvider
-                ?? context.config?.contentProvider;
+                ?? context.config?.review?.contentProvider as ContentProviderType | undefined
+                ?? context.config?.contentProvider as ContentProviderType | undefined;
 
             // TODO consider calling these in parallel
             const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
@@ -74,7 +91,7 @@ export function reviewCommand(program, context) {
             if (options.message) {
                 content.push(options.message);
             }
-            const {review} = await import('../modules/reviewModule.js');
+            const { review } = await import('../modules/reviewModule.js');
             await review('sloth-DIFF-review', preamble.join("\n"), content.join("\n"));
         });
 
@@ -89,15 +106,15 @@ export function reviewCommand(program, context) {
                 .choices(Object.keys(REQUIREMENTS_PROVIDERS))
         )
         .option('-f, --file [files...]', 'Input files. Content of these files will be added BEFORE the diff, but after requirements')
-        .action(async (prId, requirementsId, options) => {
-            const {initConfig} = await import("../config.js");
+        .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
+            const { initConfig } = await import("../config.js");
             await initConfig();
 
             const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
-            const content = [];
+            const content: string[] = [];
             const requirementsProvider = options.requirementsProvider
-                ?? context.config?.pr?.requirementsProvider
-                ?? context.config?.requirementsProvider;
+                ?? context.config?.pr?.requirementsProvider as RequirementsProviderType | undefined
+                ?? context.config?.requirementsProvider as RequirementsProviderType | undefined;
 
             // Handle requirements
             const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
@@ -111,44 +128,56 @@ export function reviewCommand(program, context) {
 
             // Get PR diff using the 'gh' provider
             const providerPath = `../providers/${CONTENT_PROVIDERS['gh']}`;
-            const {get} = await import(providerPath);
+            const { get } = await import(providerPath);
             content.push(await get(null, prId));
 
-            const {review} = await import('../modules/reviewModule.js');
+            const { review } = await import('../modules/reviewModule.js');
             await review(`sloth-PR-${prId}-review`, preamble.join("\n"), content.join("\n"));
         });
 
-    async function getRequirementsFromProvider(requirementsProvider, requirementsId) {
+    async function getRequirementsFromProvider(
+        requirementsProvider: RequirementsProviderType | undefined,
+        requirementsId: string | undefined
+    ): Promise<string> {
         return getFromProvider(
             requirementsProvider,
             requirementsId,
-            (context.config?.requirementsProviderConfig ?? {})[requirementsProvider],
+            (context.config?.requirementsProviderConfig ?? {})[requirementsProvider as string],
             REQUIREMENTS_PROVIDERS
         );
     }
 
-    async function getContentFromProvider(contentProvider, contentId) {
+    async function getContentFromProvider(
+        contentProvider: ContentProviderType | undefined,
+        contentId: string | undefined
+    ): Promise<string> {
         return getFromProvider(
             contentProvider,
             contentId,
-            (context.config?.contentProviderConfig ?? {})[contentProvider],
+            (context.config?.contentProviderConfig ?? {})[contentProvider as string],
             CONTENT_PROVIDERS
         );
     }
 
-    async function getFromProvider(provider, id, config, legitPredefinedProviders) {
+    async function getFromProvider(
+        provider: RequirementsProviderType | ContentProviderType | undefined,
+        id: string | undefined,
+        config: any,
+        legitPredefinedProviders: typeof REQUIREMENTS_PROVIDERS | typeof CONTENT_PROVIDERS
+    ): Promise<string> {
         if (typeof provider === 'string') {
             // Use one of the predefined providers
-            if (legitPredefinedProviders[provider]) {
-                const providerPath = `../providers/${legitPredefinedProviders[provider]}`;
-                const {get} = await import(providerPath);
+            if (legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]) {
+                const providerPath = `../providers/${legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]}`;
+                const { get } = await import(providerPath);
                 return await get(config, id);
             } else {
                 displayError(`Unknown provider: ${provider}. Continuing without it.`);
             }
         } else if (typeof provider === 'function') {
-            return await provider(id);
+            // Type assertion to handle function call
+            return await (provider as (id: string | undefined) => Promise<string>)(id);
         }
         return '';
     }
-}
+} 

@@ -10,5 +10,5 @@ export async function processJsonConfig(llmConfig) {
     displayWarning("Fake LLM requires 'responses' array in config");
     return null;
 }
-// No init function needed for fake LLM as it's only used for testing
+// No init function needed for fake LLM as it's only used for testing 
 //# sourceMappingURL=fake.js.map

@@ -2,10 +2,9 @@ import { Argument } from 'commander';
 import { availableDefaultConfigs, createProjectConfig } from "../config.js";
 /**
  * Adds the init command to the program
- * @param {Object} program - The commander program
- * @param {Object} context - The context object
+ * @param program - The commander program
+ * @param context - The context object
  */
-// eslint-disable-next-line no-unused-vars
 export function initCommand(program, context) {
     program.command('init')
         .description('Initialize the Gaunt Sloth Assistant in your project. This will write necessary config files.')

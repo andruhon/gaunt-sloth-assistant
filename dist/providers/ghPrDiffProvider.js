@@ -1,11 +1,16 @@
-import { spawnCommand } from "../utils.js";
 import { displayWarning } from "../consoleUtils.js";
+import { execAsync } from "../utils.js";
+/**
+ * Gets PR diff using gh command line tool
+ * @param _ config (unused in this provider)
+ * @param pr PR number
+ * @returns PR diff
+ */
 export async function get(_, pr) {
-    // TODO makes sense to check if gh is available and authenticated
     if (!pr) {
-        displayWarning("No PR provided, skipping PR diff fetching.");
-        return "";
+        displayWarning("No PR provided");
+        return null;
     }
-    return spawnCommand('gh', ['pr', 'diff', pr], 'Loading PR diff...', 'Loaded PR diff.');
+    return execAsync(`gh pr diff ${pr}`);
 }
 //# sourceMappingURL=ghPrDiffProvider.js.map

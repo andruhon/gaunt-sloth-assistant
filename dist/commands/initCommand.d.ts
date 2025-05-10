@@ -1,6 +1,8 @@
+import { Command } from 'commander';
+import type { SlothContext } from "../config.js";
 /**
  * Adds the init command to the program
- * @param {Object} program - The commander program
- * @param {Object} context - The context object
+ * @param program - The commander program
+ * @param context - The context object
  */
-export function initCommand(program: Object, context: Object): void;
+export declare function initCommand(program: Command, context: SlothContext): void;

@@ -1,10 +1,12 @@
-import {writeFileIfNotExistsWithMessages} from "../utils.js";
+import { writeFileIfNotExistsWithMessages } from "../utils.js";
 import path from "node:path";
-import {displayInfo, displayWarning} from "../consoleUtils.js";
-import {env} from "../systemUtils.js";
+import { displayInfo, displayWarning } from "../consoleUtils.js";
+import { env } from "../systemUtils.js";
+import type { SlothContext } from "../config.js";
+import type { LLMConfig, ConfigModule } from "./types.js";
 
 // Function to process JSON config and create Groq LLM instance
-export async function processJsonConfig(llmConfig) {
+export async function processJsonConfig(llmConfig: LLMConfig): Promise<any> {
     const groq = await import('@langchain/groq');
     // Use environment variable if available, otherwise use the config value
     const groqApiKey = env.GROQ_API_KEY || llmConfig.apiKey;
@@ -36,7 +38,10 @@ const jsonContent = `{
   }
 }`;
 
-export function init(configFileName, context) {
+export function init(configFileName: string, context: SlothContext): void {
+    if (!context.currentDir) {
+        throw new Error('Current directory not set');
+    }
     path.join(context.currentDir, configFileName);
 
     // Determine which content to use based on file extension
@@ -45,4 +50,4 @@ export function init(configFileName, context) {
     writeFileIfNotExistsWithMessages(configFileName, content);
     displayInfo(`You can define GROQ_API_KEY environment variable with your Groq API key and it will work with default model.`);
     displayWarning(`You need to edit your ${configFileName} to configure model.`);
-}
+} 

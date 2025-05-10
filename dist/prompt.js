@@ -4,12 +4,18 @@ import { readFileSyncWithMessages, spawnCommand } from "./utils.js";
 import { displayError } from "./consoleUtils.js";
 import { exit } from "./systemUtils.js";
 export function readInternalPreamble() {
+    if (!slothContext.installDir) {
+        throw new Error('Install directory not set');
+    }
     const filePath = resolve(slothContext.installDir, SLOTH_INTERNAL_PREAMBLE);
-    return readFileSyncWithMessages(filePath, "Error reading internal preamble file at:");
+    return readFileSyncWithMessages(filePath, "Error reading internal preamble file at:") || '';
 }
 export function readPreamble(preambleFilename) {
+    if (!slothContext.currentDir) {
+        throw new Error('Current directory not set');
+    }
     const filePath = resolve(slothContext.currentDir, preambleFilename);
-    return readFileSyncWithMessages(filePath, "Error reading preamble file at:", "Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options.");
+    return readFileSyncWithMessages(filePath, "Error reading preamble file at:", "Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options.") || '';
 }
 /**
  * This function expects https://cli.github.com/ to be installed and authenticated.
@@ -21,9 +27,10 @@ export async function getPrDiff(pr) {
         return await spawnCommand('gh', ['pr', 'diff', pr], 'Loading PR diff...', 'Loaded PR diff.');
     }
     catch (e) {
-        displayError(e.toString());
+        displayError(e instanceof Error ? e.toString() : String(e));
         displayError(`Failed to call "gh pr diff ${pr}", see message above for details.`);
         exit();
+        return ''; // This line will never be reached due to exit()
     }
 }
 //# sourceMappingURL=prompt.js.map

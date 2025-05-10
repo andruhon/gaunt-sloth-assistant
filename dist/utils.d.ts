@@ -1,38 +1,46 @@
-export function toFileSafeString(string: any): any;
-export function fileSafeLocalDate(): any;
-export function readFileFromCurrentDir(fileName: any): string | undefined;
-export function writeFileIfNotExistsWithMessages(filePath: any, content: any): void;
-export function readFileSyncWithMessages(filePath: any, errorMessageIn: any, noFileMessage: any): string | undefined;
-export function readStdin(program: any): Promise<any>;
-export function spawnCommand(command: any, args: any, progressMessage: any, successMessage: any): Promise<any>;
-export function getSlothVersion(): string;
-/**
- * Extracts the content of the last message from an LLM response
- * @param {Object} output - The output from the LLM containing messages
- * @returns {string} The content of the last message
- */
-export function extractLastMessageContent(output: Object): string;
-/**
- * Dynamically imports a module from a file path from the outside of the installation dir
- * @param {string} filePath - The path to the file to import
- * @returns {Promise} A promise that resolves to the imported module
- */
-export function importExternalFile(filePath: string): Promise<any>;
-/**
- * Reads multiple files from the current directory and returns their contents
- * @param {string[]} fileNames - Array of file names to read
- * @returns {string} Combined content of all files with proper formatting
- */
-export function readMultipleFilesFromCurrentDir(fileNames: string[]): string;
-export class ProgressIndicator {
-    constructor(initialMessage: any);
-    hasBeenCalled: boolean;
-    initialMessage: any;
+import { Command } from "commander";
+export declare function toFileSafeString(string: string): string;
+export declare function fileSafeLocalDate(): string;
+export declare function readFileFromCurrentDir(fileName: string): string;
+export declare function writeFileIfNotExistsWithMessages(filePath: string, content: string): void;
+export declare function readFileSyncWithMessages(filePath: string, errorMessageIn?: string, noFileMessage?: string): string;
+export declare function readStdin(program: Command): Promise<void>;
+export declare function spawnCommand(command: string, args: string[], progressMessage: string, successMessage: string): Promise<string>;
+export declare function getSlothVersion(): string;
+export declare class ProgressIndicator {
+    private hasBeenCalled;
+    private initialMessage;
+    constructor(initialMessage: string);
     indicate(): void;
 }
+interface LLMOutput {
+    messages: Array<{
+        content: string;
+    }>;
+}
+/**
+ * Extracts the content of the last message from an LLM response
+ * @param output - The output from the LLM containing messages
+ * @returns The content of the last message
+ */
+export declare function extractLastMessageContent(output: LLMOutput): string;
 /**
  * Dynamically imports a module from a file path from the outside of the installation dir
- * @param {string} filePath - The path to the file to import
- * @returns {Promise} A promise that resolves to the imported module
+ * @param filePath - The path to the file to import
+ * @returns A promise that resolves to the imported module
  */
-export function importFromFilePath(filePath: string): Promise<any>;
+export declare function importExternalFile(filePath: string): Promise<any>;
+/**
+ * Alias for importExternalFile for backward compatibility with tests
+ * @param filePath - The path to the file to import
+ * @returns A promise that resolves to the imported module
+ */
+export declare const importFromFilePath: typeof importExternalFile;
+/**
+ * Reads multiple files from the current directory and returns their contents
+ * @param fileNames - Array of file names to read
+ * @returns Combined content of all files with proper formatting
+ */
+export declare function readMultipleFilesFromCurrentDir(fileNames: string | string[]): string;
+export declare function execAsync(command: string): Promise<string>;
+export {};

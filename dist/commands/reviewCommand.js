@@ -117,6 +117,7 @@ export function reviewCommand(program, context) {
             }
         }
         else if (typeof provider === 'function') {
+            // Type assertion to handle function call
             return await provider(id);
         }
         return '';

@@ -3,10 +3,9 @@ import { readMultipleFilesFromCurrentDir } from "../utils.js";
 import { initConfig } from "../config.js";
 /**
  * Adds the ask command to the program
- * @param {Object} program - The commander program
- * @param {Object} context - The context object
+ * @param program - The commander program
+ * @param context - The context object
  */
-// eslint-disable-next-line no-unused-vars
 export function askCommand(program, context) {
     program.command('ask')
         .description('Ask a question')

@@ -1,15 +1,18 @@
-import {END, MemorySaver, MessagesAnnotation, START, StateGraph,} from "@langchain/langgraph";
-import {writeFileSync} from "node:fs";
+import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from "@langchain/langgraph";
+import { writeFileSync } from "node:fs";
 import path from "node:path";
-import {slothContext} from "../config.js";
-import {display, displayDebug, displayError, displaySuccess} from "../consoleUtils.js";
-import {extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString} from "../utils.js";
-import {getCurrentDir, stdout} from "../systemUtils.js";
+import { slothContext } from "../config.js";
+import { display, displayDebug, displayError, displaySuccess } from "../consoleUtils.js";
+import { extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "../utils.js";
+import { getCurrentDir, stdout } from "../systemUtils.js";
+import type { SlothContext } from "../config.js";
+import type { Message, State, ModelResponse, ProgressCallback, ReviewOptions } from "./types.js";
+import { createSystemMessage, createHumanMessage } from "./types.js";
 
-export async function review(source, preamble, diff) {
+export async function review(source: string, preamble: string, diff: string): Promise<void> {
     const progressIndicator = new ProgressIndicator("Reviewing.");
     const outputContent = await reviewInner(slothContext, () => progressIndicator.indicate(), preamble, diff);
-    const filePath = path.resolve(getCurrentDir(), toFileSafeString(source)+'-'+fileSafeLocalDate()+".md");
+    const filePath = path.resolve(getCurrentDir(), toFileSafeString(source) + '-' + fileSafeLocalDate() + ".md");
     stdout.write("\n");
     display(`writing ${filePath}`);
     stdout.write("\n");
@@ -19,16 +22,21 @@ export async function review(source, preamble, diff) {
         writeFileSync(filePath, outputContent);
         displaySuccess(`This report can be found in ${filePath}`);
     } catch (error) {
-        displayDebug(error);
+        displayDebug(error instanceof Error ? error : String(error));
         displayError(`Failed to write review to file: ${filePath}`);
         // Consider if you want to exit or just log the error
         // exit(1);
     }
 }
 
-export async function reviewInner(context, indicateProgress, preamble, diff) {
+export async function reviewInner(
+    context: SlothContext,
+    indicateProgress: ProgressCallback,
+    preamble: string,
+    diff: string
+): Promise<string> {
     // This node receives the current state (messages) and invokes the LLM
-    const callModel = async (state) => {
+    const callModel = async (state: State): Promise<ModelResponse> => {
         // state.messages will contain the list including the system preamble and user diff
         const response = await context.config.llm.invoke(state.messages);
         // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
@@ -50,21 +58,16 @@ export async function reviewInner(context, indicateProgress, preamble, diff) {
     const app = workflow.compile({ checkpointer: memory });
 
     // Construct the initial the messages including the preamble as a system message
-    const messages = [
-        {
-            role: "system",
-            content: preamble, // The preamble goes here
-        },
-        {
-            role: "user",
-            content: diff, // The code diff goes here
-        },
+    const messages: Message[] = [
+        createSystemMessage(preamble),
+        createHumanMessage(diff),
     ];
 
     indicateProgress();
     // TODO create proper progress indicator for async tasks.
     const progress = setInterval(() => indicateProgress(), 1000);
-    const output = await app.invoke({messages}, context.session);
+    const output = await app.invoke({ messages }, context.session);
     clearInterval(progress);
-    return extractLastMessageContent(output);
-}
+    const lastMessage = output.messages[output.messages.length - 1];
+    return typeof lastMessage.content === 'string' ? lastMessage.content : JSON.stringify(lastMessage.content);
+} 

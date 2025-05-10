@@ -1,7 +1,8 @@
+import type { ProviderConfig } from "./types.js";
 /**
  * Reads the text file from current dir
  * @param _ config (unused in this provider)
  * @param fileName
- * @returns {string} file contents
+ * @returns file contents
  */
-export function get(_: any, fileName: any): string;
+export declare function get(_: ProviderConfig | null, fileName: string | undefined): Promise<string | null>;

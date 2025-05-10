@@ -20,17 +20,18 @@ export const DEFAULT_CONFIG = {
         }
     }
 };
+// TODO this should be reworked to something more robust
 export const slothContext = {
     /**
      * Directory where the sloth is installed.
      * index.js should set up this.
      */
-    installDir: null,
+    // installDir // FIXME
     /**
      * Directory where the sloth has been invoked. Usually user's project root.
      * index.js should set up this.
      */
-    currentDir: null,
+    // currentDir // FIXME
     config: DEFAULT_CONFIG,
     stdin: '',
     session: { configurable: { thread_id: uuidv4() } }
@@ -45,7 +46,7 @@ export async function initConfig() {
         try {
             const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8'));
             // If the config has an LLM with a type, create the appropriate LLM instance
-            if (jsonConfig.llm && jsonConfig.llm.type) {
+            if (jsonConfig.llm && typeof jsonConfig.llm === 'object' && 'type' in jsonConfig.llm) {
                 await tryJsonConfig(jsonConfig);
             }
             else {
@@ -53,7 +54,7 @@ export async function initConfig() {
             }
         }
         catch (e) {
-            displayDebug(e);
+            displayDebug(e instanceof Error ? e : String(e));
             displayError(`Failed to read config from ${USER_PROJECT_CONFIG_JSON}, will try other formats.`);
             // Continue to try other formats
             return tryJsConfig();
@@ -67,12 +68,12 @@ export async function initConfig() {
     async function tryJsConfig() {
         if (existsSync(jsConfigPath)) {
             return importExternalFile(jsConfigPath)
-                .then((i) => i.configure((module) => import(module)))
+                .then((i) => i.configure(jsConfigPath))
                 .then((config) => {
                 slothContext.config = { ...slothContext.config, ...config };
             })
                 .catch((e) => {
-                displayDebug(e);
+                displayDebug(e instanceof Error ? e : String(e));
                 displayError(`Failed to read config from ${USER_PROJECT_CONFIG_JS}, will try other formats.`);
                 // Continue to try other formats
                 return tryMjsConfig();
@@ -87,12 +88,12 @@ export async function initConfig() {
     async function tryMjsConfig() {
         if (existsSync(mjsConfigPath)) {
             return importExternalFile(mjsConfigPath)
-                .then((i) => i.configure((module) => import(module)))
+                .then((i) => i.configure(mjsConfigPath))
                 .then((config) => {
                 slothContext.config = { ...slothContext.config, ...config };
             })
                 .catch((e) => {
-                displayDebug(e);
+                displayDebug(e instanceof Error ? e : String(e));
                 displayError(`Failed to read config from ${USER_PROJECT_CONFIG_MJS}.`);
                 displayError(`No valid configuration found. Please create a valid configuration file.`);
                 exit();
@@ -129,12 +130,12 @@ export async function tryJsonConfig(jsonConfig) {
             }
         }
         catch (importError) {
-            displayDebug(importError);
+            displayDebug(importError instanceof Error ? importError : String(importError));
             displayWarning(`Could not import config module for ${llmType}.`);
         }
     }
     catch (error) {
-        displayDebug(error);
+        displayDebug(error instanceof Error ? error : String(error));
         displayError(`Error creating LLM instance for type ${llmType}.`);
     }
     slothContext.config = { ...slothContext.config, ...jsonConfig };
@@ -154,7 +155,10 @@ export async function createProjectConfig(configType) {
     vendorConfig.init(USER_PROJECT_CONFIG_JSON, slothContext);
 }
 export function writeProjectReviewPreamble() {
-    let reviewPreamblePath = path.join(slothContext.currentDir, USER_PROJECT_REVIEW_PREAMBLE);
+    if (!slothContext.currentDir) {
+        throw new Error('Current directory not set');
+    }
+    const reviewPreamblePath = path.join(slothContext.currentDir, USER_PROJECT_REVIEW_PREAMBLE);
     writeFileIfNotExistsWithMessages(reviewPreamblePath, 'You are doing generic code review.\n'
         + ' Important! Please remind user to prepare proper AI preamble in'
         + USER_PROJECT_REVIEW_PREAMBLE

@@ -1,4 +1,8 @@
+import type { ProviderConfig } from "./types.js";
 /**
- * Simple provider returning text as it is.
+ * Returns the provided text as is
+ * @param _ config (unused in this provider)
+ * @param text Text to return
+ * @returns The provided text
  */
-export function get(_: any, text: any): Promise<any>;
+export declare function get(_: ProviderConfig | null, text: string | undefined): Promise<string | null>;

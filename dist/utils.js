@@ -46,13 +46,14 @@ export function readFileSyncWithMessages(filePath, errorMessageIn, noFileMessage
             displayError(error.message);
         }
         exit(1); // Exit gracefully after error
+        throw error; // This line will never be reached due to exit(1), but satisfies TypeScript
     }
 }
 export function readStdin(program) {
-    return new Promise((resolve) => {
+    return new Promise((resolvePromise) => {
         // TODO use progress indicator here
         if (stdin.isTTY) {
-            program.parseAsync().then(resolve);
+            program.parseAsync().then(() => resolvePromise());
         }
         else {
             // Support piping diff into gsloth
@@ -61,12 +62,13 @@ export function readStdin(program) {
                 const chunk = this.read();
                 stdout.write('.');
                 if (chunk !== null) {
-                    slothContext.stdin += chunk;
+                    const chunkStr = chunk.toString('utf8');
+                    slothContext.stdin = slothContext.stdin + chunkStr;
                 }
             });
             stdin.on('end', function () {
                 stdout.write('.\n');
-                program.parseAsync(argv).then(resolve);
+                program.parseAsync(argv).then(() => resolvePromise());
             });
         }
     });
@@ -106,6 +108,8 @@ export function getSlothVersion() {
     // return JSON.parse(projectJson).version;
 }
 export class ProgressIndicator {
+    hasBeenCalled;
+    initialMessage;
     constructor(initialMessage) {
         this.hasBeenCalled = false;
         this.initialMessage = initialMessage;
@@ -122,8 +126,8 @@ export class ProgressIndicator {
 }
 /**
  * Extracts the content of the last message from an LLM response
- * @param {Object} output - The output from the LLM containing messages
- * @returns {string} The content of the last message
+ * @param output - The output from the LLM containing messages
+ * @returns The content of the last message
  */
 export function extractLastMessageContent(output) {
     if (!output || !output.messages || !output.messages.length) {
@@ -133,23 +137,23 @@ export function extractLastMessageContent(output) {
 }
 /**
  * Dynamically imports a module from a file path from the outside of the installation dir
- * @param {string} filePath - The path to the file to import
- * @returns {Promise} A promise that resolves to the imported module
+ * @param filePath - The path to the file to import
+ * @returns A promise that resolves to the imported module
  */
 export function importExternalFile(filePath) {
-    const configFileUrl = url.pathToFileURL(filePath);
+    const configFileUrl = url.pathToFileURL(filePath).toString();
     return import(configFileUrl);
 }
 /**
  * Alias for importExternalFile for backward compatibility with tests
- * @param {string} filePath - The path to the file to import
- * @returns {Promise} A promise that resolves to the imported module
+ * @param filePath - The path to the file to import
+ * @returns A promise that resolves to the imported module
  */
 export const importFromFilePath = importExternalFile;
 /**
  * Reads multiple files from the current directory and returns their contents
- * @param {string[]} fileNames - Array of file names to read
- * @returns {string} Combined content of all files with proper formatting
+ * @param fileNames - Array of file names to read
+ * @returns Combined content of all files with proper formatting
  */
 export function readMultipleFilesFromCurrentDir(fileNames) {
     if (!Array.isArray(fileNames)) {
@@ -159,5 +163,21 @@ export function readMultipleFilesFromCurrentDir(fileNames) {
         const content = readFileFromCurrentDir(fileName);
         return `${fileName}:\n\`\`\`\n${content}\n\`\`\``;
     }).join('\n\n');
+}
+export async function execAsync(command) {
+    const { exec } = await import('node:child_process');
+    return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+                return;
+            }
+            if (stderr) {
+                reject(new Error(stderr));
+                return;
+            }
+            resolve(stdout.trim());
+        });
+    });
 }
 //# sourceMappingURL=utils.js.map

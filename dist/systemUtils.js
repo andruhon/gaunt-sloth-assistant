@@ -1,29 +1,33 @@
-/**
- * This file contains all system functions and objects that are globally available
- * but not imported directly, such as process.stdin, process.stdout, process.argv,
- * process.env, process.cwd(), process.exit(), etc.
- *
- * By centralizing these in one file, we improve testability and make it easier
- * to mock these dependencies in tests.
- */
+import { dirname, join } from 'node:path/posix';
+import { fileURLToPath } from "url";
 const innerState = {
     installDir: undefined
 };
-/* eslint-disable no-undef */
 // Process-related functions and objects
 export const getCurrentDir = () => process.cwd();
-export const getInstallDir = () => innerState.installDir;
+export const getInstallDir = () => {
+    if (innerState.installDir) {
+        return innerState.installDir;
+    }
+    throw new Error('Install directory not set');
+};
 export const exit = (code) => process.exit(code);
 export const stdin = process.stdin;
 export const stdout = process.stdout;
 export const argv = process.argv;
 export const env = process.env;
-export const setInstallDir = (dir) => innerState.installDir = dir;
+/**
+ * Provide the path to the entry point of the application.
+ * This is used to set the install directory.
+ */
+export const setEntryPoint = (indexJs) => {
+    innerState.installDir = join(dirname(fileURLToPath(indexJs)), '..');
+    console.log('installDir', innerState.installDir);
+};
 // Console-related functions
 export const log = (message) => console.log(message);
 export const error = (message) => console.error(message);
 export const warn = (message) => console.warn(message);
 export const info = (message) => console.info(message);
 export const debug = (message) => console.debug(message);
-/* eslint-enable no-undef */
 //# sourceMappingURL=systemUtils.js.map

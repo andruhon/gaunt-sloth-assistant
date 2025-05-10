@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { dirname } from 'node:path';
-import { fileURLToPath } from "url";
-import { reviewCommand } from "./commands/reviewCommand.js";
-import { initCommand } from "./commands/initCommand.js";
 import { askCommand } from "./commands/askCommand.js";
+import { initCommand } from "./commands/initCommand.js";
+import { reviewCommand } from "./commands/reviewCommand.js";
 import { slothContext } from "./config.js";
+import { getCurrentDir, getInstallDir, setEntryPoint } from "./systemUtils.js";
 import { getSlothVersion, readStdin } from "./utils.js";
-import { getCurrentDir, getInstallDir, setInstallDir } from "./systemUtils.js";
 const program = new Command();
-setInstallDir(dirname(fileURLToPath(import.meta.url)));
+setEntryPoint(import.meta.url);
 slothContext.currentDir = getCurrentDir();
 slothContext.installDir = getInstallDir();
 program

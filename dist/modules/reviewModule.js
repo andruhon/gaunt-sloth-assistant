@@ -1,10 +1,11 @@
-import { END, MemorySaver, MessagesAnnotation, START, StateGraph, } from "@langchain/langgraph";
+import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { slothContext } from "../config.js";
 import { display, displayDebug, displayError, displaySuccess } from "../consoleUtils.js";
-import { extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "../utils.js";
+import { fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "../utils.js";
 import { getCurrentDir, stdout } from "../systemUtils.js";
+import { createSystemMessage, createHumanMessage } from "./types.js";
 export async function review(source, preamble, diff) {
     const progressIndicator = new ProgressIndicator("Reviewing.");
     const outputContent = await reviewInner(slothContext, () => progressIndicator.indicate(), preamble, diff);
@@ -19,7 +20,7 @@ export async function review(source, preamble, diff) {
         displaySuccess(`This report can be found in ${filePath}`);
     }
     catch (error) {
-        displayDebug(error);
+        displayDebug(error instanceof Error ? error : String(error));
         displayError(`Failed to write review to file: ${filePath}`);
         // Consider if you want to exit or just log the error
         // exit(1);
@@ -46,20 +47,15 @@ export async function reviewInner(context, indicateProgress, preamble, diff) {
     const app = workflow.compile({ checkpointer: memory });
     // Construct the initial the messages including the preamble as a system message
     const messages = [
-        {
-            role: "system",
-            content: preamble, // The preamble goes here
-        },
-        {
-            role: "user",
-            content: diff, // The code diff goes here
-        },
+        createSystemMessage(preamble),
+        createHumanMessage(diff),
     ];
     indicateProgress();
     // TODO create proper progress indicator for async tasks.
     const progress = setInterval(() => indicateProgress(), 1000);
     const output = await app.invoke({ messages }, context.session);
     clearInterval(progress);
-    return extractLastMessageContent(output);
+    const lastMessage = output.messages[output.messages.length - 1];
+    return typeof lastMessage.content === 'string' ? lastMessage.content : JSON.stringify(lastMessage.content);
 }
 //# sourceMappingURL=reviewModule.js.map

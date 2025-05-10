@@ -25,6 +25,9 @@ const jsonContent = `{
   }
 }`;
 export function init(configFileName, context) {
+    if (!context.currentDir) {
+        throw new Error('Current directory not set');
+    }
     path.join(context.currentDir, configFileName);
     // Determine which content to use based on file extension
     const content = configFileName.endsWith('.json') ? jsonContent : jsContent;

@@ -1,15 +1,16 @@
-import { END, MemorySaver, MessagesAnnotation, START, StateGraph, } from "@langchain/langgraph";
+import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import * as path from "node:path";
 import { slothContext } from "../config.js";
 import { display, displayError, displaySuccess } from "../consoleUtils.js";
-import { extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "../utils.js";
+import { fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "../utils.js";
 import { getCurrentDir } from "../systemUtils.js";
+import { createSystemMessage, createHumanMessage } from "./types.js";
 /**
  * Ask a question and get an answer from the LLM
- * @param {string} source - The source of the question (used for file naming)
- * @param {string} preamble - The preamble to send to the LLM
- * @param {string} content - The content of the question
+ * @param source - The source of the question (used for file naming)
+ * @param preamble - The preamble to send to the LLM
+ * @param content - The content of the question
  */
 export async function askQuestion(source, preamble, content) {
     const progressIndicator = new ProgressIndicator("Thinking.");
@@ -24,18 +25,18 @@ export async function askQuestion(source, preamble, content) {
     }
     catch (error) {
         displayError(`Failed to write answer to file: ${filePath}`);
-        displayError(error.message);
+        displayError(error instanceof Error ? error.message : String(error));
         // TODO Consider if we want to exit or just log the error
         // exit(1);
     }
 }
 /**
  * Inner function to ask a question and get an answer from the LLM
- * @param {Object} context - The context object
- * @param {Function} indicateProgress - Function to indicate progress
- * @param {string} preamble - The preamble to send to the LLM
- * @param {string} content - The content of the question
- * @returns {string} The answer from the LLM
+ * @param context - The context object
+ * @param indicateProgress - Function to indicate progress
+ * @param preamble - The preamble to send to the LLM
+ * @param content - The content of the question
+ * @returns The answer from the LLM
  */
 export async function askQuestionInner(context, indicateProgress, preamble, content) {
     // This node receives the current state (messages) and invokes the LLM
@@ -58,20 +59,15 @@ export async function askQuestionInner(context, indicateProgress, preamble, cont
     const app = workflow.compile({ checkpointer: memory });
     // Construct the initial the messages including the preamble as a system message
     const messages = [
-        {
-            role: "system",
-            content: preamble, // The preamble goes here
-        },
-        {
-            role: "user",
-            content, // The question goes here
-        },
+        createSystemMessage(preamble),
+        createHumanMessage(content),
     ];
     indicateProgress();
     // TODO create proper progress indicator for async tasks.
     const progress = setInterval(() => indicateProgress(), 1000);
     const output = await app.invoke({ messages }, context.session);
     clearInterval(progress);
-    return extractLastMessageContent(output);
+    const lastMessage = output.messages[output.messages.length - 1];
+    return typeof lastMessage.content === 'string' ? lastMessage.content : JSON.stringify(lastMessage.content);
 }
 //# sourceMappingURL=questionAnsweringModule.js.map
