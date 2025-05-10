@@ -1,6 +1,5 @@
 import js from "@eslint/js";
 import { defineConfig } from "eslint/config";
-import jasmine from "eslint-plugin-jasmine"
 import globals from "globals";
 
 const { setTimeout, setInterval, clearInterval, Buffer, fetch } = globals.node;
@@ -25,14 +24,5 @@ export default defineConfig([
         fetch
       },
     },
-  },
-  {
-    files: ["spec/**/*.js"],
-    plugins: { jasmine },
-    extends: ["jasmine/recommended"],
-    rules: {
-      semi: "error",
-      "eol-last": "error",
-    }
-  },
+  }
 ]);

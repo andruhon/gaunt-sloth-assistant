@@ -6,6 +6,13 @@ import { reviewCommand } from "./commands/reviewCommand.js";
 import { slothContext } from "./config.js";
 import { getCurrentDir, getInstallDir, setEntryPoint } from "./systemUtils.js";
 import { getSlothVersion, readStdin } from "./utils.js";
+/*
+ TODO figure out how to deal with path aliases, tsc does not convert them itself
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+*/
 const program = new Command();
 setEntryPoint(import.meta.url);
 slothContext.currentDir = getCurrentDir();
