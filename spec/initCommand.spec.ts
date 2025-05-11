@@ -1,12 +1,12 @@
 import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SlothContext } from '../src/config.js';
+import type { SlothContext } from '#src/config.js';
 
 // Define mock at top level
 const createProjectConfig = vi.fn();
 
 // Mock the config module
-vi.mock('../src/config.js', () => ({
+vi.mock('#src/config.js', () => ({
     createProjectConfig,
     availableDefaultConfigs: ['vertexai', 'anthropic', 'groq'],
     SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',

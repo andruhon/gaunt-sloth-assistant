@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SlothConfig } from '../src/config.js';
+import type { SlothConfig } from '#src/config.js';
 
 // Define mocks at top level
 const consoleUtilsMock = {
@@ -87,7 +87,7 @@ describe('predefined AI provider configurations', () => {
             return '';
         });
 
-        const { initConfig, slothContext } = await import('../src/config.js');
+        const { initConfig, slothContext } = await import('#src/config.js');
 
         // Call the function
         await initConfig();

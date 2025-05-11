@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getCurrentDir } from '../src/systemUtils.js';
+import { getCurrentDir } from '#src/systemUtils.js';
+import type { SlothConfig } from '#src/config.js';
 
 // Mock declarations must be at the top level
 vi.mock('node:fs', () => ({
@@ -153,7 +154,7 @@ describe('config', () => {
     });
 
     describe('initConfig', () => {
-        it.only('Should load JSON config when it exists', async () => {
+        it('Should load JSON config when it exists', async () => {
             const jsonConfig = { llm: { type: 'vertexai' } };
 
             fsMock.existsSync.mockImplementation((path: string) => {

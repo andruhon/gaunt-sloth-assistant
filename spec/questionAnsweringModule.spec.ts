@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SlothContext } from '../src/config.js';
+import type { SlothContext } from '#src/config.js';
 
 // Define mocks at top level
 const mockLlmInvoke = vi.fn();
@@ -43,9 +43,9 @@ const progressIndicator = {
 // Set up static mocks
 vi.mock('node:fs', () => fsMock);
 vi.mock('node:path', () => pathMock);
-vi.mock('../src/consoleUtils.js', () => consoleUtilsMock);
-vi.mock('../src/utils.js', () => utilsMock);
-vi.mock('../src/config.js', () => ({
+vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils.js', () => utilsMock);
+vi.mock('#src/config.js', () => ({
     slothContext: context,
     SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
     USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
@@ -74,7 +74,7 @@ describe('questionAnsweringModule', () => {
         context.config.llm.invoke = mockLlmInvoke;
 
         // Import the module after setting up mocks
-        const { askQuestionInner } = await import("../src/modules/questionAnsweringModule.js");
+        const { askQuestionInner } = await import("#src/modules/questionAnsweringModule.js");
 
         // Call the function
         const result = await askQuestionInner(context, () => {}, 'Test Preamble', 'Test Content');
@@ -90,7 +90,7 @@ describe('questionAnsweringModule', () => {
         context.config.llm.invoke = mockLlmInvoke;
 
         // Import the module after setting up mocks
-        const { askQuestion } = await import("../src/modules/questionAnsweringModule.js");
+        const { askQuestion } = await import("#src/modules/questionAnsweringModule.js");
 
         // Call the function and wait for it to complete
         await askQuestion('sloth-ASK', 'Test Preamble', 'Test Content');
@@ -115,7 +115,7 @@ describe('questionAnsweringModule', () => {
         });
 
         // Import the module after setting up mocks
-        const { askQuestion } = await import("../src/modules/questionAnsweringModule.js");
+        const { askQuestion } = await import("#src/modules/questionAnsweringModule.js");
 
         // Call the function and wait for it to complete
         await askQuestion('sloth-ASK', 'Test Preamble', 'Test Content');

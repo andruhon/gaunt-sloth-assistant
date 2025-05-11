@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SlothContext } from '../src/config.js';
+import type { SlothContext } from '#src/config.js';
 
 // Define mocks at top level
 const review = vi.fn();

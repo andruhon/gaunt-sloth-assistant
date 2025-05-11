@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SlothContext } from '../src/config.js';
+import type { SlothContext } from '#src/config.js';
 
 // Use vi.hoisted() to ensure ctx is available during mock setup
 const ctx = vi.hoisted(() => ({
