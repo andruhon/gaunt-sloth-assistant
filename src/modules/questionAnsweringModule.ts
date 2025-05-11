@@ -1,13 +1,12 @@
 import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import * as path from "node:path";
-import { slothContext } from "../config.js";
-import { display, displayError, displaySuccess } from "../consoleUtils.js";
-import { extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "../utils.js";
-import { getCurrentDir } from "../systemUtils.js";
-import type { SlothContext } from "../config.js";
-import type { Message, State, ModelResponse, ProgressCallback, QuestionOptions } from "./types.js";
-import { createSystemMessage, createHumanMessage } from "./types.js";
+import { slothContext } from "#src/config.js";
+import { display, displayError, displaySuccess } from "#src/consoleUtils.js";
+import { createHumanMessage, createSystemMessage, fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "#src/utils.js";
+import { getCurrentDir } from "#src/systemUtils.js";
+import type { SlothContext } from "#src/config.js";
+import type { Message, State, ModelResponse, ProgressCallback } from "#src/modules/types.js";
 
 /**
  * Ask a question and get an answer from the LLM

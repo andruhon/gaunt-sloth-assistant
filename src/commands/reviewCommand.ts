@@ -1,9 +1,9 @@
 import { Command, Option } from 'commander';
-import { USER_PROJECT_REVIEW_PREAMBLE } from "../config.js";
-import { readInternalPreamble, readPreamble } from "../prompt.js";
-import { readMultipleFilesFromCurrentDir } from "../utils.js";
-import { displayError } from "../consoleUtils.js";
-import type { SlothContext } from "../config.js";
+import { USER_PROJECT_REVIEW_PREAMBLE } from "#src/config.js";
+import { readInternalPreamble, readPreamble } from "#src/prompt.js";
+import { readMultipleFilesFromCurrentDir } from "#src/utils.js";
+import { displayError } from "#src/consoleUtils.js";
+import type { SlothContext } from "#src/config.js";
 
 /**
  * Requirements providers. Expected to be in `.providers/` dir

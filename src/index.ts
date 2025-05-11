@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { askCommand } from "#src/commands/askCommand.js";
-import { initCommand } from "./commands/initCommand.js";
-import { reviewCommand } from "./commands/reviewCommand.js";
-import type { SlothContext } from './config.js';
-import { slothContext } from "./config.js";
-import { getCurrentDir, getInstallDir, setEntryPoint } from "./systemUtils.js";
-import { getSlothVersion, readStdin } from "./utils.js";
+import { initCommand } from "#src/commands/initCommand.js";
+import { reviewCommand } from "#src/commands/reviewCommand.js";
+import type { SlothContext } from '#src/config.js';
+import { slothContext } from "#src/config.js";
+import { getCurrentDir, getInstallDir, setEntryPoint } from "#src/systemUtils.js";
+import { getSlothVersion, readStdin } from "#src/utils.js";
 
 /*
  TODO figure out how to deal with path aliases, tsc does not convert them itself

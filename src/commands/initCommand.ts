@@ -1,6 +1,6 @@
 import { Argument, Command } from 'commander';
-import { availableDefaultConfigs, createProjectConfig } from "../config.js";
-import type { SlothContext, ConfigType } from "../config.js";
+import { availableDefaultConfigs, createProjectConfig } from "#src/config.js";
+import type { SlothContext, ConfigType } from "#src/config.js";
 
 /**
  * Adds the init command to the program

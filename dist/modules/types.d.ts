@@ -1,4 +1,3 @@
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import type { BaseMessage } from '@langchain/core/messages';
 export type Message = BaseMessage;
 export interface State {
@@ -20,5 +19,3 @@ export interface QuestionOptions {
     preamble: string;
     content: string;
 }
-export declare function createSystemMessage(content: string): SystemMessage;
-export declare function createHumanMessage(content: string): HumanMessage;

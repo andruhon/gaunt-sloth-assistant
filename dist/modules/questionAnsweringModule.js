@@ -1,11 +1,10 @@
 import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import * as path from "node:path";
-import { slothContext } from "../config.js";
-import { display, displayError, displaySuccess } from "../consoleUtils.js";
-import { fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "../utils.js";
-import { getCurrentDir } from "../systemUtils.js";
-import { createSystemMessage, createHumanMessage } from "./types.js";
+import { slothContext } from "#src/config.js";
+import { display, displayError, displaySuccess } from "#src/consoleUtils.js";
+import { createHumanMessage, createSystemMessage, fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "#src/utils.js";
+import { getCurrentDir } from "#src/systemUtils.js";
 /**
  * Ask a question and get an answer from the LLM
  * @param source - The source of the question (used for file naming)

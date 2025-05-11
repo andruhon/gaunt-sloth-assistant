@@ -1,5 +1,3 @@
-import type { SlothContext } from '../config.js';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import type { BaseMessage } from '@langchain/core/messages';
 
 export type Message = BaseMessage;
@@ -27,11 +25,3 @@ export interface QuestionOptions {
     preamble: string;
     content: string;
 }
-
-export function createSystemMessage(content: string): SystemMessage {
-    return new SystemMessage(content);
-}
-
-export function createHumanMessage(content: string): HumanMessage {
-    return new HumanMessage(content);
-} 

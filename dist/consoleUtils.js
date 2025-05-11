@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { debug as systemDebug, error as systemError, log } from './systemUtils.js';
+import { debug as systemDebug, error as systemError, log } from '#src/systemUtils.js';
 // TODO it seems like commander supports coloured output, maybe dependency to chalk can be removed
 export function displayError(message) {
     systemError(chalk.red(message));

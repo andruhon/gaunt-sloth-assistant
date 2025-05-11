@@ -1,4 +1,4 @@
-import { displayError, displayWarning } from "../consoleUtils.js";
+import { displayError, displayWarning } from "#src/consoleUtils.js";
 /**
  * Gets Jira issue using Atlassian REST API v2
  * @param config Jira configuration

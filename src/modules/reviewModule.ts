@@ -1,13 +1,13 @@
 import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { slothContext } from "../config.js";
-import { display, displayDebug, displayError, displaySuccess } from "../consoleUtils.js";
-import { extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "../utils.js";
-import { getCurrentDir, stdout } from "../systemUtils.js";
-import type { SlothContext } from "../config.js";
-import type { Message, State, ModelResponse, ProgressCallback, ReviewOptions } from "./types.js";
-import { createSystemMessage, createHumanMessage } from "./types.js";
+import { slothContext } from "#src/config.js";
+import { display, displayDebug, displayError, displaySuccess } from "#src/consoleUtils.js";
+import { extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "#src/utils.js";
+import { getCurrentDir, stdout } from "#src/systemUtils.js";
+import type { SlothContext } from "#src/config.js";
+import type { Message, State, ModelResponse, ProgressCallback, ReviewOptions } from "#src/modules/types.js";
+import { createSystemMessage, createHumanMessage } from "#src/utils.js";
 
 export async function review(source: string, preamble: string, diff: string): Promise<void> {
     const progressIndicator = new ProgressIndicator("Reviewing.");

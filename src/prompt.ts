@@ -1,8 +1,8 @@
 import { resolve } from "node:path";
-import { SLOTH_INTERNAL_PREAMBLE, slothContext } from "./config.js";
-import { readFileSyncWithMessages, spawnCommand } from "./utils.js";
-import { displayError } from "./consoleUtils.js";
-import { exit } from "./systemUtils.js";
+import { SLOTH_INTERNAL_PREAMBLE, slothContext } from "#src/config.js";
+import { readFileSyncWithMessages, spawnCommand } from "#src/utils.js";
+import { displayError } from "#src/consoleUtils.js";
+import { exit } from "#src/systemUtils.js";
 
 export function readInternalPreamble(): string {
     if (!slothContext.installDir) {

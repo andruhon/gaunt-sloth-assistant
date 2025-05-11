@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
-import { slothContext } from "../config.js";
-import { display } from "../consoleUtils.js";
-import { readFileSyncWithMessages } from "../utils.js";
+import { slothContext } from "#src/config.js";
+import { display } from "#src/consoleUtils.js";
+import { readFileSyncWithMessages } from "#src/utils.js";
 import type { ProviderConfig } from "./types.js";
 
 /**

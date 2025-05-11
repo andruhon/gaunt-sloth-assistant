@@ -1,4 +1,4 @@
-import { displayError, displayWarning } from "../consoleUtils.js";
+import { displayError, displayWarning } from "#src/consoleUtils.js";
 import type { JiraConfig } from "./types.js";
 
 interface JiraIssueResponse {

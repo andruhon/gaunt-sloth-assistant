@@ -1,5 +1,5 @@
-import { displayWarning } from "../consoleUtils.js";
-import { execAsync } from "../utils.js";
+import { displayWarning } from "#src/consoleUtils.js";
+import { execAsync } from "#src/utils.js";
 /**
  * Gets PR diff using gh command line tool
  * @param _ config (unused in this provider)

@@ -1,10 +1,11 @@
-import { display, displayError, displaySuccess, displayWarning } from "./consoleUtils.js";
+import { display, displayError, displaySuccess, displayWarning } from "#src/consoleUtils.js";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { slothContext } from "./config.js";
+import { slothContext } from "#src/config.js";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
-import { exit, stdin, stdout, argv } from "./systemUtils.js";
+import { exit, stdin, stdout, argv } from "#src/systemUtils.js";
 import url from "node:url";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 export function toFileSafeString(string) {
     return string.replace(/[^A-Za-z0-9]/g, '-');
 }
@@ -179,5 +180,11 @@ export async function execAsync(command) {
             resolve(stdout.trim());
         });
     });
+}
+export function createSystemMessage(content) {
+    return new SystemMessage(content);
+}
+export function createHumanMessage(content) {
+    return new HumanMessage(content);
 }
 //# sourceMappingURL=utils.js.map

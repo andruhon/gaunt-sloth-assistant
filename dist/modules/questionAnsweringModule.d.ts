@@ -1,5 +1,5 @@
-import type { SlothContext } from "../config.js";
-import type { ProgressCallback } from "./types.js";
+import type { SlothContext } from "#src/config.js";
+import type { ProgressCallback } from "#src/modules/types.js";
 /**
  * Ask a question and get an answer from the LLM
  * @param source - The source of the question (used for file naming)

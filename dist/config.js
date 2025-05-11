@@ -1,9 +1,9 @@
 import path from "node:path/posix";
 import { v4 as uuidv4 } from "uuid";
-import { displayDebug, displayError, displayInfo, displayWarning } from "./consoleUtils.js";
-import { importExternalFile, writeFileIfNotExistsWithMessages } from "./utils.js";
+import { displayDebug, displayError, displayInfo, displayWarning } from "#src/consoleUtils.js";
+import { importExternalFile, writeFileIfNotExistsWithMessages } from "#src/utils.js";
 import { existsSync, readFileSync } from "node:fs";
-import { exit, getCurrentDir } from "./systemUtils.js";
+import { exit, getCurrentDir } from "#src/systemUtils.js";
 export const USER_PROJECT_CONFIG_JS = '.gsloth.config.js';
 export const USER_PROJECT_CONFIG_JSON = '.gsloth.config.json';
 export const USER_PROJECT_CONFIG_MJS = '.gsloth.config.mjs';

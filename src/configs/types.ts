@@ -1,4 +1,4 @@
-import type { SlothContext } from '../config.js';
+import type { SlothContext } from '#src/config.js';
 
 export interface LLMConfig {
     type: string;

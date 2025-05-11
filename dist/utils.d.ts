@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 export declare function toFileSafeString(string: string): string;
 export declare function fileSafeLocalDate(): string;
 export declare function readFileFromCurrentDir(fileName: string): string;
@@ -43,4 +44,6 @@ export declare const importFromFilePath: typeof importExternalFile;
  */
 export declare function readMultipleFilesFromCurrentDir(fileNames: string | string[]): string;
 export declare function execAsync(command: string): Promise<string>;
+export declare function createSystemMessage(content: string): SystemMessage;
+export declare function createHumanMessage(content: string): HumanMessage;
 export {};

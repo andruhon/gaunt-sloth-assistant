@@ -1,5 +1,5 @@
 import { Argument } from 'commander';
-import { availableDefaultConfigs, createProjectConfig } from "../config.js";
+import { availableDefaultConfigs, createProjectConfig } from "#src/config.js";
 /**
  * Adds the init command to the program
  * @param program - The commander program
