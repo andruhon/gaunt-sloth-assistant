@@ -110,10 +110,10 @@ export async function initConfig() {
 }
 // Process JSON LLM config by creating the appropriate LLM instance
 export async function tryJsonConfig(jsonConfig) {
-    const llmConfig = jsonConfig.llm;
-    const llmType = llmConfig.type.toLowerCase();
+    const llmConfig = jsonConfig?.llm;
+    const llmType = llmConfig?.type?.toLowerCase();
     // Check if the LLM type is in availableDefaultConfigs
-    if (!availableDefaultConfigs.includes(llmType)) {
+    if (!llmType || !availableDefaultConfigs.includes(llmType)) {
         displayError(`Unsupported LLM type: ${llmType}. Available types are: ${availableDefaultConfigs.join(', ')}`);
         slothContext.config = { ...slothContext.config, ...jsonConfig };
         return;

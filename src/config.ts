@@ -82,9 +82,8 @@ export async function initConfig(): Promise<void> {
 
     // Try loading JSON config file first
     if (existsSync(jsonConfigPath)) {
-        try {
+        try {            
             const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as Partial<SlothConfig>;
-
             // If the config has an LLM with a type, create the appropriate LLM instance
             if (jsonConfig.llm && typeof jsonConfig.llm === 'object' && 'type' in jsonConfig.llm) {
                 await tryJsonConfig(jsonConfig);
@@ -157,11 +156,11 @@ interface LLMConfig {
 
 // Process JSON LLM config by creating the appropriate LLM instance
 export async function tryJsonConfig(jsonConfig: Partial<SlothConfig>): Promise<void> {
-    const llmConfig = jsonConfig.llm as LLMConfig;
-    const llmType = llmConfig.type.toLowerCase();
+    const llmConfig = jsonConfig?.llm as LLMConfig;
+    const llmType = llmConfig?.type?.toLowerCase();
 
     // Check if the LLM type is in availableDefaultConfigs
-    if (!availableDefaultConfigs.includes(llmType as ConfigType)) {
+    if (!llmType || !availableDefaultConfigs.includes(llmType as ConfigType)) {
         displayError(`Unsupported LLM type: ${llmType}. Available types are: ${availableDefaultConfigs.join(', ')}`);
         slothContext.config = { ...slothContext.config, ...jsonConfig };
         return;

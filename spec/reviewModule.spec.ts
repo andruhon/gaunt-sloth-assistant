@@ -23,7 +23,7 @@ describe('reviewModule', () => {
         } as SlothContext;
 
         // Import the module after setting up mocks
-        const { reviewInner } = await import('../src/modules/reviewModule.js');
+        const { reviewInner } = await import('#src/modules/reviewModule.js');
 
         // Test the function
         const output = await reviewInner(testContext, () => {}, 'test-preamble', 'test-diff');

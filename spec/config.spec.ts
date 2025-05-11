@@ -1,45 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getCurrentDir } from '#src/systemUtils.js';
-import type { SlothConfig } from '#src/config.js';
 
-// Mock declarations must be at the top level
-vi.mock('node:fs', () => ({
+const fsMock = {
     existsSync: vi.fn(),
     readFileSync: vi.fn(),
-    writeFileSync: vi.fn(),
-    default: {
-        existsSync: vi.fn(),
-        readFileSync: vi.fn(),
-        writeFileSync: vi.fn()
-    }
-}));
+    writeFileSync: vi.fn()
+};
+vi.mock('node:fs', () => fsMock);
 
-vi.mock('node:url', () => ({
-    pathToFileURL: vi.fn(),
-    default: {
-        pathToFileURL: vi.fn()
-    }
-}));
+const urlMock = {
+    pathToFileURL: vi.fn()
+};
+vi.mock('node:url', () => urlMock);
 
-vi.mock('../src/consoleUtils.js', () => ({
+const consoleUtilsMock = {
     display: vi.fn(),
     displayError: vi.fn(),
     displayInfo: vi.fn(),
     displayWarning: vi.fn(),
     displaySuccess: vi.fn(),
     displayDebug: vi.fn()
-}));
+};
+vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
-vi.mock('./consoleUtils.js', () => ({
-    display: vi.fn(),
-    displayError: vi.fn(),
-    displayInfo: vi.fn(),
-    displayWarning: vi.fn(),
-    displaySuccess: vi.fn(),
-    displayDebug: vi.fn()
-}));
-
-vi.mock('../src/utils.js', () => ({
+const utilsMock = {
     writeFileIfNotExistsWithMessages: vi.fn(),
     importExternalFile: vi.fn(),
     importFromFilePath: vi.fn(),
@@ -48,78 +31,26 @@ vi.mock('../src/utils.js', () => ({
     toFileSafeString: vi.fn(),
     extractLastMessageContent: vi.fn(),
     readFileSyncWithMessages: vi.fn()
-}));
+};
+vi.mock('#src/utils.js', () => utilsMock);
 
-vi.mock('../src/systemUtils.js', () => ({
+const systemUtilsMock = {
     exit: vi.fn(),
-    getCurrentDir: vi.fn(),
-    getInstallDir: vi.fn()
-}));
+    getCurrentDir: vi.fn().mockReturnValue("/mock/current/dir"),
+    getInstallDir: vi.fn().mockReturnValue("/mock/install/dir")
+};
+vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
-vi.mock('./systemUtils.js', () => ({
-    exit: vi.fn(),
-    getCurrentDir: vi.fn(),
-    getInstallDir: vi.fn()
-}));
-
-describe('config', () => {
-    const consoleUtilsMock = {
-        display: vi.fn(),
-        displayError: vi.fn(),
-        displayInfo: vi.fn(),
-        displayWarning: vi.fn(),
-        displaySuccess: vi.fn(),
-        displayDebug: vi.fn()
-    };
-
-    const fsMock = {
-        existsSync: vi.fn(),
-        readFileSync: vi.fn(),
-        writeFileSync: vi.fn(),
-        default: {
-            existsSync: vi.fn(),
-            readFileSync: vi.fn(),
-            writeFileSync: vi.fn()
-        }
-    };
-
-    const urlMock = {
-        pathToFileURL: vi.fn(),
-        default: {
-            pathToFileURL: vi.fn()
-        }
-    };
-
-    const utilsMock = {
-        writeFileIfNotExistsWithMessages: vi.fn(),
-        importExternalFile: vi.fn(),
-        importFromFilePath: vi.fn(),
-        ProgressIndicator: vi.fn(),
-        fileSafeLocalDate: vi.fn(),
-        toFileSafeString: vi.fn(),
-        extractLastMessageContent: vi.fn(),
-        readFileSyncWithMessages: vi.fn()
-    };
-
-    const systemUtilsMock = {
-        exit: vi.fn(),
-        getCurrentDir: vi.fn(),
-        getInstallDir: vi.fn()
-    };
-
+describe('config', async () => {
     beforeEach(async () => {
         vi.resetAllMocks();
 
+        // Reset and set up systemUtils mocks
+        systemUtilsMock.getCurrentDir.mockReturnValue("/mock/current/dir");
+        systemUtilsMock.getInstallDir.mockReturnValue("/mock/install/dir");
+
         // Set up specific fs mocks - use vi.mocked to match any path containing the config file name
         fsMock.existsSync.mockImplementation((path: string) => {
-            if (path.includes('.gsloth.config.json')) return false;
-            if (path.includes('.gsloth.config.js')) return false;
-            if (path.includes('.gsloth.config.mjs')) return false;
-            return false;
-        });
-
-        // Set up the same mocks for the default export of fs
-        fsMock.default.existsSync.mockImplementation((path: string) => {
             if (path.includes('.gsloth.config.json')) return false;
             if (path.includes('.gsloth.config.js')) return false;
             if (path.includes('.gsloth.config.mjs')) return false;
@@ -137,26 +68,13 @@ describe('config', () => {
             if (path.includes('.gsloth.config.mjs')) return mjsFileUrl;
             return '';
         });
-
-        // Set up the same mocks for the default export of url
-        urlMock.default.pathToFileURL.mockImplementation((path: string) => {
-            if (path.includes('.gsloth.config.json')) return jsonFileUrl;
-            if (path.includes('.gsloth.config.js')) return jsFileUrl;
-            if (path.includes('.gsloth.config.mjs')) return mjsFileUrl;
-            return '';
-        });
-
-        systemUtilsMock.getInstallDir.mockReturnValue("/mock/install/dir");
-        systemUtilsMock.getCurrentDir.mockReturnValue("/mock/current/dir");
-
-        // Ensure the mock is properly set up for both the module and its default export
-        vi.mocked(getCurrentDir).mockReturnValue("/mock/current/dir");
     });
 
-    describe('initConfig', () => {
+    describe('initConfig', async () => {
         it('Should load JSON config when it exists', async () => {
             const jsonConfig = { llm: { type: 'vertexai' } };
 
+            // Set up fs mocks for this specific test
             fsMock.existsSync.mockImplementation((path: string) => {
                 if (path.includes('.gsloth.config.json')) return true;
                 return false;
@@ -165,20 +83,25 @@ describe('config', () => {
                 if (path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
                 return '';
             });
-            fsMock.default.existsSync.mockImplementation((path: string) => {
-                if (path.includes('.gsloth.config.json')) return true;
-                return false;
-            });
-            fsMock.default.readFileSync.mockImplementation((path: string) => {
-                if (path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
-                return '';
-            });
 
-            vi.mock('../src/configs/vertexai.js', () => ({}));
-            const { initConfig, slothContext } = await import('../src/config.js');
+            // Mock the vertexai config module
+            vi.mock('#src/configs/vertexai.js', () => ({
+                processJsonConfig: (v: any) => v
+            }));
+
+            // Import the module under test
+            const { initConfig, slothContext } = await import('#src/config.js');
 
             // Function under test
             await initConfig();
+
+            // It is easier to debug if messages checked first
+            expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();            
+            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
             expect(slothContext.config).toEqual({
                 llm: { type: 'vertexai' },
@@ -186,45 +109,46 @@ describe('config', () => {
                 requirementsProvider: 'file',
                 commands: { pr: { contentProvider: 'gh' } }
             });
-
-            expect(consoleUtilsMock.displayWarning).toHaveBeenCalledWith(
-                "Config module for vertexai does not have processJsonConfig function."
-            );
-            expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
         });
 
         it('Should try JS config when JSON config does not exist', async () => {
-            fsMock.existsSync.mockImplementation((path: string) => {
-                if (path.includes('.gsloth.config.json')) return false;
-                if (path.includes('.gsloth.config.js')) return true;
-                return false;
-            });
-            fsMock.default.existsSync.mockImplementation((path: string) => {
-                if (path.includes('.gsloth.config.json')) return false;
-                if (path.includes('.gsloth.config.js')) return true;
-                return false;
-            });
-
-            // Mock the import function
             const mockConfigModule = {
                 configure: vi.fn()
             };
             const mockConfig = { llm: { type: 'anthropic' } };
             mockConfigModule.configure.mockResolvedValue(mockConfig);
 
+            // Set up fs mocks for this specific test
+            fsMock.existsSync.mockImplementation((path: string) => {
+                if (path.includes('.gsloth.config.json')) return false;
+                if (path.includes('.gsloth.config.js')) return true;
+                return false;
+            });
+
+            // Mock the import function
             utilsMock.importExternalFile.mockImplementation((path: string) => {
                 if (path.includes('.gsloth.config.js')) return Promise.resolve(mockConfigModule);
                 return Promise.reject(new Error('Not found'));
             });
 
-            const { initConfig, slothContext } = await import('../src/config.js');
+            // Mock the anthropic config module
+            vi.mock('#src/configs/anthropic.js', () => ({
+                processJsonConfig: () => mockConfig
+            }));
+
+            // Import the module under test
+            const { initConfig, slothContext } = await import('#src/config.js');
 
             // Function under test
             await initConfig();
+
+            // It is easier to debug if messages checked first
+            expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
             expect(slothContext.config).toEqual({
                 llm: { type: 'anthropic' },
@@ -232,49 +156,47 @@ describe('config', () => {
                 requirementsProvider: 'file',
                 commands: { pr: { contentProvider: 'gh' } }
             });
-
-            expect(consoleUtilsMock.displayDebug).toHaveBeenCalledWith(
-                expect.stringContaining("is not valid JSON")
-            );
-            expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-                "Failed to read config from .gsloth.config.json, will try other formats."
-            );
-            expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
         });
 
         it('Should try MJS config when JSON and JS configs do not exist', async () => {
-            // Setup mocks for MJS config
-            fsMock.existsSync.mockImplementation((path: string) => {
-                if (path.includes('.gsloth.config.json')) return false;
-                if (path.includes('.gsloth.config.js')) return false;
-                if (path.includes('.gsloth.config.mjs')) return true;
-                return false;
-            });
-            fsMock.default.existsSync.mockImplementation((path: string) => {
-                if (path.includes('.gsloth.config.json')) return false;
-                if (path.includes('.gsloth.config.js')) return false;
-                if (path.includes('.gsloth.config.mjs')) return true;
-                return false;
-            });
-
             const mockConfigModule = {
                 configure: vi.fn()
             };
             const mockConfig = { llm: { type: 'groq' } };
             mockConfigModule.configure.mockResolvedValue(mockConfig);
 
+            // Set up fs mocks for this specific test
+            fsMock.existsSync.mockImplementation((path: string) => {
+                if (path.includes('.gsloth.config.json')) return false;
+                if (path.includes('.gsloth.config.js')) return false;
+                if (path.includes('.gsloth.config.mjs')) return true;
+                return false;
+            });
+
+            // Mock the import function
             utilsMock.importExternalFile.mockImplementation((path: string) => {
                 if (path.includes('.gsloth.config.mjs')) return Promise.resolve(mockConfigModule);
                 return Promise.reject(new Error('Not found'));
             });
 
-            const { initConfig, slothContext } = await import('../src/config.js');
+            // Mock the groq config module
+            vi.mock('#src/configs/groq.js', () => ({
+                processJsonConfig: (v: any) => v
+            }));
+
+            // Import the module under test
+            const { initConfig, slothContext } = await import('#src/config.js');
 
             // Function under test
             await initConfig();
+
+            // It is easier to debug if messages checked first
+            expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
             expect(slothContext.config).toEqual({
                 llm: { type: 'groq' },
@@ -282,29 +204,19 @@ describe('config', () => {
                 requirementsProvider: 'file',
                 commands: { pr: { contentProvider: 'gh' } }
             });
-
-            expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
-            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
         });
 
         it('Should exit when no config files exist', async () => {
-            // Setup mocks for no config files
-            fsMock.existsSync.mockReturnValue(false);
-            fsMock.default.existsSync.mockReturnValue(false);
+            // Set up fs mocks for this specific test
+            fsMock.existsSync.mockImplementation((path: string) => false);
 
-            const { initConfig } = await import('../src/config.js');
+            // Import the module under test
+            const { initConfig } = await import('#src/config.js');
 
             // Function under test
             await initConfig();
 
-            // Verify process.exit was called
-            expect(systemUtilsMock.exit).toHaveBeenCalled();
-
-            // Verify no message was displayed
+            // It is easier to debug if messages checked first
             expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
                 "No configuration file found. Please create one of: " +
                 ".gsloth.config.json, .gsloth.config.js, or .gsloth.config.mjs " +
@@ -315,6 +227,9 @@ describe('config', () => {
             expect(consoleUtilsMock.display).not.toHaveBeenCalled();
             expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
             expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
+
+            // Verify process.exit was called
+            expect(systemUtilsMock.exit).toHaveBeenCalled();
         });
     });
 
@@ -327,16 +242,19 @@ describe('config', () => {
                     model: 'test-model'
                 }
             };
-            const processJsonConfig = vi.fn();
-            vi.mock('../src/configs/vertexai.js', () => ({
-                processJsonConfig
-            }));
-            processJsonConfig.mockReturnValue(jsonConfig.llm);
 
-            const { tryJsonConfig, slothContext } = await import('../src/config.js');
+            const { tryJsonConfig, slothContext } = await import('#src/config.js');
 
             // Function under test
             await tryJsonConfig(jsonConfig);
+
+            // It is easier to debug if messages checked first
+            expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
             expect(slothContext.config).toEqual({
                 llm: {
@@ -357,14 +275,21 @@ describe('config', () => {
                 }
             };
 
-            // Mock console utils
-            const { displayError } = await import('../src/consoleUtils.js');
-            vi.mocked(displayError).mockImplementation(vi.fn());
-
-            const { tryJsonConfig, slothContext } = await import('../src/config.js');
+            const { tryJsonConfig, slothContext } = await import('#src/config.js');
 
             // Function under test
             await tryJsonConfig(jsonConfig);
+
+            // It is easier to debug if messages checked first
+            expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+                'Unsupported LLM type: unsupported. Available types are: vertexai, anthropic, groq'
+            );
+            expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
+            
 
             expect(slothContext.config).toEqual({
                 llm: {
@@ -375,10 +300,6 @@ describe('config', () => {
                 requirementsProvider: 'file',
                 commands: { pr: { contentProvider: 'gh' } }
             });
-
-            expect(displayError).toHaveBeenCalledWith(
-                'Unsupported LLM type: unsupported. Available types are: vertexai, anthropic, groq'
-            );
         });
 
         it('Should handle missing LLM type', async () => {
@@ -388,14 +309,19 @@ describe('config', () => {
                 }
             };
 
-            // Mock console utils
-            const { displayError } = await import('../src/consoleUtils.js');
-            vi.mocked(displayError).mockImplementation(vi.fn());
-
-            const { tryJsonConfig, slothContext } = await import('../src/config.js');
+            const { tryJsonConfig, slothContext } = await import('#src/config.js');
 
             // Function under test
             await tryJsonConfig(jsonConfig);
+
+            expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+                'Unsupported LLM type: undefined. Available types are: vertexai, anthropic, groq'
+            );
+            expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.display).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
+            expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
             expect(slothContext.config).toEqual({
                 llm: {
@@ -405,10 +331,6 @@ describe('config', () => {
                 requirementsProvider: 'file',
                 commands: { pr: { contentProvider: 'gh' } }
             });
-
-            expect(displayError).toHaveBeenCalledWith(
-                'Unsupported LLM type: undefined. Available types are: vertexai, anthropic, groq'
-            );
         });
     });
 }); 

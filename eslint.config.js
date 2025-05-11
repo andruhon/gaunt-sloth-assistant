@@ -4,6 +4,8 @@ import globals from "globals";
 
 const { setTimeout, setInterval, clearInterval, Buffer, fetch } = globals.node;
 
+// FIXME this lint config needs to be updated to work with TS
+
 export default defineConfig([
   {
     files: ["src/**/*.js"],

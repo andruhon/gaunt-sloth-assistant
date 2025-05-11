@@ -13,8 +13,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "npm run build &&vitest run",
     "lint": "eslint . --ext .ts",
     "prepare": "npm run build"
   },
