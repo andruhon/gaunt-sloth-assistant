@@ -1,8 +1,8 @@
 import { Command } from 'commander';
-import { readInternalPreamble } from "../prompt.js";
-import { readMultipleFilesFromCurrentDir } from "../utils.js";
-import { initConfig } from "../config.js";
-import type { SlothContext } from "../config.js";
+import { readInternalPreamble } from "#src/prompt.js";
+import { readMultipleFilesFromCurrentDir } from "#src/utils.js";
+import { initConfig } from "#src/config.js";
+import type { SlothContext } from "#src/config.js";
 
 interface AskCommandOptions {
     file?: string[];

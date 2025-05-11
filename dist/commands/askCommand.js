@@ -1,6 +1,6 @@
-import { readInternalPreamble } from "../prompt.js";
-import { readMultipleFilesFromCurrentDir } from "../utils.js";
-import { initConfig } from "../config.js";
+import { readInternalPreamble } from "#src/prompt.js";
+import { readMultipleFilesFromCurrentDir } from "#src/utils.js";
+import { initConfig } from "#src/config.js";
 /**
  * Adds the ask command to the program
  * @param program - The commander program

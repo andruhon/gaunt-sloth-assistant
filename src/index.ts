@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { askCommand } from "./commands/askCommand.js";
+import { askCommand } from "#src/commands/askCommand.js";
 import { initCommand } from "./commands/initCommand.js";
 import { reviewCommand } from "./commands/reviewCommand.js";
 import type { SlothContext } from './config.js';

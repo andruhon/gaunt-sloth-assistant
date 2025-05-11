@@ -13,7 +13,11 @@
     "sourceMap": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "#src/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "spec"]
