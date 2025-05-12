@@ -40,6 +40,13 @@ describe('reviewCommand',  function (){
             td.matchers.anything(),
             td.matchers.anything())
         ).thenDo(this.review);
+
+        await td.replaceEsm('../src/systemUtils.js', {
+            env: {},
+            log: td.function(),
+            debug: td.function(),
+            error: td.function(),
+        });
     });
 
     it('Should call review with file contents', async function() {

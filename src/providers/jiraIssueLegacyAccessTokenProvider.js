@@ -19,11 +19,14 @@ export async function get(config, prId) {
  * @throws {Error} Throws an error if the fetch fails, authentication is wrong, the issue is not found, or the response status is not OK.
  */
 async function getJiraIssue(config, jiraKey) {
-    const {username, baseUrl} = config;
+    const { baseUrl } = config;
+
     if (!jiraKey) {
         displayWarning("No jiraKey provided, skipping Jira issue fetching.");
         return "";
     }
+
+    const username = env.JIRA_LEGACY_USERNAME ?? config?.username;
     const token = env.JIRA_LEGACY_API_TOKEN ?? config?.token;
 
     if (!token) {
@@ -33,9 +36,16 @@ async function getJiraIssue(config, jiraKey) {
         );
     }
 
+    if (!username) {
+        throw new Error(
+            'Missing JIRA Legacy API username. ' +
+            'The legacy API username can be defined as JIRA_LEGACY_USERNAME environment variable or as "username" in config.'
+        );
+    }
+
     // Validate essential inputs
-    if (!username || !baseUrl) {
-        throw new Error('Missing required parameters in config: username or baseUrl');
+    if (!baseUrl) {
+        throw new Error('JIRA base URL "baseUrl" is missing from config.');
     }
 
     // Ensure baseUrl doesn't end with a slash to avoid double slashes in the URL
