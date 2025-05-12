@@ -145,9 +145,13 @@ See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/
 ## Content providers
 
 ### JIRA
+TODO JIRA update this to match new naming in jira. The Token is now called token without scopes "Create API token without scopes", rather than legacy.
+There's also "Create API token with scopes", but it does not seem to work with REST API yet.
 
 Example configuration setting up JIRA integration using a legacy API token for both `review` and `pr` commands.
 Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
+
+
 
 A legacy token can be acquired from `Atlassian Account Settings -> Security -> Create and manage API tokens`.
 
@@ -156,9 +160,9 @@ JSON:
 ```json
 {
   "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
-  "requirementsProvider": "jira-legacy",
+  "requirementsProvider": "jira",
   "requirementsProviderConfig": {
-    "jira-legacy": {
+    "jira": {
       "username": "username@yourcompany.com",
       "token": "YOUR_JIRA_LEGACY_TOKEN",
       "baseUrl": "https://yourcompany.atlassian.net/rest/api/2/issue/"
@@ -176,9 +180,9 @@ export async function configure(importFunction, global) {
         llm: new vertexAi.ChatVertexAI({
             model: "gemini-2.5-pro-preview-05-06"
         }),
-        requirementsProvider: 'jira-legacy',
+        requirementsProvider: 'jira',
         requirementsProviderConfig: {
-            'jira-legacy': {
+            'jira': {
                 username: 'username@yourcompany.com', // Your Jira username/email
                 token: 'YOUR_JIRA_LEGACY_TOKEN',     // Replace with your real Jira API token
                 baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL

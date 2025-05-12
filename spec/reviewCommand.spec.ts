@@ -21,35 +21,37 @@ const utilsMock = {
 };
 
 // Set up static mocks
-vi.mock('../src/prompt.js', () => prompt);
-vi.mock('../src/modules/reviewModule.js', () => codeReviewMock);
-vi.mock('../src/config.js', () => ({
+vi.mock('#src/prompt.js', () => prompt);
+vi.mock('#src/modules/reviewModule.js', () => codeReviewMock);
+vi.mock('#src/config.js', () => ({
     SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
     USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
     slothContext: {
         config: {},
-        currentDir: '/mock/current/dir'
+        currentDir: '/mock/current/dir',
+        installDir: '/mock/install/dir'
     },
     initConfig: vi.fn()
 }));
-vi.mock('../src/utils.js', () => utilsMock);
+vi.mock('#src/utils.js', () => utilsMock);
 
 describe('reviewCommand', () => {
     beforeEach(async () => {
         vi.resetAllMocks();
-        
+
         // Setup default mock returns
         utilsMock.readFileFromCurrentDir.mockReturnValue("FILE TO REVIEW");
         utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue("test.file:\n```\nFILE TO REVIEW\n```");
-        codeReviewMock.review.mockImplementation(review);
+        prompt.readInternalPreamble.mockReturnValue("INTERNAL PREAMBLE");
+        prompt.readPreamble.mockReturnValue("PROJECT PREAMBLE");
     });
 
     it('Should call review with file contents', async () => {
-        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const { reviewCommand } = await import("#src/commands/reviewCommand.js");
         const program = new Command();
         await reviewCommand(program, {} as SlothContext);
         await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
-        
+
         expect(review).toHaveBeenCalledWith(
             'sloth-DIFF-review',
             "INTERNAL PREAMBLE\nPROJECT PREAMBLE",
@@ -58,16 +60,16 @@ describe('reviewCommand', () => {
     });
 
     it('Should call review with multiple file contents', async () => {
-        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const { reviewCommand } = await import("#src/commands/reviewCommand.js");
         const program = new Command();
         await reviewCommand(program, {} as SlothContext);
-        
+
         utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue(
             "test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```"
         );
-        
+
         await program.parseAsync(['na', 'na', 'review', '-f', 'test.file', 'test2.file']);
-        
+
         expect(review).toHaveBeenCalledWith(
             'sloth-DIFF-review',
             "INTERNAL PREAMBLE\nPROJECT PREAMBLE",
@@ -76,7 +78,7 @@ describe('reviewCommand', () => {
     });
 
     it('Should display predefined providers in help', async () => {
-        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const { reviewCommand } = await import("#src/commands/reviewCommand.js");
         const program = new Command();
         const testOutput = { text: '' };
 
@@ -97,17 +99,17 @@ describe('reviewCommand', () => {
 
         // Verify requirements providers are displayed
         expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
-        expect(testOutput.text).toContain('(choices: "jira-legacy", "text", "file")');
+        expect(testOutput.text).toContain('(choices: "jira", "text", "file")');
     });
 
     it('Should call review with predefined requirements provider', async () => {
-        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const { reviewCommand } = await import("#src/commands/reviewCommand.js");
         const program = new Command();
         const context: SlothContext = {
             config: {
-                requirementsProvider: 'jira-legacy',
+                requirementsProvider: 'jira',
                 requirementsProviderConfig: {
-                    'jira-legacy': {
+                    'jira': {
                         username: 'test-user',
                         token: 'test-token',
                         baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/'
@@ -120,7 +122,7 @@ describe('reviewCommand', () => {
                     }
                 },
                 pr: {
-                    requirementsProvider: 'jira-legacy'
+                    requirementsProvider: 'jira'
                 }
             },
             installDir: '/mock/install/dir',
@@ -135,7 +137,7 @@ describe('reviewCommand', () => {
 
         // Mock the jira provider
         const jiraProvider = vi.fn().mockResolvedValue('JIRA Requirements');
-        vi.mock('../src/providers/jiraIssueLegacyAccessTokenProvider.js', () => ({
+        vi.doMock('#src/providers/jiraIssueProvider.js', () => ({
             get: jiraProvider
         }));
 
@@ -145,14 +147,21 @@ describe('reviewCommand', () => {
         expect(review).toHaveBeenCalledWith(
             'sloth-DIFF-review',
             "INTERNAL PREAMBLE\nPROJECT PREAMBLE",
-            "JIRA Requirements"
+            "JIRA Requirements\ncontent-id"
         );
     });
 
     it('Should display meaningful error, when JIRA is enabled, but JIRA token is absent', async () => {
         const testOutput = { text: '' };
 
-        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        // Mock the jira provider to throw an error about missing token
+        vi.doMock('#src/providers/jiraIssueProvider.js', () => ({
+            get: vi.fn().mockImplementation(() => {
+                throw new Error('Missing JIRA Legacy API token. The legacy token can be defined as JIRA_PERSONAL_API_TOKEN environment variable or as "token" in config.');
+            })
+        }));
+
+        const { reviewCommand } = await import("#src/commands/reviewCommand.js");
         const program = new Command();
         program.configureOutput({
             writeOut: (str: string) => testOutput.text += str,
@@ -161,9 +170,9 @@ describe('reviewCommand', () => {
 
         const context: SlothContext = {
             config: {
-                requirementsProvider: 'jira-legacy',
+                requirementsProvider: 'jira',
                 requirementsProviderConfig: {
-                    'jira-legacy': {
+                    'jira': {
                         username: 'test-user',
                         baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/'
                     }
@@ -175,7 +184,7 @@ describe('reviewCommand', () => {
                     }
                 },
                 pr: {
-                    requirementsProvider: 'jira-legacy'
+                    requirementsProvider: 'jira'
                 }
             },
             installDir: '/mock/install/dir',
@@ -189,18 +198,18 @@ describe('reviewCommand', () => {
         };
 
         await reviewCommand(program, context);
-        
+
         await expect(program.parseAsync(['na', 'na', 'pr', 'content-id', 'JIRA-123']))
             .rejects
             .toThrow(
                 'Missing JIRA Legacy API token. ' +
-                'The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable ' +
+                'The legacy token can be defined as JIRA_PERSONAL_API_TOKEN environment variable ' +
                 'or as "token" in config.'
             );
     });
 
     it('Should call review with predefined content provider', async () => {
-        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const { reviewCommand } = await import("#src/commands/reviewCommand.js");
         const program = new Command();
         const context: SlothContext = {
             config: {
@@ -227,7 +236,7 @@ describe('reviewCommand', () => {
 
         // Mock the gh provider
         const ghProvider = vi.fn().mockResolvedValue('PR Diff Content');
-        vi.mock('../src/providers/ghPrDiffProvider.js', () => ({
+        vi.doMock('#src/providers/ghPrDiffProvider.js', () => ({
             get: ghProvider
         }));
 
@@ -242,7 +251,7 @@ describe('reviewCommand', () => {
     });
 
     it('Should call pr command', async () => {
-        const { reviewCommand } = await import("../src/commands/reviewCommand.js");
+        const { reviewCommand } = await import("#src/commands/reviewCommand.js");
         const program = new Command();
         const context: SlothContext = {
             config: {
@@ -269,7 +278,7 @@ describe('reviewCommand', () => {
 
         // Mock the gh provider
         const ghProvider = vi.fn().mockResolvedValue('PR Diff Content');
-        vi.mock('../src/providers/ghPrDiffProvider.js', () => ({
+        vi.doMock('#src/providers/ghPrDiffProvider.js', () => ({
             get: ghProvider
         }));
 

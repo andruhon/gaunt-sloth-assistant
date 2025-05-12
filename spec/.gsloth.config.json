@@ -4,7 +4,7 @@
     "responses": ["First LLM message", "Second LLM message"]
   },
   "requirementsProviderConfig": {
-    "jira-legacy": {
+    "jira": {
       "username": "user.name@company.com",
       "token": "YoUrToKeN",
       "baseUrl": "https://company.atlassian.net/rest/api/2/issue/"
@@ -19,7 +19,7 @@
   },
   "commands": {
     "pr": {
-      "requirementsProvider": "jira-legacy"
+      "requirementsProvider": "jira"
     }
   }
 }

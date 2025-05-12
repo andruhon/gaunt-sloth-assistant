@@ -1,4 +1,5 @@
 /node_modules/
+/dist/
 /sloth-DIFF-review*
 /sloth-PR-review*
 /sloth-ASK*
