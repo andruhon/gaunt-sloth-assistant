@@ -79,6 +79,12 @@ A legacy token can be acquired from `Atlassian Account Settings -> Security -> C
 }
 ```
 
+Alternatively, and for better security, you can set the JIRA username and token using environment variables:
+- `JIRA_LEGACY_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
+- `JIRA_LEGACY_API_TOKEN`: Your JIRA legacy API token.
+
+If these environment variables are set, they will take precedence over the values in the configuration file.
+
 ### Review any Diff
 ```shell
 git --no-pager diff origin/master...yourgitcommithash | gsloth review

@@ -14,17 +14,17 @@ export async function get(config, issueId) {
         displayWarning("No issue ID provided");
         return null;
     }
-    if (!config.username) {
-        displayWarning("No Jira username provided");
-        return null;
-    }
     if (!config.baseUrl) {
         displayWarning("No Jira base URL provided");
         return null;
     }
+    // TODO JIRA add environment variable for username
+    if (!config.username) {
+        throw new Error("Missing JIRA username. The username can be defined as JIRA_USERNAME environment variable or as \"username\" in config.");
+    }
+    // TODO JIRA add environment variable for jira token
     if (!config.token) {
-        displayWarning("No Jira token provided");
-        return null;
+        throw new Error("Missing JIRA Legacy API token. The legacy token can be defined as JIRA_PERSONAL_API_TOKEN environment variable or as \"token\" in config.");
     }
     try {
         const issue = await getJiraIssue(config, issueId);
@@ -59,4 +59,4 @@ async function getJiraIssue(config, issueId) {
     }
     return response.json();
 }
-//# sourceMappingURL=jiraIssueLegacyAccessTokenProvider.js.map
+//# sourceMappingURL=jiraIssueProvider.js.map
