@@ -33,7 +33,27 @@ const utilsMock = {
     fileSafeLocalDate: vi.fn(),
     ProgressIndicator: vi.fn(),
     readFileSyncWithMessages: vi.fn(),
-    spawnCommand: vi.fn()
+    spawnCommand: vi.fn(),
+    createSystemMessage: vi.fn().mockImplementation((content) => ({
+        content,
+        type: 'system',
+        role: 'system',
+        _getType: () => 'system',
+        text: content,
+        lc_kwargs: { content },
+        lc_serializable: true,
+        lc_namespace: ['langchain', 'schema', 'messages']
+    })),
+    createHumanMessage: vi.fn().mockImplementation((content) => ({
+        content,
+        type: 'human',
+        role: 'human',
+        _getType: () => 'human',
+        text: content,
+        lc_kwargs: { content },
+        lc_serializable: true,
+        lc_namespace: ['langchain', 'schema', 'messages']
+    }))
 };
 
 const progressIndicator = {
@@ -44,7 +64,7 @@ const progressIndicator = {
 vi.mock('node:fs', () => fsMock);
 vi.mock('node:path', () => pathMock);
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
-vi.mock('#src/utils.js', () => utilsMock);
+vi.doMock('#src/utils.js', () => utilsMock);
 vi.mock('#src/config.js', () => ({
     slothContext: context,
     SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',

@@ -22,25 +22,26 @@ const ctx = vi.hoisted(() => ({
 }));
 
 // Mock modules before any tests
-vi.mock("../src/prompt.js", () => ({
+vi.doMock("#src/prompt.js", () => ({
     readInternalPreamble: ctx.prompt.readInternalPreamble
 }));
 
-vi.mock("../src/modules/questionAnsweringModule.js", () => ({
+vi.doMock("#src/modules/questionAnsweringModule.js", () => ({
     askQuestion: ctx.questionAnsweringMock.askQuestion
 }));
 
-vi.mock("../src/config.js", () => ({
+vi.doMock("#src/config.js", () => ({
     SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
     USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
     slothContext: {
         config: {},
-        currentDir: '/mock/current/dir'
+        currentDir: '/mock/current/dir',
+        installDir: '/mock/install/dir'
     },
     initConfig: vi.fn()
 }));
 
-vi.mock("../src/utils.js", () => ({
+vi.doMock("#src/utils.js", () => ({
     readFileFromCurrentDir: ctx.utilsMock.readFileFromCurrentDir,
     readMultipleFilesFromCurrentDir: ctx.utilsMock.readMultipleFilesFromCurrentDir,
     ProgressIndicator: ctx.utilsMock.ProgressIndicator,

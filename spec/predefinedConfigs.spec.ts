@@ -35,9 +35,9 @@ describe('predefined AI provider configurations', () => {
     it('Should import predefined Anthropic config correctly', async () => {
         // Mock the Anthropic module and its import
         const mockChat = vi.fn();
-        const mockChatInstance = {};
+        const mockChatInstance = { instance: 'anthropic' };
         mockChat.mockReturnValue(mockChatInstance);
-        vi.mock('@langchain/anthropic', () => ({
+        vi.doMock('@langchain/anthropic', () => ({
             ChatAnthropic: mockChat
         }));
 
@@ -47,9 +47,9 @@ describe('predefined AI provider configurations', () => {
     it('Should import predefined VertexAI config correctly', async () => {
         // Mock the VertexAI module and its import
         const mockChat = vi.fn();
-        const mockChatInstance = {};
+        const mockChatInstance = { instance: 'vertexai' };
         mockChat.mockReturnValue(mockChatInstance);
-        vi.mock('@langchain/google-vertexai', () => ({
+        vi.doMock('@langchain/google-vertexai', () => ({
             ChatVertexAI: mockChat
         }));
 
@@ -59,9 +59,9 @@ describe('predefined AI provider configurations', () => {
     it('Should import predefined Groq config correctly', async () => {
         // Mock the Groq module and its import
         const mockChat = vi.fn();
-        const mockChatInstance = {};
+        const mockChatInstance = { instance: 'groq' };
         mockChat.mockReturnValue(mockChatInstance);
-        vi.mock('@langchain/groq', () => ({
+        vi.doMock('@langchain/groq', () => ({
             ChatGroq: mockChat
         }));
 
@@ -72,7 +72,7 @@ describe('predefined AI provider configurations', () => {
         const jsonConfig: Partial<SlothConfig> = {
             llm: {
                 type: aiProvider,
-                model: 'claude-3-5-sonnet-20241022',
+                model: aiProvider + 'model',
                 apiKey: 'test-api-key'
             }
         };
@@ -92,11 +92,11 @@ describe('predefined AI provider configurations', () => {
         // Call the function
         await initConfig();
 
-        // Verify the config was set correctly with the mock instance
-        expect(slothContext.config.llm).toBe(mockInstance);
-
         // Verify no warnings or errors were displayed
         expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
         expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
+
+        // Verify the config was set correctly with the mock instance
+        expect(slothContext.config.llm).toBe(mockInstance);
     }
 }); 
