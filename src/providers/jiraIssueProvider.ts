@@ -37,7 +37,7 @@ export async function get(config: JiraConfig | null, issueId: string | undefined
     }
     // TODO JIRA add environment variable for jira token
     if (!config.token) {
-        throw new Error("Missing JIRA Legacy API token. The legacy token can be defined as JIRA_PERSONAL_API_TOKEN environment variable or as \"token\" in config.");
+        throw new Error("Missing JIRA Legacy API token. The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable or as \"token\" in config.");
     }
 
     try {

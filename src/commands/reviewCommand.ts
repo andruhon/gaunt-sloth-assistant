@@ -9,7 +9,7 @@ import type { SlothContext } from "#src/config.js";
  * Requirements providers. Expected to be in `.providers/` dir
  */
 const REQUIREMENTS_PROVIDERS = {
-    'jira': 'jiraIssueProvider.js',
+    'jira-legacy': 'jiraIssueProvider.js',
     'text': 'text.js',
     'file': 'file.js'
 } as const;

@@ -70,9 +70,9 @@ A legacy token can be acquired from `Atlassian Account Settings -> Security -> C
 ```json
 {
   "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
-  "requirementsProvider": "jira",
+  "requirementsProvider": "jira-legacy",
   "requirementsProviderConfig": {
-    "jira": {
+    "jira-legacy": {
       "username": "user@yourcompany.com",
       "token": "YOUR_JIRA_LEGACY_TOKEN",
       "baseUrl": "https://yourcompany.atlassian.net/rest/api/2/issue/"
@@ -82,8 +82,8 @@ A legacy token can be acquired from `Atlassian Account Settings -> Security -> C
 ```
 
 Alternatively, and for better security, you can set the JIRA username and token using environment variables:
-- `JIRA_LEGACY_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
-- `JIRA_PERSONAL_API_TOKEN`: Your JIRA legacy API token.
+- `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
+- `JIRA_LEGACY_API_TOKEN`: Your JIRA legacy API token.
 
 If these environment variables are set, they will take precedence over the values in the configuration file.
 

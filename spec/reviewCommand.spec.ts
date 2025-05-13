@@ -99,7 +99,7 @@ describe('reviewCommand', () => {
 
         // Verify requirements providers are displayed
         expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
-        expect(testOutput.text).toContain('(choices: "jira", "text", "file")');
+        expect(testOutput.text).toContain('(choices: "jira-legacy", "text", "file")');
     });
 
     it('Should call review with predefined requirements provider', async () => {
@@ -107,9 +107,9 @@ describe('reviewCommand', () => {
         const program = new Command();
         const context: SlothContext = {
             config: {
-                requirementsProvider: 'jira',
+                requirementsProvider: 'jira-legacy',
                 requirementsProviderConfig: {
-                    'jira': {
+                    'jira-legacy': {
                         username: 'test-user',
                         token: 'test-token',
                         baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/'
@@ -122,7 +122,7 @@ describe('reviewCommand', () => {
                     }
                 },
                 pr: {
-                    requirementsProvider: 'jira'
+                    requirementsProvider: 'jira-legacy'
                 }
             },
             installDir: '/mock/install/dir',
@@ -157,7 +157,7 @@ describe('reviewCommand', () => {
         // Mock the jira provider to throw an error about missing token
         vi.doMock('#src/providers/jiraIssueProvider.js', () => ({
             get: vi.fn().mockImplementation(() => {
-                throw new Error('Missing JIRA Legacy API token. The legacy token can be defined as JIRA_PERSONAL_API_TOKEN environment variable or as "token" in config.');
+                throw new Error('Missing JIRA Legacy API token. The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable or as "token" in config.');
             })
         }));
 
@@ -170,9 +170,9 @@ describe('reviewCommand', () => {
 
         const context: SlothContext = {
             config: {
-                requirementsProvider: 'jira',
+                requirementsProvider: 'jira-legacy',
                 requirementsProviderConfig: {
-                    'jira': {
+                    'jira-legacy': {
                         username: 'test-user',
                         baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/'
                     }
@@ -184,7 +184,7 @@ describe('reviewCommand', () => {
                     }
                 },
                 pr: {
-                    requirementsProvider: 'jira'
+                    requirementsProvider: 'jira-legacy'
                 }
             },
             installDir: '/mock/install/dir',
@@ -203,7 +203,7 @@ describe('reviewCommand', () => {
             .rejects
             .toThrow(
                 'Missing JIRA Legacy API token. ' +
-                'The legacy token can be defined as JIRA_PERSONAL_API_TOKEN environment variable ' +
+                'The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable ' +
                 'or as "token" in config.'
             );
     });

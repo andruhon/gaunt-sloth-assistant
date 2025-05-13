@@ -160,9 +160,9 @@ JSON:
 ```json
 {
   "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
-  "requirementsProvider": "jira",
+  "requirementsProvider": "jira-legacy",
   "requirementsProviderConfig": {
-    "jira": {
+    "jira-legacy": {
       "username": "username@yourcompany.com",
       "token": "YOUR_JIRA_LEGACY_TOKEN",
       "baseUrl": "https://yourcompany.atlassian.net/rest/api/2/issue/"
@@ -180,9 +180,9 @@ export async function configure(importFunction, global) {
         llm: new vertexAi.ChatVertexAI({
             model: "gemini-2.5-pro-preview-05-06"
         }),
-        requirementsProvider: 'jira',
+        requirementsProvider: 'jira-legacy',
         requirementsProviderConfig: {
-            'jira': {
+            'jira-legacy': {
                 username: 'username@yourcompany.com', // Your Jira username/email
                 token: 'YOUR_JIRA_LEGACY_TOKEN',     // Replace with your real Jira API token
                 baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
