@@ -2,12 +2,12 @@ import { displayError, displayWarning } from "#src/consoleUtils.js";
 import type { JiraConfig } from "./types.js";
 
 interface JiraIssueResponse {
-    fields: {
-        summary: string;
-        description: string;
-        [key: string]: unknown;
-    };
+  fields: {
+    summary: string;
+    description: string;
     [key: string]: unknown;
+  };
+  [key: string]: unknown;
 }
 
 /**
@@ -16,42 +16,47 @@ interface JiraIssueResponse {
  * @param issueId Jira issue ID
  * @returns Jira issue content
  */
-export async function get(config: JiraConfig | null, issueId: string | undefined): Promise<string | null> {
-    if (!config) {
-        displayWarning("No Jira config provided");
-        return null;
-    }
-    if (!issueId) {
-        displayWarning("No issue ID provided");
-        return null;
-    }
-    if (!config.username) {
-        displayWarning("No Jira username provided");
-        return null;
-    }
-    if (!config.baseUrl) {
-        displayWarning("No Jira base URL provided");
-        return null;
-    }
-    if (!config.token) {
-        displayWarning("No Jira token provided");
-        return null;
+export async function get(
+  config: JiraConfig | null,
+  issueId: string | undefined
+): Promise<string | null> {
+  if (!config) {
+    displayWarning("No Jira config provided");
+    return null;
+  }
+  if (!issueId) {
+    displayWarning("No issue ID provided");
+    return null;
+  }
+  if (!config.username) {
+    displayWarning("No Jira username provided");
+    return null;
+  }
+  if (!config.baseUrl) {
+    displayWarning("No Jira base URL provided");
+    return null;
+  }
+  if (!config.token) {
+    displayWarning("No Jira token provided");
+    return null;
+  }
+
+  try {
+    const issue = await getJiraIssue(config, issueId);
+    if (!issue) {
+      return null;
     }
 
-    try {
-        const issue = await getJiraIssue(config, issueId);
-        if (!issue) {
-            return null;
-        }
+    const summary = issue.fields.summary;
+    const description = issue.fields.description;
 
-        const summary = issue.fields.summary;
-        const description = issue.fields.description;
-
-        return `Jira Issue: ${issueId}\nSummary: ${summary}\n\nDescription:\n${description}`;
-    } catch (error) {
-        displayError(`Failed to get Jira issue: ${error instanceof Error ? error.message : String(error)}`);
-        return null;
-    }
+    return `Jira Issue: ${issueId}\nSummary: ${summary}\n\nDescription:\n${description}`;
+  } catch (error) {
+    displayError(
+      `Failed to get Jira issue: ${error instanceof Error ? error.message : String(error)}`
+    );
+    return null;
+  }
 }
 
 /**
@@ -61,17 +66,17 @@ export async function get(config: JiraConfig | null, issueId: string | undefined
  * @returns Jira issue response
  */
 async function getJiraIssue(config: JiraConfig, issueId: string): Promise<JiraIssueResponse> {
-    const auth = Buffer.from(`${config.username}:${config.token}`).toString('base64');
-    const response = await fetch(`${config.baseUrl}/rest/api/2/issue/${issueId}`, {
-        headers: {
-            'Authorization': `Basic ${auth}`,
-            'Accept': 'application/json'
-        }
-    });
+  const auth = Buffer.from(`${config.username}:${config.token}`).toString("base64");
+  const response = await fetch(`${config.baseUrl}/rest/api/2/issue/${issueId}`, {
+    headers: {
+      Authorization: `Basic ${auth}`,
+      Accept: "application/json",
+    },
+  });
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch Jira issue: ${response.statusText}`);
-    }
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Jira issue: ${response.statusText}`);
+  }
 
-    return response.json();
-} 
+  return response.json();
+}

@@ -30,23 +30,25 @@ const jsonContent = `{
 }`;
 
 export function init(configFileName: string, context: SlothContext): void {
-    if (!context.currentDir) {
-        throw new Error('Current directory not set');
-    }
-    path.join(context.currentDir, configFileName);
+  if (!context.currentDir) {
+    throw new Error("Current directory not set");
+  }
+  path.join(context.currentDir, configFileName);
 
-    // Determine which content to use based on file extension
-    const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
+  // Determine which content to use based on file extension
+  const content = configFileName.endsWith(".json") ? jsonContent : jsContent;
 
-    writeFileIfNotExistsWithMessages(configFileName, content);
-    displayWarning("For Google VertexAI you likely to need to do `gcloud auth login` and `gcloud auth application-default login`.");
+  writeFileIfNotExistsWithMessages(configFileName, content);
+  displayWarning(
+    "For Google VertexAI you likely to need to do `gcloud auth login` and `gcloud auth application-default login`."
+  );
 }
 
 // Function to process JSON config and create VertexAI LLM instance
 export async function processJsonConfig(llmConfig: LLMConfig): Promise<any> {
-    const vertexAi = await import('@langchain/google-vertexai');
-    return new vertexAi.ChatVertexAI({
-        ...llmConfig,
-        model: llmConfig.model || "gemini-2.5-pro-preview-05-06"
-    });
-} 
+  const vertexAi = await import("@langchain/google-vertexai");
+  return new vertexAi.ChatVertexAI({
+    ...llmConfig,
+    model: llmConfig.model || "gemini-2.5-pro-preview-05-06",
+  });
+}

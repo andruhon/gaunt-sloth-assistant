@@ -1,27 +1,27 @@
-import type { BaseMessage } from '@langchain/core/messages';
+import type { BaseMessage } from "@langchain/core/messages";
 
 export type Message = BaseMessage;
 
 export interface State {
-    messages: Message[];
+  messages: Message[];
 }
 
 export interface ModelResponse {
-    messages: Message[];
+  messages: Message[];
 }
 
 export interface ProgressCallback {
-    (): void;
+  (): void;
 }
 
 export interface ReviewOptions {
-    source: string;
-    preamble: string;
-    diff: string;
+  source: string;
+  preamble: string;
+  diff: string;
 }
 
 export interface QuestionOptions {
-    source: string;
-    preamble: string;
-    content: string;
+  source: string;
+  preamble: string;
+  content: string;
 }

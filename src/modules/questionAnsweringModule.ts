@@ -15,22 +15,34 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
  * @param preamble - The preamble to send to the LLM
  * @param content - The content of the question
  */
-export async function askQuestion(source: string, preamble: string, content: string): Promise<void> {
-    const progressIndicator = new ProgressIndicator("Thinking.");
-    const outputContent = await askQuestionInner(slothContext, () => progressIndicator.indicate(), preamble, content);
-    const filePath = path.resolve(getCurrentDir(), toFileSafeString(source) + '-' + fileSafeLocalDate() + ".md");
-    display(`\nwriting ${filePath}`);
-    // TODO highlight LLM output with something like Prism.JS
-    display('\n' + outputContent);
-    try {
-        writeFileSync(filePath, outputContent);
-        displaySuccess(`This report can be found in ${filePath}`);
-    } catch (error) {
-        displayError(`Failed to write answer to file: ${filePath}`);
-        displayError(error instanceof Error ? error.message : String(error));
-        // TODO Consider if we want to exit or just log the error
-        // exit(1);
-    }
+export async function askQuestion(
+  source: string,
+  preamble: string,
+  content: string
+): Promise<void> {
+  const progressIndicator = new ProgressIndicator("Thinking.");
+  const outputContent = await askQuestionInner(
+    slothContext,
+    () => progressIndicator.indicate(),
+    preamble,
+    content
+  );
+  const filePath = path.resolve(
+    getCurrentDir(),
+    toFileSafeString(source) + "-" + fileSafeLocalDate() + ".md"
+  );
+  display(`\nwriting ${filePath}`);
+  // TODO highlight LLM output with something like Prism.JS
+  display("\n" + outputContent);
+  try {
+    writeFileSync(filePath, outputContent);
+    displaySuccess(`This report can be found in ${filePath}`);
+  } catch (error) {
+    displayError(`Failed to write answer to file: ${filePath}`);
+    displayError(error instanceof Error ? error.message : String(error));
+    // TODO Consider if we want to exit or just log the error
+    // exit(1);
+  }
 }
 
 /**
@@ -42,44 +54,43 @@ export async function askQuestion(source: string, preamble: string, content: str
  * @returns The answer from the LLM
  */
 export async function askQuestionInner(
-    context: SlothContext,
-    indicateProgress: ProgressCallback,
-    preamble: string,
-    content: string
+  context: SlothContext,
+  indicateProgress: ProgressCallback,
+  preamble: string,
+  content: string
 ): Promise<string> {
-    // This node receives the current state (messages) and invokes the LLM
-    const callModel = async (state: State): Promise<ModelResponse> => {
-        // state.messages will contain the list including the system preamble and user diff
-        const response = await context.config.llm.invoke(state.messages);
-        // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
-        // Wrap the response in an array if it's a single message object.
-        return { messages: response };
-    };
+  // This node receives the current state (messages) and invokes the LLM
+  const callModel = async (state: State): Promise<ModelResponse> => {
+    // state.messages will contain the list including the system preamble and user diff
+    const response = await context.config.llm.invoke(state.messages);
+    // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
+    // Wrap the response in an array if it's a single message object.
+    return { messages: response };
+  };
 
-    // Define the graph structure with MessagesAnnotation state
-    const workflow = new StateGraph(MessagesAnnotation)
-        // Define the node and edge
-        .addNode("model", callModel)
-        .addEdge(START, "model") // Start at the 'model' node
-        .addEdge("model", END); // End after the 'model' node completes
+  // Define the graph structure with MessagesAnnotation state
+  const workflow = new StateGraph(MessagesAnnotation)
+    // Define the node and edge
+    .addNode("model", callModel)
+    .addEdge(START, "model") // Start at the 'model' node
+    .addEdge("model", END); // End after the 'model' node completes
 
-    // Set up memory (optional but good practice for potential future multi-turn interactions)
-    const memory = new MemorySaver();
+  // Set up memory (optional but good practice for potential future multi-turn interactions)
+  const memory = new MemorySaver();
 
-    // Compile the workflow into a runnable app
-    const app = workflow.compile({ checkpointer: memory });
+  // Compile the workflow into a runnable app
+  const app = workflow.compile({ checkpointer: memory });
 
-    // Construct the initial the messages including the preamble as a system message
-    const messages: Message[] = [
-        new SystemMessage(preamble),
-        new HumanMessage(content),
-    ];
+  // Construct the initial the messages including the preamble as a system message
+  const messages: Message[] = [new SystemMessage(preamble), new HumanMessage(content)];
 
-    indicateProgress();
-    // TODO create proper progress indicator for async tasks.
-    const progress = setInterval(() => indicateProgress(), 1000);
-    const output = await app.invoke({ messages }, context.session);
-    clearInterval(progress);
-    const lastMessage = output.messages[output.messages.length - 1];
-    return typeof lastMessage.content === 'string' ? lastMessage.content : JSON.stringify(lastMessage.content);
-} 
+  indicateProgress();
+  // TODO create proper progress indicator for async tasks.
+  const progress = setInterval(() => indicateProgress(), 1000);
+  const output = await app.invoke({ messages }, context.session);
+  clearInterval(progress);
+  const lastMessage = output.messages[output.messages.length - 1];
+  return typeof lastMessage.content === "string"
+    ? lastMessage.content
+    : JSON.stringify(lastMessage.content);
+}

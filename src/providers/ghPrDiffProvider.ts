@@ -8,10 +8,13 @@ import type { ProviderConfig } from "./types.js";
  * @param pr PR number
  * @returns PR diff
  */
-export async function get(_: ProviderConfig | null, pr: string | undefined): Promise<string | null> {
-    if (!pr) {
-        displayWarning("No PR provided");
-        return null;
-    }
-    return execAsync(`gh pr diff ${pr}`);
-} 
+export async function get(
+  _: ProviderConfig | null,
+  pr: string | undefined
+): Promise<string | null> {
+  if (!pr) {
+    displayWarning("No PR provided");
+    return null;
+  }
+  return execAsync(`gh pr diff ${pr}`);
+}

@@ -6,6 +6,9 @@ import type { ProviderConfig } from "./types.js";
  * @param text Text to return
  * @returns The provided text
  */
-export async function get(_: ProviderConfig | null, text: string | undefined): Promise<string | null> {
-    return text ?? null;
-} 
+export async function get(
+  _: ProviderConfig | null,
+  text: string | undefined
+): Promise<string | null> {
+  return text ?? null;
+}

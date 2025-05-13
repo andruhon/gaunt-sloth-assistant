@@ -7,13 +7,13 @@ import type { LLMConfig, ConfigModule } from "./types.js";
 
 // Function to process JSON config and create Groq LLM instance
 export async function processJsonConfig(llmConfig: LLMConfig): Promise<any> {
-    const groq = await import('@langchain/groq');
-    // Use environment variable if available, otherwise use the config value
-    const groqApiKey = env.GROQ_API_KEY || llmConfig.apiKey;
-    return new groq.ChatGroq({
-        apiKey: groqApiKey,
-        model: llmConfig.model || "deepseek-r1-distill-llama-70b"
-    });
+  const groq = await import("@langchain/groq");
+  // Use environment variable if available, otherwise use the config value
+  const groqApiKey = env.GROQ_API_KEY || llmConfig.apiKey;
+  return new groq.ChatGroq({
+    apiKey: groqApiKey,
+    model: llmConfig.model || "deepseek-r1-distill-llama-70b",
+  });
 }
 
 const jsContent = `/* eslint-disable */
@@ -39,15 +39,17 @@ const jsonContent = `{
 }`;
 
 export function init(configFileName: string, context: SlothContext): void {
-    if (!context.currentDir) {
-        throw new Error('Current directory not set');
-    }
-    path.join(context.currentDir, configFileName);
+  if (!context.currentDir) {
+    throw new Error("Current directory not set");
+  }
+  path.join(context.currentDir, configFileName);
 
-    // Determine which content to use based on file extension
-    const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
+  // Determine which content to use based on file extension
+  const content = configFileName.endsWith(".json") ? jsonContent : jsContent;
 
-    writeFileIfNotExistsWithMessages(configFileName, content);
-    displayInfo(`You can define GROQ_API_KEY environment variable with your Groq API key and it will work with default model.`);
-    displayWarning(`You need to edit your ${configFileName} to configure model.`);
-} 
+  writeFileIfNotExistsWithMessages(configFileName, content);
+  displayInfo(
+    `You can define GROQ_API_KEY environment variable with your Groq API key and it will work with default model.`
+  );
+  displayWarning(`You need to edit your ${configFileName} to configure model.`);
+}

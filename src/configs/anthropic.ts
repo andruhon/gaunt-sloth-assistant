@@ -7,13 +7,13 @@ import type { LLMConfig, ConfigModule } from "./types.js";
 
 // Function to process JSON config and create Anthropic LLM instance
 export async function processJsonConfig(llmConfig: LLMConfig): Promise<any> {
-    const anthropic = await import('@langchain/anthropic');
-    // Use environment variable if available, otherwise use the config value
-    const anthropicApiKey = env.ANTHROPIC_API_KEY || llmConfig.apiKey;
-    return new anthropic.ChatAnthropic({
-        apiKey: anthropicApiKey,
-        model: llmConfig.model || "claude-3-7-sonnet-20250219"
-    });
+  const anthropic = await import("@langchain/anthropic");
+  // Use environment variable if available, otherwise use the config value
+  const anthropicApiKey = env.ANTHROPIC_API_KEY || llmConfig.apiKey;
+  return new anthropic.ChatAnthropic({
+    apiKey: anthropicApiKey,
+    model: llmConfig.model || "claude-3-7-sonnet-20250219",
+  });
 }
 
 const jsContent = `/* eslint-disable */
@@ -40,14 +40,14 @@ const jsonContent = `{
 }`;
 
 export function init(configFileName: string, context: SlothContext): void {
-    if (!context.currentDir) {
-        throw new Error('Current directory not set');
-    }
-    path.join(context.currentDir, configFileName);
+  if (!context.currentDir) {
+    throw new Error("Current directory not set");
+  }
+  path.join(context.currentDir, configFileName);
 
-    // Determine which content to use based on file extension
-    const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
+  // Determine which content to use based on file extension
+  const content = configFileName.endsWith(".json") ? jsonContent : jsContent;
 
-    writeFileIfNotExistsWithMessages(configFileName, content);
-    displayWarning(`You need to update your ${configFileName} to add your Anthropic API key.`);
-} 
+  writeFileIfNotExistsWithMessages(configFileName, content);
+  displayWarning(`You need to update your ${configFileName} to add your Anthropic API key.`);
+}

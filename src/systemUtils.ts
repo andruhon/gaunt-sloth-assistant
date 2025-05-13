@@ -1,4 +1,4 @@
-import { dirname, join } from 'node:path/posix';
+import { dirname, join } from "node:path/posix";
 import { fileURLToPath } from "url";
 
 /**
@@ -11,21 +11,21 @@ import { fileURLToPath } from "url";
  */
 
 interface InnerState {
-    installDir: string | null | undefined;
+  installDir: string | null | undefined;
 }
 
 const innerState: InnerState = {
-    installDir: undefined
+  installDir: undefined,
 };
 
 // Process-related functions and objects
 export const getCurrentDir = (): string => process.cwd();
-export const getInstallDir = (): string => { 
-    if (innerState.installDir) {
-        return innerState.installDir;
-    }
-    throw new Error('Install directory not set');
-}
+export const getInstallDir = (): string => {
+  if (innerState.installDir) {
+    return innerState.installDir;
+  }
+  throw new Error("Install directory not set");
+};
 export const exit = (code?: number): never => process.exit(code);
 export const stdin = process.stdin;
 export const stdout = process.stdout;
@@ -37,7 +37,7 @@ export const env = process.env;
  * This is used to set the install directory.
  */
 export const setEntryPoint = (indexJs: string): void => {
-    innerState.installDir = join(dirname(fileURLToPath(indexJs)), '..');
+  innerState.installDir = join(dirname(fileURLToPath(indexJs)), "..");
 };
 
 // Console-related functions
@@ -45,4 +45,4 @@ export const log = (message: string): void => console.log(message);
 export const error = (message: string): void => console.error(message);
 export const warn = (message: string): void => console.warn(message);
 export const info = (message: string): void => console.info(message);
-export const debug = (message: string): void => console.debug(message); 
+export const debug = (message: string): void => console.debug(message);
