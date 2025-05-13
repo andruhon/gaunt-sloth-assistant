@@ -1,8 +1,9 @@
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { displayWarning } from "../consoleUtils.js";
 import type { LLMConfig } from "./types.js";
 
 // Function to process JSON config and create Fake LLM instance for testing
-export async function processJsonConfig(llmConfig: LLMConfig): Promise<any> {
+export async function processJsonConfig(llmConfig: LLMConfig): Promise<BaseChatModel | null> {
   if (llmConfig.responses) {
     const test = await import("@langchain/core/utils/testing");
     return new test.FakeListChatModel({

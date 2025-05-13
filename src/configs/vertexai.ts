@@ -1,8 +1,9 @@
-import { writeFileIfNotExistsWithMessages } from "../utils.js";
+import { LanguageModelLike } from "@langchain/core/language_models/base";
 import path from "node:path";
-import { displayWarning } from "../consoleUtils.js";
 import type { SlothContext } from "../config.js";
-import type { LLMConfig, ConfigModule } from "./types.js";
+import { displayWarning } from "../consoleUtils.js";
+import { writeFileIfNotExistsWithMessages } from "../utils.js";
+import type { LLMConfig } from "./types.js";
 
 const jsContent = `/* eslint-disable */
 export async function configure(importFunction, global) {
@@ -45,7 +46,7 @@ export function init(configFileName: string, context: SlothContext): void {
 }
 
 // Function to process JSON config and create VertexAI LLM instance
-export async function processJsonConfig(llmConfig: LLMConfig): Promise<any> {
+export async function processJsonConfig(llmConfig: LLMConfig): Promise<LanguageModelLike> {
   const vertexAi = await import("@langchain/google-vertexai");
   return new vertexAi.ChatVertexAI({
     ...llmConfig,

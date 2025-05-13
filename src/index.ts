@@ -27,9 +27,9 @@ program
   .description("Gaunt Sloth Assistant reviewing your PRs")
   .version(getSlothVersion());
 
-initCommand(program, slothContext);
+initCommand(program);
 reviewCommand(program, slothContext);
-askCommand(program, slothContext);
+askCommand(program);
 
 // TODO add general interactive chat command
 

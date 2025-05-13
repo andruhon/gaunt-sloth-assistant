@@ -6,10 +6,6 @@ export interface State {
   messages: Message[];
 }
 
-export interface ModelResponse {
-  messages: Message[];
-}
-
 export interface ProgressCallback {
   (): void;
 }

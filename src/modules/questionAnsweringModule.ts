@@ -1,13 +1,14 @@
+import type { SlothContext } from "#src/config.js";
+import { slothContext } from "#src/config.js";
+import { display, displayError, displaySuccess } from "#src/consoleUtils.js";
+import type { Message, ProgressCallback, State } from "#src/modules/types.js";
+import { getCurrentDir } from "#src/systemUtils.js";
+import { fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "#src/utils.js";
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import { AIMessageChunk, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
 import * as path from "node:path";
-import { slothContext } from "#src/config.js";
-import { display, displayError, displaySuccess } from "#src/consoleUtils.js";
-import { fileSafeLocalDate, ProgressIndicator, toFileSafeString } from "#src/utils.js";
-import { getCurrentDir } from "#src/systemUtils.js";
-import type { SlothContext } from "#src/config.js";
-import type { Message, State, ModelResponse, ProgressCallback } from "#src/modules/types.js";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 /**
  * Ask a question and get an answer from the LLM
@@ -60,9 +61,9 @@ export async function askQuestionInner(
   content: string
 ): Promise<string> {
   // This node receives the current state (messages) and invokes the LLM
-  const callModel = async (state: State): Promise<ModelResponse> => {
+  const callModel = async (state: State): Promise<{ messages: AIMessageChunk }> => {
     // state.messages will contain the list including the system preamble and user diff
-    const response = await context.config.llm.invoke(state.messages);
+    const response = await (context.config.llm as BaseChatModel).invoke(state.messages);
     // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
     // Wrap the response in an array if it's a single message object.
     return { messages: response };

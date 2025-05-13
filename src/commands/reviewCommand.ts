@@ -186,6 +186,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
   async function getFromProvider(
     provider: RequirementsProviderType | ContentProviderType | undefined,
     id: string | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     config: any,
     legitPredefinedProviders: typeof REQUIREMENTS_PROVIDERS | typeof CONTENT_PROVIDERS
   ): Promise<string> {

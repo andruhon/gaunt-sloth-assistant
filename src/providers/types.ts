@@ -2,7 +2,7 @@ export interface ProviderConfig {
   username?: string;
   token?: string;
   baseUrl?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface JiraConfig extends ProviderConfig {

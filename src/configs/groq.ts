@@ -1,12 +1,13 @@
-import { writeFileIfNotExistsWithMessages } from "../utils.js";
 import path from "node:path";
+import type { SlothContext } from "../config.js";
 import { displayInfo, displayWarning } from "../consoleUtils.js";
 import { env } from "../systemUtils.js";
-import type { SlothContext } from "../config.js";
-import type { LLMConfig, ConfigModule } from "./types.js";
+import { writeFileIfNotExistsWithMessages } from "../utils.js";
+import type { LLMConfig } from "./types.js";
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
 // Function to process JSON config and create Groq LLM instance
-export async function processJsonConfig(llmConfig: LLMConfig): Promise<any> {
+export async function processJsonConfig(llmConfig: LLMConfig): Promise<BaseChatModel> {
   const groq = await import("@langchain/groq");
   // Use environment variable if available, otherwise use the config value
   const groqApiKey = env.GROQ_API_KEY || llmConfig.apiKey;

@@ -4,9 +4,10 @@ import { displayDebug, displayError, displayInfo, displayWarning } from "#src/co
 import { importExternalFile, writeFileIfNotExistsWithMessages } from "#src/utils.js";
 import { existsSync, readFileSync } from "node:fs";
 import { exit, getCurrentDir } from "#src/systemUtils.js";
+import { LanguageModelLike } from "@langchain/core/language_models/base";
 
 export interface SlothConfig {
-  llm?: any;
+  llm?: LanguageModelLike | LLMConfig; // FIXME This piece here is bad
   contentProvider: string;
   requirementsProvider: string;
   commands: {
@@ -21,8 +22,8 @@ export interface SlothConfig {
   pr?: {
     requirementsProvider?: string;
   };
-  requirementsProviderConfig?: Record<string, any>;
-  contentProviderConfig?: Record<string, any>;
+  requirementsProviderConfig?: Record<string, unknown>;
+  contentProviderConfig?: Record<string, unknown>;
 }
 
 export interface SlothContext {
@@ -157,7 +158,7 @@ export async function initConfig(): Promise<void> {
 
 interface LLMConfig {
   type: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Process JSON LLM config by creating the appropriate LLM instance

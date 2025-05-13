@@ -1,6 +1,6 @@
 import { display, displayError, displaySuccess, displayWarning } from "#src/consoleUtils.js";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { slothContext } from "#src/config.js";
+import { SlothConfig, slothContext } from "#src/config.js";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { exit, stdin, stdout, argv } from "#src/systemUtils.js";
@@ -168,7 +168,9 @@ export function extractLastMessageContent(output: LLMOutput): string {
  * @param filePath - The path to the file to import
  * @returns A promise that resolves to the imported module
  */
-export function importExternalFile(filePath: string): Promise<any> {
+export function importExternalFile(
+  filePath: string
+): Promise<{ configure: (module: string) => Promise<Partial<SlothConfig>> }> {
   const configFileUrl = url.pathToFileURL(filePath).toString();
   return import(configFileUrl);
 }
