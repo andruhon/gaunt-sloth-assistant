@@ -6,7 +6,6 @@ import { spawn } from "node:child_process";
 import { exit, stdin, stdout, argv } from "#src/systemUtils.js";
 import url from "node:url";
 import { Command } from "commander";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 export function toFileSafeString(string: string): string {
     return string.replace(/[^A-Za-z0-9]/g, '-');
@@ -190,7 +189,7 @@ export function readMultipleFilesFromCurrentDir(fileNames: string | string[]): s
     if (!Array.isArray(fileNames)) {
         return readFileFromCurrentDir(fileNames);
     }
-    
+
     return fileNames.map(fileName => {
         const content = readFileFromCurrentDir(fileName);
         return `${fileName}:\n\`\`\`\n${content}\n\`\`\``;
@@ -213,12 +212,3 @@ export async function execAsync(command: string): Promise<string> {
         });
     });
 }
-
-
-export function createSystemMessage(content: string): SystemMessage {
-    return new SystemMessage(content);
-}
-
-export function createHumanMessage(content: string): HumanMessage {
-    return new HumanMessage(content);
-} 

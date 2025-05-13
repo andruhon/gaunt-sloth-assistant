@@ -7,7 +7,7 @@ import { extractLastMessageContent, fileSafeLocalDate, ProgressIndicator, toFile
 import { getCurrentDir, stdout } from "#src/systemUtils.js";
 import type { SlothContext } from "#src/config.js";
 import type { Message, State, ModelResponse, ProgressCallback, ReviewOptions } from "#src/modules/types.js";
-import { createSystemMessage, createHumanMessage } from "#src/utils.js";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 export async function review(source: string, preamble: string, diff: string): Promise<void> {
     const progressIndicator = new ProgressIndicator("Reviewing.");
@@ -59,8 +59,8 @@ export async function reviewInner(
 
     // Construct the initial the messages including the preamble as a system message
     const messages: Message[] = [
-        createSystemMessage(preamble),
-        createHumanMessage(diff),
+        new SystemMessage(preamble),
+        new HumanMessage(diff),
     ];
 
     indicateProgress();
