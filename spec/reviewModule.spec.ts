@@ -7,7 +7,7 @@ describe('reviewModule', () => {
         vi.resetAllMocks();
     });
 
-    it('should invoke LLM', async () => {
+    it('should invoke LLM (internal)', async () => {
         // Setup mock for slothContext
         const testContext = {
             config: {

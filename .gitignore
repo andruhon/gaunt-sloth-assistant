@@ -3,6 +3,7 @@
 /sloth-DIFF-review*
 /sloth-PR-review*
 /sloth-ASK*
+.junie
 .idea
 gaunt-sloth-assistant.iml
 /.gsloth.config.j*
