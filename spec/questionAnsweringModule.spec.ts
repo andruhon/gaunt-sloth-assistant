@@ -64,7 +64,13 @@ describe('questionAnsweringModule', () => {
         const progressIndicator = {
             indicate: vi.fn()
         };
-        utilsMock.ProgressIndicator.mockImplementation(() => progressIndicator)
+        utilsMock.ProgressIndicator.mockImplementation(() => progressIndicator);
+        utilsMock.toFileSafeString.mockReturnValue('sloth-ASK');
+        utilsMock.fileSafeLocalDate.mockReturnValue('2025-01-01T00-00-00');
+        pathMock.resolve.mockImplementation((path: string, name: string) => {
+            if (name.includes('sloth-ASK')) return 'test-file-path.md';
+            return '';
+        });
     });
 
     it('should invoke LLM (internal)', async () => {
@@ -97,5 +103,27 @@ describe('questionAnsweringModule', () => {
 
         // Verify that displaySuccess was called
         expect(consoleUtilsMock.displaySuccess).toHaveBeenCalled();
+    });
+
+    it('Should handle file write errors', async () => {
+        mockSlothContext.config.llm = new FakeListChatModel({
+            responses: ["LLM Response"]
+        });
+
+        // Mock file write to throw an error
+        const error = new Error('File write error');
+        fsMock.writeFileSync.mockImplementation(() => {
+            throw error;
+        });
+
+        // Import the module after setting up mocks
+        const { askQuestion } = await import("#src/modules/questionAnsweringModule.js");
+
+        // Call the function and wait for it to complete
+        await askQuestion('sloth-ASK', 'Test Preamble', 'Test Content');
+
+        // Verify error message was displayed
+        expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(expect.stringContaining('test-file-path.md'));
+        expect(consoleUtilsMock.displayError).toHaveBeenCalledWith('File write error');
     });
 });
