@@ -60,6 +60,8 @@ supplies description of JIRA issue with number PP-4242:
 gsloth pr 42 PP-4242
 ```
 
+TODO jira update this to match docs/CONFIGURATION.md
+
 Example configuration setting up JIRA integration using a legacy API token for both `review` and `pr` commands.
 Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
 
@@ -80,7 +82,7 @@ A legacy token can be acquired from `Atlassian Account Settings -> Security -> C
 ```
 
 Alternatively, and for better security, you can set the JIRA username and token using environment variables:
-- `JIRA_LEGACY_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
+- `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
 - `JIRA_LEGACY_API_TOKEN`: Your JIRA legacy API token.
 
 If these environment variables are set, they will take precedence over the values in the configuration file.

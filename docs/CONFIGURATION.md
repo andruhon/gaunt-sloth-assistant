@@ -145,9 +145,13 @@ See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/
 ## Content providers
 
 ### JIRA
+TODO JIRA update this to match new naming in jira. The Token is now called token without scopes "Create API token without scopes", rather than legacy.
+There's also "Create API token with scopes", but it does not seem to work with REST API yet.
 
 Example configuration setting up JIRA integration using a legacy API token for both `review` and `pr` commands.
 Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
+
+
 
 A legacy token can be acquired from `Atlassian Account Settings -> Security -> Create and manage API tokens`.
 
