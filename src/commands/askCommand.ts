@@ -26,7 +26,7 @@ export function askCommand(program: Command, context: SlothContext): void {
                 content.push(readMultipleFilesFromCurrentDir(options.file));
             }
             await initConfig();
-            const { askQuestion } = await import('../modules/questionAnsweringModule.js');
+            const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
             await askQuestion('sloth-ASK', preamble.join("\n"), content.join("\n"));
         });
 } 

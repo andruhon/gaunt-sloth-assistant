@@ -38,7 +38,6 @@ export const env = process.env;
  */
 export const setEntryPoint = (indexJs: string): void => {
     innerState.installDir = join(dirname(fileURLToPath(indexJs)), '..');
-    console.log('installDir', innerState.installDir);
 };
 
 // Console-related functions

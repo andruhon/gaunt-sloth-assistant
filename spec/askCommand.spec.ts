@@ -4,12 +4,8 @@ import type { SlothContext } from '#src/config.js';
 
 // Use vi.hoisted() to ensure ctx is available during mock setup
 const ctx = vi.hoisted(() => ({
-    askQuestion: vi.fn(),
     prompt: {
-        readInternalPreamble: vi.fn().mockReturnValue("INTERNAL PREAMBLE")
-    },
-    questionAnsweringMock: {
-        askQuestion: vi.fn()
+        readInternalPreamble: vi.fn()
     },
     utilsMock: {
         readFileFromCurrentDir: vi.fn(),
@@ -18,44 +14,41 @@ const ctx = vi.hoisted(() => ({
         extractLastMessageContent: vi.fn(),
         toFileSafeString: vi.fn(),
         fileSafeLocalDate: vi.fn()
+    },
+    questionAnsweringModule: {
+        askQuestion: vi.fn()
+    },
+    config: {
+        SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
+        USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
+        slothContext: {
+            config: {
+                llm: {
+                    invoke: vi.fn(),
+                }
+            },
+            currentDir: '/mock/current/dir',
+            installDir: '/mock/install/dir',
+            session: { configurable: { thread_id: 'test-thread-id' } }
+        },
+        initConfig: vi.fn()
     }
 }));
 
 // Mock modules before any tests
-vi.doMock("#src/prompt.js", () => ({
-    readInternalPreamble: ctx.prompt.readInternalPreamble
-}));
+vi.doMock("#src/prompt.js", () => ctx.prompt);
 
-vi.doMock("#src/modules/questionAnsweringModule.js", () => ({
-    askQuestion: ctx.questionAnsweringMock.askQuestion
-}));
+vi.doMock("#src/config.js", () => ctx.config);
 
-vi.doMock("#src/config.js", () => ({
-    SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
-    USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
-    slothContext: {
-        config: {},
-        currentDir: '/mock/current/dir',
-        installDir: '/mock/install/dir'
-    },
-    initConfig: vi.fn()
-}));
+vi.doMock("#src/utils.js", () => ctx.utilsMock);
 
-vi.doMock("#src/utils.js", () => ({
-    readFileFromCurrentDir: ctx.utilsMock.readFileFromCurrentDir,
-    readMultipleFilesFromCurrentDir: ctx.utilsMock.readMultipleFilesFromCurrentDir,
-    ProgressIndicator: ctx.utilsMock.ProgressIndicator,
-    extractLastMessageContent: ctx.utilsMock.extractLastMessageContent,
-    toFileSafeString: ctx.utilsMock.toFileSafeString,
-    fileSafeLocalDate: ctx.utilsMock.fileSafeLocalDate
-}));
+vi.doMock('#src/modules/questionAnsweringModule.js', () => ctx.questionAnsweringModule);
 
 describe('askCommand', () => {
     beforeEach(async () => {
         vi.resetAllMocks();
 
         // Set up mocks
-        ctx.questionAnsweringMock.askQuestion.mockImplementation((...args) => ctx.askQuestion(...args));
         ctx.utilsMock.readFileFromCurrentDir.mockImplementation((path: string) => {
             if (path === "test.file") return "FILE CONTENT";
             return '';
@@ -64,26 +57,33 @@ describe('askCommand', () => {
             if (files.includes("test.file")) return "test.file:\n```\nFILE CONTENT\n```";
             return '';
         });
+        ctx.prompt.readInternalPreamble.mockReturnValue("INTERNAL PREAMBLE")
+
+        // Set up ProgressIndicator mock
+        const progressIndicator = {
+            indicate: vi.fn()
+        };
+        ctx.utilsMock.ProgressIndicator.mockImplementation(() => progressIndicator);
     });
 
     it('Should call askQuestion with message', async () => {
-        const { askCommand } = await import("../src/commands/askCommand.js");
+        const { askCommand } = await import("#src/commands/askCommand.js");
         const program = new Command();
         await askCommand(program, {} as SlothContext);
         await program.parseAsync(['na', 'na', 'ask', 'test message']);
-        expect(ctx.askQuestion).toHaveBeenCalledWith('sloth-ASK', "INTERNAL PREAMBLE", "test message");
+        expect(ctx.questionAnsweringModule.askQuestion).toHaveBeenCalledWith('sloth-ASK', "INTERNAL PREAMBLE", "test message");
     });
 
     it('Should call askQuestion with message and file content', async () => {
-        const { askCommand } = await import("../src/commands/askCommand.js");
+        const { askCommand } = await import("#src/commands/askCommand.js");
         const program = new Command();
         await askCommand(program, {} as SlothContext);
         await program.parseAsync(['na', 'na', 'ask', 'test message', '-f', 'test.file']);
-        expect(ctx.askQuestion).toHaveBeenCalledWith('sloth-ASK', "INTERNAL PREAMBLE", "test message\ntest.file:\n```\nFILE CONTENT\n```");
+        expect(ctx.questionAnsweringModule.askQuestion).toHaveBeenCalledWith('sloth-ASK', "INTERNAL PREAMBLE", "test message\ntest.file:\n```\nFILE CONTENT\n```");
     });
 
     it('Should call askQuestion with message and multiple file contents', async () => {
-        const { askCommand } = await import("../src/commands/askCommand.js");
+        const { askCommand } = await import("#src/commands/askCommand.js");
         const program = new Command();
         await askCommand(program, {} as SlothContext);
         ctx.utilsMock.readMultipleFilesFromCurrentDir.mockImplementation((files: string[]) => {
@@ -93,11 +93,11 @@ describe('askCommand', () => {
             return '';
         });
         await program.parseAsync(['na', 'na', 'ask', 'test message', '-f', 'test.file', 'test2.file']);
-        expect(ctx.askQuestion).toHaveBeenCalledWith('sloth-ASK', "INTERNAL PREAMBLE", "test message\ntest.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```");
+        expect(ctx.questionAnsweringModule.askQuestion).toHaveBeenCalledWith('sloth-ASK', "INTERNAL PREAMBLE", "test message\ntest.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```");
     });
 
     it('Should display help correctly', async () => {
-        const { askCommand } = await import("../src/commands/askCommand.js");
+        const { askCommand } = await import("#src/commands/askCommand.js");
         const program = new Command();
         const testOutput = { text: '' };
 
