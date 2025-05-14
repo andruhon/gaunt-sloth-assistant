@@ -157,6 +157,15 @@ A legacy token can be acquired from `Atlassian Account Settings -> Security -> C
 Example configuration setting up JIRA integration using a legacy API token for both `review` and `pr` commands.
 Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
 
+**Environment Variables Support:**
+
+For better security, you can set the JIRA username and token using environment variables instead of placing them in the configuration file:
+
+- `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
+- `JIRA_LEGACY_API_TOKEN`: Your JIRA legacy API token.
+
+If these environment variables are set, they will take precedence over the values in the configuration file.
+
 JSON:
 
 ```json
@@ -207,6 +216,16 @@ This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). I
    - Alternatively granular access would require: `read:issue-meta:jira`, `read:issue-security-level:jira`, `read:issue.vote:jira`, `read:issue.changelog:jira`, `read:avatar:jira`, `read:issue:jira`, `read:status:jira`, `read:user:jira`, `read:field-configuration:jira`
 
 Refer to JIRA API documentation for more details [https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get)
+
+**Environment Variables Support:**
+
+For better security, you can set the JIRA username, token, and cloud ID using environment variables instead of placing them in the configuration file:
+
+- `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
+- `JIRA_API_PAT_TOKEN`: Your JIRA Personal Access Token with scopes.
+- `JIRA_CLOUD_ID`: Your Atlassian Cloud ID.
+
+If these environment variables are set, they will take precedence over the values in the configuration file.
 
 JSON:
 

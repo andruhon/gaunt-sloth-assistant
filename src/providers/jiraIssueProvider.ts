@@ -1,4 +1,5 @@
 import { displayError, displayWarning } from "#src/consoleUtils.js";
+import { env } from "#src/systemUtils.js";
 import type { JiraConfig } from "./types.js";
 
 interface JiraIssueResponse {
@@ -28,21 +29,38 @@ export async function get(
     displayWarning("No issue ID provided");
     return null;
   }
-  if (!config.username) {
-    displayWarning("No Jira username provided");
-    return null;
+  
+  // Get username from environment variable or config
+  const username = env.JIRA_USERNAME || config.username;
+  if (!username) {
+    throw new Error(
+      'Missing JIRA username. The username can be defined as JIRA_USERNAME environment variable or as "username" in config.'
+    );
   }
-  if (!config.token) {
-    displayWarning("No Jira token provided");
-    return null;
+  
+  // Get token from environment variable or config
+  const token = env.JIRA_API_PAT_TOKEN || config.token;
+  if (!token) {
+    throw new Error(
+      'Missing JIRA PAT token. The token can be defined as JIRA_API_PAT_TOKEN environment variable or as "token" in config.'
+    );
   }
-  if (!config.cloudId) {
-    displayWarning("No Jira Cloud ID provided");
-    return null;
+  
+  // Get cloud ID from environment variable or config
+  const cloudId = env.JIRA_CLOUD_ID || config.cloudId;
+  if (!cloudId) {
+    throw new Error(
+      'Missing JIRA Cloud ID. The Cloud ID can be defined as JIRA_CLOUD_ID environment variable or as "cloudId" in config.'
+    );
   }
 
-  try {
-    const issue = await getJiraIssue(config, issueId);
+  try {    
+    const issue = await getJiraIssue({
+      ...config,
+      username,
+      token,
+      cloudId
+    }, issueId);
     if (!issue) {
       return null;
     }

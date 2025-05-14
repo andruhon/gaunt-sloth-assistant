@@ -1,7 +1,6 @@
 import { displayError, displayWarning } from "#src/consoleUtils.js";
+import { env } from "#src/systemUtils.js";
 import type { JiraConfig } from "./types.js";
-
-// TODO JIRA rename jira to be simply jira (they renamed legacy tokens, to be unscoped tokens)
 
 interface JiraIssueResponse {
   fields: {
@@ -34,21 +33,29 @@ export async function get(
     displayWarning("No Jira base URL provided");
     return null;
   }
-  // TODO JIRA add environment variable for username
-  if (!config.username) {
+  
+  // Get username from environment variable or config
+  const username = env.JIRA_USERNAME || config.username;
+  if (!username) {
     throw new Error(
       'Missing JIRA username. The username can be defined as JIRA_USERNAME environment variable or as "username" in config.'
     );
   }
-  // TODO JIRA add environment variable for jira token
-  if (!config.token) {
+  
+  // Get token from environment variable or config
+  const token = env.JIRA_LEGACY_API_TOKEN || config.token;
+  if (!token) {
     throw new Error(
       'Missing JIRA Legacy API token. The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable or as "token" in config.'
     );
   }
 
   try {
-    const issue = await getJiraIssue(config, issueId);
+    const issue = await getJiraIssue({
+      ...config,
+      username,
+      token
+    }, issueId);
     if (!issue) {
       return null;
     }
@@ -72,8 +79,8 @@ export async function get(
  * @returns Jira issue response
  */
 async function getJiraIssue(config: JiraConfig, issueId: string): Promise<JiraIssueResponse> {
-  const auth = Buffer.from(`${config.username}:${config.token}`).toString("base64");
-  const response = await fetch(`${config.baseUrl}/rest/api/2/issue/${issueId}`, {
+  const auth = Buffer.from(`${config?.username}:${config?.token}`).toString("base64");
+  const response = await fetch(`${config?.baseUrl}/rest/api/2/issue/${issueId}`, {
     headers: {
       Authorization: `Basic ${auth}`,
       Accept: "application/json",
