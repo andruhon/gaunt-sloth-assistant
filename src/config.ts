@@ -1,10 +1,10 @@
-import path from "node:path/posix";
-import { v4 as uuidv4 } from "uuid";
-import { displayDebug, displayError, displayInfo, displayWarning } from "#src/consoleUtils.js";
-import { importExternalFile, writeFileIfNotExistsWithMessages } from "#src/utils.js";
-import { existsSync, readFileSync } from "node:fs";
-import { exit, getCurrentDir } from "#src/systemUtils.js";
-import { LanguageModelLike } from "@langchain/core/language_models/base";
+import path from 'node:path/posix';
+import { v4 as uuidv4 } from 'uuid';
+import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
+import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
+import { existsSync, readFileSync } from 'node:fs';
+import { exit, getCurrentDir } from '#src/systemUtils.js';
+import { LanguageModelLike } from '@langchain/core/language_models/base';
 
 export interface SlothConfig {
   llm?: LanguageModelLike | LLMConfig; // FIXME This piece here is bad
@@ -38,22 +38,22 @@ export interface SlothContext {
   };
 }
 
-export const USER_PROJECT_CONFIG_JS = ".gsloth.config.js";
-export const USER_PROJECT_CONFIG_JSON = ".gsloth.config.json";
-export const USER_PROJECT_CONFIG_MJS = ".gsloth.config.mjs";
-export const SLOTH_INTERNAL_PREAMBLE = ".gsloth.preamble.internal.md";
-export const USER_PROJECT_REVIEW_PREAMBLE = ".gsloth.preamble.review.md";
+export const USER_PROJECT_CONFIG_JS = '.gsloth.config.js';
+export const USER_PROJECT_CONFIG_JSON = '.gsloth.config.json';
+export const USER_PROJECT_CONFIG_MJS = '.gsloth.config.mjs';
+export const SLOTH_INTERNAL_PREAMBLE = '.gsloth.preamble.internal.md';
+export const USER_PROJECT_REVIEW_PREAMBLE = '.gsloth.preamble.review.md';
 
-export const availableDefaultConfigs = ["vertexai", "anthropic", "groq"] as const;
+export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
 export const DEFAULT_CONFIG: SlothConfig = {
   llm: undefined,
-  contentProvider: "file",
-  requirementsProvider: "file",
+  contentProvider: 'file',
+  requirementsProvider: 'file',
   commands: {
     pr: {
-      contentProvider: "gh",
+      contentProvider: 'gh',
     },
   },
 };
@@ -71,7 +71,7 @@ export const slothContext: SlothContext = {
    */
   // currentDir // FIXME
   config: DEFAULT_CONFIG,
-  stdin: "",
+  stdin: '',
   session: { configurable: { thread_id: uuidv4() } },
 } as Partial<SlothContext> as SlothContext;
 
@@ -84,9 +84,9 @@ export async function initConfig(): Promise<void> {
   // Try loading JSON config file first
   if (existsSync(jsonConfigPath)) {
     try {
-      const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, "utf8")) as Partial<SlothConfig>;
+      const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as Partial<SlothConfig>;
       // If the config has an LLM with a type, create the appropriate LLM instance
-      if (jsonConfig.llm && typeof jsonConfig.llm === "object" && "type" in jsonConfig.llm) {
+      if (jsonConfig.llm && typeof jsonConfig.llm === 'object' && 'type' in jsonConfig.llm) {
         await tryJsonConfig(jsonConfig);
       } else {
         slothContext.config = { ...slothContext.config, ...jsonConfig };
@@ -147,9 +147,9 @@ export async function initConfig(): Promise<void> {
     } else {
       // No config files found
       displayError(
-        "No configuration file found. Please create one of: " +
+        'No configuration file found. Please create one of: ' +
           `${USER_PROJECT_CONFIG_JSON}, ${USER_PROJECT_CONFIG_JS}, or ${USER_PROJECT_CONFIG_MJS} ` +
-          "in your project directory."
+          'in your project directory.'
       );
       exit();
     }
@@ -169,7 +169,7 @@ export async function tryJsonConfig(jsonConfig: Partial<SlothConfig>): Promise<v
   // Check if the LLM type is in availableDefaultConfigs
   if (!llmType || !availableDefaultConfigs.includes(llmType as ConfigType)) {
     displayError(
-      `Unsupported LLM type: ${llmType}. Available types are: ${availableDefaultConfigs.join(", ")}`
+      `Unsupported LLM type: ${llmType}. Available types are: ${availableDefaultConfigs.join(', ')}`
     );
     slothContext.config = { ...slothContext.config, ...jsonConfig };
     return;
@@ -206,7 +206,7 @@ export async function createProjectConfig(configType: string): Promise<void> {
   // Check if the config type is in availableDefaultConfigs
   if (!availableDefaultConfigs.includes(configType as ConfigType)) {
     displayError(
-      `Unsupported config type: ${configType}. Available types are: ${availableDefaultConfigs.join(", ")}`
+      `Unsupported config type: ${configType}. Available types are: ${availableDefaultConfigs.join(', ')}`
     );
     exit(1);
     return;
@@ -219,17 +219,17 @@ export async function createProjectConfig(configType: string): Promise<void> {
 
 export function writeProjectReviewPreamble(): void {
   if (!slothContext.currentDir) {
-    throw new Error("Current directory not set");
+    throw new Error('Current directory not set');
   }
   const reviewPreamblePath = path.join(slothContext.currentDir, USER_PROJECT_REVIEW_PREAMBLE);
   writeFileIfNotExistsWithMessages(
     reviewPreamblePath,
-    "You are doing generic code review.\n" +
-      " Important! Please remind user to prepare proper AI preamble in" +
+    'You are doing generic code review.\n' +
+      ' Important! Please remind user to prepare proper AI preamble in' +
       USER_PROJECT_REVIEW_PREAMBLE +
-      " for this project. Use decent amount of ⚠️ to highlight lack of config." +
-      " Explicitly mention `" +
+      ' for this project. Use decent amount of ⚠️ to highlight lack of config.' +
+      ' Explicitly mention `' +
       USER_PROJECT_REVIEW_PREAMBLE +
-      "`."
+      '`.'
   );
 }

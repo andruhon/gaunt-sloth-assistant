@@ -1,5 +1,5 @@
-import { dirname, join } from "node:path/posix";
-import { fileURLToPath } from "url";
+import { dirname, join } from 'node:path/posix';
+import { fileURLToPath } from 'url';
 
 /**
  * This file contains all system functions and objects that are globally available
@@ -24,7 +24,7 @@ export const getInstallDir = (): string => {
   if (innerState.installDir) {
     return innerState.installDir;
   }
-  throw new Error("Install directory not set");
+  throw new Error('Install directory not set');
 };
 export const exit = (code?: number): never => process.exit(code);
 export const stdin = process.stdin;
@@ -37,7 +37,7 @@ export const env = process.env;
  * This is used to set the install directory.
  */
 export const setEntryPoint = (indexJs: string): void => {
-  innerState.installDir = join(dirname(fileURLToPath(indexJs)), "..");
+  innerState.installDir = join(dirname(fileURLToPath(indexJs)), '..');
 };
 
 // Console-related functions

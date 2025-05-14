@@ -1,6 +1,6 @@
-import { displayError, displayWarning } from "#src/consoleUtils.js";
-import { env } from "#src/systemUtils.js";
-import type { JiraConfig } from "./types.js";
+import { displayError, displayWarning } from '#src/consoleUtils.js';
+import { env } from '#src/systemUtils.js';
+import type { JiraConfig } from './types.js';
 
 interface JiraIssueResponse {
   fields: {
@@ -22,18 +22,18 @@ export async function get(
   issueId: string | undefined
 ): Promise<string | null> {
   if (!config) {
-    displayWarning("No Jira config provided");
+    displayWarning('No Jira config provided');
     return null;
   }
   if (!issueId) {
-    displayWarning("No issue ID provided");
+    displayWarning('No issue ID provided');
     return null;
   }
   if (!config.baseUrl) {
-    displayWarning("No Jira base URL provided");
+    displayWarning('No Jira base URL provided');
     return null;
   }
-  
+
   // Get username from environment variable or config
   const username = env.JIRA_USERNAME || config.username;
   if (!username) {
@@ -41,7 +41,7 @@ export async function get(
       'Missing JIRA username. The username can be defined as JIRA_USERNAME environment variable or as "username" in config.'
     );
   }
-  
+
   // Get token from environment variable or config
   const token = env.JIRA_LEGACY_API_TOKEN || config.token;
   if (!token) {
@@ -51,11 +51,14 @@ export async function get(
   }
 
   try {
-    const issue = await getJiraIssue({
-      ...config,
-      username,
-      token
-    }, issueId);
+    const issue = await getJiraIssue(
+      {
+        ...config,
+        username,
+        token,
+      },
+      issueId
+    );
     if (!issue) {
       return null;
     }
@@ -79,11 +82,11 @@ export async function get(
  * @returns Jira issue response
  */
 async function getJiraIssue(config: JiraConfig, issueId: string): Promise<JiraIssueResponse> {
-  const auth = Buffer.from(`${config?.username}:${config?.token}`).toString("base64");
+  const auth = Buffer.from(`${config?.username}:${config?.token}`).toString('base64');
   const response = await fetch(`${config?.baseUrl}/rest/api/2/issue/${issueId}`, {
     headers: {
       Authorization: `Basic ${auth}`,
-      Accept: "application/json",
+      Accept: 'application/json',
     },
   });
 

@@ -1,9 +1,9 @@
-import { LanguageModelLike } from "@langchain/core/language_models/base";
-import path from "node:path";
-import type { SlothContext } from "../config.js";
-import { displayWarning } from "../consoleUtils.js";
-import { writeFileIfNotExistsWithMessages } from "../utils.js";
-import type { LLMConfig } from "./types.js";
+import { LanguageModelLike } from '@langchain/core/language_models/base';
+import path from 'node:path';
+import type { SlothContext } from '../config.js';
+import { displayWarning } from '../consoleUtils.js';
+import { writeFileIfNotExistsWithMessages } from '../utils.js';
+import type { LLMConfig } from './types.js';
 
 const jsContent = `/* eslint-disable */
 export async function configure(importFunction, global) {
@@ -32,24 +32,24 @@ const jsonContent = `{
 
 export function init(configFileName: string, context: SlothContext): void {
   if (!context.currentDir) {
-    throw new Error("Current directory not set");
+    throw new Error('Current directory not set');
   }
   path.join(context.currentDir, configFileName);
 
   // Determine which content to use based on file extension
-  const content = configFileName.endsWith(".json") ? jsonContent : jsContent;
+  const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
 
   writeFileIfNotExistsWithMessages(configFileName, content);
   displayWarning(
-    "For Google VertexAI you likely to need to do `gcloud auth login` and `gcloud auth application-default login`."
+    'For Google VertexAI you likely to need to do `gcloud auth login` and `gcloud auth application-default login`.'
   );
 }
 
 // Function to process JSON config and create VertexAI LLM instance
 export async function processJsonConfig(llmConfig: LLMConfig): Promise<LanguageModelLike> {
-  const vertexAi = await import("@langchain/google-vertexai");
+  const vertexAi = await import('@langchain/google-vertexai');
   return new vertexAi.ChatVertexAI({
     ...llmConfig,
-    model: llmConfig.model || "gemini-2.5-pro-preview-05-06",
+    model: llmConfig.model || 'gemini-2.5-pro-preview-05-06',
   });
 }

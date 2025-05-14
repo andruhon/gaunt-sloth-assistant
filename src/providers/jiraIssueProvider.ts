@@ -1,6 +1,6 @@
-import { displayError, displayWarning } from "#src/consoleUtils.js";
-import { env } from "#src/systemUtils.js";
-import type { JiraConfig } from "./types.js";
+import { displayError, displayWarning } from '#src/consoleUtils.js';
+import { env } from '#src/systemUtils.js';
+import type { JiraConfig } from './types.js';
 
 interface JiraIssueResponse {
   fields: {
@@ -22,14 +22,14 @@ export async function get(
   issueId: string | undefined
 ): Promise<string | null> {
   if (!config) {
-    displayWarning("No Jira config provided");
+    displayWarning('No Jira config provided');
     return null;
   }
   if (!issueId) {
-    displayWarning("No issue ID provided");
+    displayWarning('No issue ID provided');
     return null;
   }
-  
+
   // Get username from environment variable or config
   const username = env.JIRA_USERNAME || config.username;
   if (!username) {
@@ -37,7 +37,7 @@ export async function get(
       'Missing JIRA username. The username can be defined as JIRA_USERNAME environment variable or as "username" in config.'
     );
   }
-  
+
   // Get token from environment variable or config
   const token = env.JIRA_API_PAT_TOKEN || config.token;
   if (!token) {
@@ -45,7 +45,7 @@ export async function get(
       'Missing JIRA PAT token. The token can be defined as JIRA_API_PAT_TOKEN environment variable or as "token" in config.'
     );
   }
-  
+
   // Get cloud ID from environment variable or config
   const cloudId = env.JIRA_CLOUD_ID || config.cloudId;
   if (!cloudId) {
@@ -54,13 +54,16 @@ export async function get(
     );
   }
 
-  try {    
-    const issue = await getJiraIssue({
-      ...config,
-      username,
-      token,
-      cloudId
-    }, issueId);
+  try {
+    const issue = await getJiraIssue(
+      {
+        ...config,
+        username,
+        token,
+        cloudId,
+      },
+      issueId
+    );
     if (!issue) {
       return null;
     }
@@ -86,7 +89,7 @@ export async function get(
 async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIssueResponse> {
   console.log('Fetching issue with Scoped PAT (Personal Access Token)');
   // Jira Cloud ID can be found by authenticated user at https://company.atlassian.net/_edge/tenant_info
-  
+
   // According to doc https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get permissions to read this resource:
   // either Classic (RECOMMENDED) read:jira-work
   // or Granular read:issue-meta:jira, read:issue-security-level:jira, read:issue.vote:jira, read:issue.changelog:jira, read:avatar:jira, read:issue:jira, read:status:jira, read:user:jira, read:field-configuration:jira
@@ -99,9 +102,9 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
 
   // Define request headers
   const headers = {
-    'Authorization': authHeader,
-    'Accept': 'application/json; charset=utf-8',
-    'Accept-Language': 'en-US,en;q=0.9' // Prevents errors in other languages
+    Authorization: authHeader,
+    Accept: 'application/json; charset=utf-8',
+    'Accept-Language': 'en-US,en;q=0.9', // Prevents errors in other languages
   };
 
   console.log(`Loading Jira issue: ${jiraKey} from ${apiUrl}`);
@@ -111,12 +114,14 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
     headers: headers,
   });
 
-  if (!response.ok) {
+  if (!response?.ok) {
     try {
       const errorData = await response.json();
-      throw new Error(`Failed to fetch Jira issue: ${response.statusText} - ${JSON.stringify(errorData)}`);
-    } catch (e) {
-      throw new Error(`Failed to fetch Jira issue: ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch Jira issue: ${response.statusText} - ${JSON.stringify(errorData)}`
+      );
+    } catch (_e) {
+      throw new Error(`Failed to fetch Jira issue: ${response?.statusText}`);
     }
   }
 

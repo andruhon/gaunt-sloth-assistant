@@ -1,19 +1,19 @@
-import path from "node:path";
-import type { SlothContext } from "../config.js";
-import { displayInfo, displayWarning } from "../consoleUtils.js";
-import { env } from "../systemUtils.js";
-import { writeFileIfNotExistsWithMessages } from "../utils.js";
-import type { LLMConfig } from "./types.js";
-import { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import path from 'node:path';
+import type { SlothContext } from '../config.js';
+import { displayInfo, displayWarning } from '../consoleUtils.js';
+import { env } from '../systemUtils.js';
+import { writeFileIfNotExistsWithMessages } from '../utils.js';
+import type { LLMConfig } from './types.js';
+import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 // Function to process JSON config and create Groq LLM instance
 export async function processJsonConfig(llmConfig: LLMConfig): Promise<BaseChatModel> {
-  const groq = await import("@langchain/groq");
+  const groq = await import('@langchain/groq');
   // Use environment variable if available, otherwise use the config value
   const groqApiKey = env.GROQ_API_KEY || llmConfig.apiKey;
   return new groq.ChatGroq({
     apiKey: groqApiKey,
-    model: llmConfig.model || "deepseek-r1-distill-llama-70b",
+    model: llmConfig.model || 'deepseek-r1-distill-llama-70b',
   });
 }
 
@@ -41,12 +41,12 @@ const jsonContent = `{
 
 export function init(configFileName: string, context: SlothContext): void {
   if (!context.currentDir) {
-    throw new Error("Current directory not set");
+    throw new Error('Current directory not set');
   }
   path.join(context.currentDir, configFileName);
 
   // Determine which content to use based on file extension
-  const content = configFileName.endsWith(".json") ? jsonContent : jsContent;
+  const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
 
   writeFileIfNotExistsWithMessages(configFileName, content);
   displayInfo(

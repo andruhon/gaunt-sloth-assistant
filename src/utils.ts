@@ -1,14 +1,14 @@
-import { display, displayError, displaySuccess, displayWarning } from "#src/consoleUtils.js";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { SlothConfig, slothContext } from "#src/config.js";
-import { resolve } from "node:path";
-import { spawn } from "node:child_process";
-import { exit, stdin, stdout, argv } from "#src/systemUtils.js";
-import url from "node:url";
-import { Command } from "commander";
+import { display, displayError, displaySuccess, displayWarning } from '#src/consoleUtils.js';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { SlothConfig, slothContext } from '#src/config.js';
+import { resolve } from 'node:path';
+import { spawn } from 'node:child_process';
+import { exit, stdin, stdout, argv } from '#src/systemUtils.js';
+import url from 'node:url';
+import { Command } from 'commander';
 
 export function toFileSafeString(string: string): string {
-  return string.replace(/[^A-Za-z0-9]/g, "-");
+  return string.replace(/[^A-Za-z0-9]/g, '-');
 }
 
 export function fileSafeLocalDate(): string {
@@ -42,13 +42,13 @@ export function readFileSyncWithMessages(
   errorMessageIn?: string,
   noFileMessage?: string
 ): string {
-  const errorMessage = errorMessageIn ?? "Error reading file at: ";
+  const errorMessage = errorMessageIn ?? 'Error reading file at: ';
   try {
-    return readFileSync(filePath, { encoding: "utf8" });
+    return readFileSync(filePath, { encoding: 'utf8' });
   } catch (error) {
     displayError(errorMessage + filePath);
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      displayWarning(noFileMessage ?? "Please ensure the file exists.");
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      displayWarning(noFileMessage ?? 'Please ensure the file exists.');
     } else {
       displayError((error as Error).message);
     }
@@ -64,17 +64,17 @@ export function readStdin(program: Command): Promise<void> {
       program.parseAsync().then(() => resolvePromise());
     } else {
       // Support piping diff into gsloth
-      stdout.write("reading STDIN.");
-      stdin.on("readable", function (this: NodeJS.ReadStream) {
+      stdout.write('reading STDIN.');
+      stdin.on('readable', function (this: NodeJS.ReadStream) {
         const chunk = this.read();
-        stdout.write(".");
+        stdout.write('.');
         if (chunk !== null) {
-          const chunkStr = chunk.toString("utf8");
+          const chunkStr = chunk.toString('utf8');
           (slothContext as { stdin: string }).stdin = slothContext.stdin + chunkStr;
         }
       });
-      stdin.on("end", function () {
-        stdout.write(".\n");
+      stdin.on('end', function () {
+        stdout.write('.\n');
         program.parseAsync(argv).then(() => resolvePromise());
       });
     }
@@ -94,33 +94,33 @@ export async function spawnCommand(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     // TODO use progress indicator
-    const out: SpawnOutput = { stdout: "", stderr: "" };
+    const out: SpawnOutput = { stdout: '', stderr: '' };
     const spawned = spawn(command, args);
-    spawned.stdout.on("data", async (stdoutChunk) => {
+    spawned.stdout.on('data', async (stdoutChunk) => {
       display(progressMessage);
       out.stdout += stdoutChunk.toString();
     });
-    spawned.stderr.on("data", (err) => {
+    spawned.stderr.on('data', (err) => {
       display(progressMessage);
       out.stderr += err.toString();
     });
-    spawned.on("error", (err) => {
+    spawned.on('error', (err) => {
       reject(err.toString());
     });
-    spawned.on("close", (code) => {
+    spawned.on('close', (code) => {
       if (code === 0) {
         display(successMessage);
         resolve(out.stdout);
       } else {
         displayError(`Failed to spawn command with code ${code}`);
-        reject(out.stdout + " " + out.stderr);
+        reject(out.stdout + ' ' + out.stderr);
       }
     });
   });
 }
 
 export function getSlothVersion(): string {
-  return "0.0.0";
+  return '0.0.0';
   // const jsonPath = resolve(slothContext.installDir, 'package.json');
   // const projectJson = readFileSync(jsonPath, { encoding: 'utf8' });
   // return JSON.parse(projectJson).version;
@@ -137,7 +137,7 @@ export class ProgressIndicator {
 
   indicate(): void {
     if (this.hasBeenCalled) {
-      stdout.write(".");
+      stdout.write('.');
     } else {
       this.hasBeenCalled = true;
       stdout.write(this.initialMessage);
@@ -158,7 +158,7 @@ interface LLMOutput {
  */
 export function extractLastMessageContent(output: LLMOutput): string {
   if (!output || !output.messages || !output.messages.length) {
-    return "";
+    return '';
   }
   return output.messages[output.messages.length - 1].content;
 }
@@ -197,11 +197,11 @@ export function readMultipleFilesFromCurrentDir(fileNames: string | string[]): s
       const content = readFileFromCurrentDir(fileName);
       return `${fileName}:\n\`\`\`\n${content}\n\`\`\``;
     })
-    .join("\n\n");
+    .join('\n\n');
 }
 
 export async function execAsync(command: string): Promise<string> {
-  const { exec } = await import("node:child_process");
+  const { exec } = await import('node:child_process');
   return new Promise((resolve, reject) => {
     exec(command, (error, stdout, stderr) => {
       if (error) {

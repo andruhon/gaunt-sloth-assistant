@@ -1,4 +1,4 @@
-import type { ProviderConfig } from "./types.js";
+import type { ProviderConfig } from './types.js';
 
 /**
  * Returns the provided text as is

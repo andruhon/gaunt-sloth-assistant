@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { SlothConfig } from "#src/config.js";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { SlothConfig } from '#src/config.js';
 
 // Define mocks at top level
 const consoleUtilsMock = {
@@ -23,71 +23,71 @@ const fsMock = {
 };
 
 // Set up static mocks
-vi.mock("node:fs", () => fsMock);
-vi.mock("../src/consoleUtils.js", () => consoleUtilsMock);
-vi.mock("./consoleUtils.js", () => consoleUtilsMock);
+vi.mock('node:fs', () => fsMock);
+vi.mock('../src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('./consoleUtils.js', () => consoleUtilsMock);
 
-describe("predefined AI provider configurations", () => {
+describe('predefined AI provider configurations', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
   });
 
-  it("Should import predefined Anthropic config correctly", async () => {
+  it('Should import predefined Anthropic config correctly', async () => {
     // Mock the Anthropic module and its import
     const mockChat = vi.fn();
-    const mockChatInstance = { instance: "anthropic" };
+    const mockChatInstance = { instance: 'anthropic' };
     mockChat.mockReturnValue(mockChatInstance);
-    vi.doMock("@langchain/anthropic", () => ({
+    vi.doMock('@langchain/anthropic', () => ({
       ChatAnthropic: mockChat,
     }));
 
-    await testPredefinedAiConfig("anthropic", mockChatInstance);
+    await testPredefinedAiConfig('anthropic', mockChatInstance);
   });
 
-  it("Should import predefined VertexAI config correctly", async () => {
+  it('Should import predefined VertexAI config correctly', async () => {
     // Mock the VertexAI module and its import
     const mockChat = vi.fn();
-    const mockChatInstance = { instance: "vertexai" };
+    const mockChatInstance = { instance: 'vertexai' };
     mockChat.mockReturnValue(mockChatInstance);
-    vi.doMock("@langchain/google-vertexai", () => ({
+    vi.doMock('@langchain/google-vertexai', () => ({
       ChatVertexAI: mockChat,
     }));
 
-    await testPredefinedAiConfig("vertexai", mockChatInstance);
+    await testPredefinedAiConfig('vertexai', mockChatInstance);
   });
 
-  it("Should import predefined Groq config correctly", async () => {
+  it('Should import predefined Groq config correctly', async () => {
     // Mock the Groq module and its import
     const mockChat = vi.fn();
-    const mockChatInstance = { instance: "groq" };
+    const mockChatInstance = { instance: 'groq' };
     mockChat.mockReturnValue(mockChatInstance);
-    vi.doMock("@langchain/groq", () => ({
+    vi.doMock('@langchain/groq', () => ({
       ChatGroq: mockChat,
     }));
 
-    await testPredefinedAiConfig("groq", mockChatInstance);
+    await testPredefinedAiConfig('groq', mockChatInstance);
   });
 
   async function testPredefinedAiConfig(aiProvider: string, mockInstance: any) {
     const jsonConfig: Partial<SlothConfig> = {
       llm: {
         type: aiProvider,
-        model: aiProvider + "model",
-        apiKey: "test-api-key",
+        model: aiProvider + 'model',
+        apiKey: 'test-api-key',
       },
     };
 
     fsMock.existsSync.mockImplementation((path: string) => {
-      if (path.includes(".gsloth.config.json")) return true;
+      if (path.includes('.gsloth.config.json')) return true;
       return false;
     });
 
     fsMock.readFileSync.mockImplementation((path: string) => {
-      if (path.includes(".gsloth.config.json")) return JSON.stringify(jsonConfig);
-      return "";
+      if (path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+      return '';
     });
 
-    const { initConfig, slothContext } = await import("#src/config.js");
+    const { initConfig, slothContext } = await import('#src/config.js');
 
     // Call the function
     await initConfig();

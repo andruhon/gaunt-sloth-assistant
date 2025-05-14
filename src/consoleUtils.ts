@@ -1,5 +1,5 @@
-import chalk from "chalk";
-import { debug as systemDebug, error as systemError, log } from "#src/systemUtils.js";
+import chalk from 'chalk';
+import { debug as systemDebug, error as systemError, log } from '#src/systemUtils.js';
 
 // TODO it seems like commander supports coloured output, maybe dependency to chalk can be removed
 
@@ -26,7 +26,7 @@ export function display(message: string): void {
 export function displayDebug(message: string | Error | undefined): void {
   // TODO make it controlled by config
   if (message instanceof Error) {
-    systemDebug(message.stack || "");
+    systemDebug(message.stack || '');
   } else if (message !== undefined) {
     systemDebug(message);
   }

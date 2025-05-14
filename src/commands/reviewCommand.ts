@@ -1,18 +1,18 @@
-import { Command, Option } from "commander";
-import { USER_PROJECT_REVIEW_PREAMBLE } from "#src/config.js";
-import { readInternalPreamble, readPreamble } from "#src/prompt.js";
-import { readMultipleFilesFromCurrentDir } from "#src/utils.js";
-import { displayError } from "#src/consoleUtils.js";
-import type { SlothContext } from "#src/config.js";
+import { Command, Option } from 'commander';
+import { USER_PROJECT_REVIEW_PREAMBLE } from '#src/config.js';
+import { readInternalPreamble, readPreamble } from '#src/prompt.js';
+import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
+import { displayError } from '#src/consoleUtils.js';
+import type { SlothContext } from '#src/config.js';
 
 /**
  * Requirements providers. Expected to be in `.providers/` dir
  */
 const REQUIREMENTS_PROVIDERS = {
-  "jira-legacy": "jiraIssueLegacyProvider.js",
-  "jira": "jiraIssueProvider.js",
-  text: "text.js",
-  file: "file.js",
+  'jira-legacy': 'jiraIssueLegacyProvider.js',
+  jira: 'jiraIssueProvider.js',
+  text: 'text.js',
+  file: 'file.js',
 } as const;
 
 type RequirementsProviderType = keyof typeof REQUIREMENTS_PROVIDERS;
@@ -21,9 +21,9 @@ type RequirementsProviderType = keyof typeof REQUIREMENTS_PROVIDERS;
  * Content providers. Expected to be in `.providers/` dir
  */
 const CONTENT_PROVIDERS = {
-  gh: "ghPrDiffProvider.js",
-  text: "text.js",
-  file: "file.js",
+  gh: 'ghPrDiffProvider.js',
+  text: 'text.js',
+  file: 'file.js',
 } as const;
 
 type ContentProviderType = keyof typeof CONTENT_PROVIDERS;
@@ -43,34 +43,34 @@ interface PrCommandOptions {
 
 export function reviewCommand(program: Command, context: SlothContext): void {
   program
-    .command("review")
-    .description("Review provided diff or other content")
+    .command('review')
+    .description('Review provided diff or other content')
     .argument(
-      "[contentId]",
-      "Optional content ID argument to retrieve content with content provider"
+      '[contentId]',
+      'Optional content ID argument to retrieve content with content provider'
     )
-    .alias("r")
+    .alias('r')
     // TODO add provider to get results of git --no-pager diff
     .option(
-      "-f, --file [files...]",
-      "Input files. Content of these files will be added BEFORE the diff, but after requirements"
+      '-f, --file [files...]',
+      'Input files. Content of these files will be added BEFORE the diff, but after requirements'
     )
     // TODO figure out what to do with this (we probably want to merge it with requirementsId)?
-    .option("-r, --requirements <requirements>", "Requirements for this review.")
+    .option('-r, --requirements <requirements>', 'Requirements for this review.')
     .addOption(
       new Option(
-        "-p, --requirements-provider <requirementsProvider>",
-        "Requirements provider for this review."
+        '-p, --requirements-provider <requirementsProvider>',
+        'Requirements provider for this review.'
       ).choices(Object.keys(REQUIREMENTS_PROVIDERS))
     )
     .addOption(
-      new Option("--content-provider <contentProvider>", "Content  provider").choices(
+      new Option('--content-provider <contentProvider>', 'Content  provider').choices(
         Object.keys(CONTENT_PROVIDERS)
       )
     )
-    .option("-m, --message <message>", "Extra message to provide just before the content")
+    .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
-      const { initConfig } = await import("../config.js");
+      const { initConfig } = await import('../config.js');
       await initConfig();
       const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
       const content: string[] = [];
@@ -104,34 +104,34 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       if (options.message) {
         content.push(options.message);
       }
-      const { review } = await import("../modules/reviewModule.js");
-      await review("sloth-DIFF-review", preamble.join("\n"), content.join("\n"));
+      const { review } = await import('../modules/reviewModule.js');
+      await review('sloth-DIFF-review', preamble.join('\n'), content.join('\n'));
     });
 
   program
-    .command("pr")
+    .command('pr')
     .description(
-      "Review provided Pull Request in current directory. " +
-        "This command is similar to `review`, but default content provider is `gh`. " +
-        "(assuming that GH cli is installed and authenticated for current project"
+      'Review provided Pull Request in current directory. ' +
+        'This command is similar to `review`, but default content provider is `gh`. ' +
+        '(assuming that GH cli is installed and authenticated for current project'
     )
-    .argument("<prId>", "Pull request ID to review.")
+    .argument('<prId>', 'Pull request ID to review.')
     .argument(
-      "[requirementsId]",
-      "Optional requirements ID argument to retrieve requirements with requirements provider"
+      '[requirementsId]',
+      'Optional requirements ID argument to retrieve requirements with requirements provider'
     )
     .addOption(
       new Option(
-        "-p, --requirements-provider <requirementsProvider>",
-        "Requirements provider for this review."
+        '-p, --requirements-provider <requirementsProvider>',
+        'Requirements provider for this review.'
       ).choices(Object.keys(REQUIREMENTS_PROVIDERS))
     )
     .option(
-      "-f, --file [files...]",
-      "Input files. Content of these files will be added BEFORE the diff, but after requirements"
+      '-f, --file [files...]',
+      'Input files. Content of these files will be added BEFORE the diff, but after requirements'
     )
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
-      const { initConfig } = await import("../config.js");
+      const { initConfig } = await import('../config.js');
       await initConfig();
 
       const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
@@ -152,12 +152,12 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       }
 
       // Get PR diff using the 'gh' provider
-      const providerPath = `../providers/${CONTENT_PROVIDERS["gh"]}`;
+      const providerPath = `../providers/${CONTENT_PROVIDERS['gh']}`;
       const { get } = await import(providerPath);
       content.push(await get(null, prId));
 
-      const { review } = await import("../modules/reviewModule.js");
-      await review(`sloth-PR-${prId}-review`, preamble.join("\n"), content.join("\n"));
+      const { review } = await import('../modules/reviewModule.js');
+      await review(`sloth-PR-${prId}-review`, preamble.join('\n'), content.join('\n'));
     });
 
   async function getRequirementsFromProvider(
@@ -191,7 +191,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     config: any,
     legitPredefinedProviders: typeof REQUIREMENTS_PROVIDERS | typeof CONTENT_PROVIDERS
   ): Promise<string> {
-    if (typeof provider === "string") {
+    if (typeof provider === 'string') {
       // Use one of the predefined providers
       if (legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]) {
         const providerPath = `../providers/${legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]}`;
@@ -200,10 +200,10 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       } else {
         displayError(`Unknown provider: ${provider}. Continuing without it.`);
       }
-    } else if (typeof provider === "function") {
+    } else if (typeof provider === 'function') {
       // Type assertion to handle function call
       return await (provider as (id: string | undefined) => Promise<string>)(id);
     }
-    return "";
+    return '';
   }
 }
