@@ -1,8 +1,6 @@
 import { displayError, displayWarning } from "#src/consoleUtils.js";
 import type { JiraConfig } from "./types.js";
 
-// TODO JIRA rename jira to be simply jira (they renamed legacy tokens, to be unscoped tokens)
-
 interface JiraIssueResponse {
   fields: {
     summary: string;
@@ -13,7 +11,7 @@ interface JiraIssueResponse {
 }
 
 /**
- * Gets Jira issue using Atlassian REST API v2
+ * Gets Jira issue using Atlassian REST API v3 with Personal Access Token
  * @param config Jira configuration
  * @param issueId Jira issue ID
  * @returns Jira issue content
@@ -30,21 +28,17 @@ export async function get(
     displayWarning("No issue ID provided");
     return null;
   }
-  if (!config.baseUrl) {
-    displayWarning("No Jira base URL provided");
+  if (!config.username) {
+    displayWarning("No Jira username provided");
     return null;
   }
-  // TODO JIRA add environment variable for username
-  if (!config.username) {
-    throw new Error(
-      'Missing JIRA username. The username can be defined as JIRA_USERNAME environment variable or as "username" in config.'
-    );
-  }
-  // TODO JIRA add environment variable for jira token
   if (!config.token) {
-    throw new Error(
-      'Missing JIRA Legacy API token. The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable or as "token" in config.'
-    );
+    displayWarning("No Jira token provided");
+    return null;
+  }
+  if (!config.cloudId) {
+    displayWarning("No Jira Cloud ID provided");
+    return null;
   }
 
   try {
@@ -66,22 +60,46 @@ export async function get(
 }
 
 /**
- * Helper function to get Jira issue details
+ * Helper function to get Jira issue details using Atlassian REST API v3
  * @param config Jira configuration
- * @param issueId Jira issue ID
+ * @param jiraKey Jira issue ID
  * @returns Jira issue response
  */
-async function getJiraIssue(config: JiraConfig, issueId: string): Promise<JiraIssueResponse> {
-  const auth = Buffer.from(`${config.username}:${config.token}`).toString("base64");
-  const response = await fetch(`${config.baseUrl}/rest/api/2/issue/${issueId}`, {
-    headers: {
-      Authorization: `Basic ${auth}`,
-      Accept: "application/json",
-    },
+async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIssueResponse> {
+  console.log('Fetching issue with Scoped PAT (Personal Access Token)');
+  // Jira Cloud ID can be found by authenticated user at https://company.atlassian.net/_edge/tenant_info
+  
+  // According to doc https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get permissions to read this resource:
+  // either Classic (RECOMMENDED) read:jira-work
+  // or Granular read:issue-meta:jira, read:issue-security-level:jira, read:issue.vote:jira, read:issue.changelog:jira, read:avatar:jira, read:issue:jira, read:status:jira, read:user:jira, read:field-configuration:jira
+  const apiUrl = `https://api.atlassian.com/ex/jira/${config.cloudId}/rest/api/3/issue/${jiraKey}`;
+
+  // Encode credentials for Basic Authentication header
+  const credentials = `${config.username}:${config.token}`;
+  const encodedCredentials = Buffer.from(credentials).toString('base64');
+  const authHeader = `Basic ${encodedCredentials}`;
+
+  // Define request headers
+  const headers = {
+    'Authorization': authHeader,
+    'Accept': 'application/json; charset=utf-8',
+    'Accept-Language': 'en-US,en;q=0.9' // Prevents errors in other languages
+  };
+
+  console.log(`Loading Jira issue: ${jiraKey} from ${apiUrl}`);
+
+  const response = await fetch(apiUrl, {
+    method: 'GET',
+    headers: headers,
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch Jira issue: ${response.statusText}`);
+    try {
+      const errorData = await response.json();
+      throw new Error(`Failed to fetch Jira issue: ${response.statusText} - ${JSON.stringify(errorData)}`);
+    } catch (e) {
+      throw new Error(`Failed to fetch Jira issue: ${response.statusText}`);
+    }
   }
 
   return response.json();

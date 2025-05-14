@@ -101,7 +101,7 @@ describe("reviewCommand", () => {
 
     // Verify requirements providers are displayed
     expect(testOutput.text).toContain("--requirements-provider <requirementsProvider>");
-    expect(testOutput.text).toContain('(choices: "jira-legacy", "text", "file")');
+    expect(testOutput.text).toContain('(choices: "jira-legacy", "jira", "text", "file")');
   });
 
   it("Should call review with predefined requirements provider", async () => {
@@ -139,7 +139,7 @@ describe("reviewCommand", () => {
 
     // Mock the jira provider
     const jiraProvider = vi.fn().mockResolvedValue("JIRA Requirements");
-    vi.doMock("#src/providers/jiraIssueProvider.js", () => ({
+    vi.doMock("#src/providers/jiraIssueLegacyProvider.js", () => ({
       get: jiraProvider,
     }));
 
@@ -157,7 +157,7 @@ describe("reviewCommand", () => {
     const testOutput = { text: "" };
 
     // Mock the jira provider to throw an error about missing token
-    vi.doMock("#src/providers/jiraIssueProvider.js", () => ({
+    vi.doMock("#src/providers/jiraIssueLegacyProvider.js", () => ({
       get: vi.fn().mockImplementation(() => {
         throw new Error(
           'Missing JIRA Legacy API token. The legacy token can be defined as JIRA_LEGACY_API_TOKEN environment variable or as "token" in config.'
