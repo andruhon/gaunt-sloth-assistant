@@ -8,7 +8,7 @@ const createProjectConfig = vi.fn();
 vi.mock('#src/config.js', () => ({
   createProjectConfig,
   availableDefaultConfigs: ['vertexai', 'anthropic', 'groq'],
-  SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
+  GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
   slothContext: {
     installDir: '/mock/install/dir',
@@ -28,7 +28,7 @@ describe('initCommand', () => {
   });
 
   it('Should call createProjectConfig with the provided config type', async () => {
-    const { initCommand } = await import('../src/commands/initCommand.js');
+    const { initCommand } = await import('#src/commands/initCommand.js');
     const program = new Command();
     await initCommand(program);
     await program.parseAsync(['na', 'na', 'init', 'vertexai']);
@@ -36,7 +36,7 @@ describe('initCommand', () => {
   });
 
   it('Should display available config types in help', async () => {
-    const { initCommand } = await import('../src/commands/initCommand.js');
+    const { initCommand } = await import('#src/commands/initCommand.js');
     const program = new Command();
     const testOutput = { text: '' };
 

@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { SlothConfig, slothContext } from '#src/config.js';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
-import { exit, stdin, stdout, argv } from '#src/systemUtils.js';
+import { exit, stdin, stdout, argv, getCurrentDir, getInstallDir } from '#src/systemUtils.js';
 import url from 'node:url';
 import { Command } from 'commander';
 
@@ -22,7 +22,8 @@ export function fileSafeLocalDate(): string {
 }
 
 export function readFileFromCurrentDir(fileName: string): string {
-  const filePath = resolve(slothContext.currentDir, fileName);
+  const currentDir = getCurrentDir();
+  const filePath = resolve(currentDir, fileName);
   display(`Reading file ${fileName}...`);
   return readFileSyncWithMessages(filePath);
 }
@@ -59,22 +60,23 @@ export function readFileSyncWithMessages(
 
 export function readStdin(program: Command): Promise<void> {
   return new Promise((resolvePromise) => {
-    // TODO use progress indicator here
     if (stdin.isTTY) {
       program.parseAsync().then(() => resolvePromise());
     } else {
       // Support piping diff into gsloth
-      stdout.write('reading STDIN.');
+      const progressIndicator = new ProgressIndicator('reading STDIN');
+      progressIndicator.indicate();
+
       stdin.on('readable', function (this: NodeJS.ReadStream) {
         const chunk = this.read();
-        stdout.write('.');
+        progressIndicator.indicate();
         if (chunk !== null) {
           const chunkStr = chunk.toString('utf8');
           (slothContext as { stdin: string }).stdin = slothContext.stdin + chunkStr;
         }
       });
+
       stdin.on('end', function () {
-        stdout.write('.\n');
         program.parseAsync(argv).then(() => resolvePromise());
       });
     }
@@ -93,20 +95,24 @@ export async function spawnCommand(
   successMessage: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    // TODO use progress indicator
+    const progressIndicator = new ProgressIndicator(progressMessage);
     const out: SpawnOutput = { stdout: '', stderr: '' };
     const spawned = spawn(command, args);
+
     spawned.stdout.on('data', async (stdoutChunk) => {
-      display(progressMessage);
+      progressIndicator.indicate();
       out.stdout += stdoutChunk.toString();
     });
+
     spawned.stderr.on('data', (err) => {
-      display(progressMessage);
+      progressIndicator.indicate();
       out.stderr += err.toString();
     });
+
     spawned.on('error', (err) => {
       reject(err.toString());
     });
+
     spawned.on('close', (code) => {
       if (code === 0) {
         display(successMessage);
@@ -120,10 +126,11 @@ export async function spawnCommand(
 }
 
 export function getSlothVersion(): string {
-  return '0.0.0';
-  // const jsonPath = resolve(slothContext.installDir, 'package.json');
-  // const projectJson = readFileSync(jsonPath, { encoding: 'utf8' });
-  // return JSON.parse(projectJson).version;
+  // TODO figure out if this can be injected with TS
+  const installDir = getInstallDir();
+  const jsonPath = resolve(installDir, 'package.json');
+  const projectJson = readFileSync(jsonPath, { encoding: 'utf8' });
+  return JSON.parse(projectJson).version;
 }
 
 export class ProgressIndicator {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
 import type { SlothContext } from '#src/config.js';
+import { SlothConfig } from '#src/config.js';
 
 // Mock fs module for the second test
 const fsMock = {
@@ -44,7 +45,8 @@ const mockSlothContext = {
     llm: new FakeListChatModel({
       responses: ['LLM Response'],
     }),
-  },
+  } as Partial<SlothConfig>,
+  stdin: '',
   session: {
     configurable: {
       thread_id: 'test-thread-id',

@@ -3,14 +3,35 @@ import { v4 as uuidv4 } from 'uuid';
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { exit, getCurrentDir } from '#src/systemUtils.js';
+import { error, exit, getCurrentDir } from '#src/systemUtils.js';
 import { LanguageModelLike } from '@langchain/core/language_models/base';
 
-export interface SlothConfig {
-  llm?: LanguageModelLike | LLMConfig; // FIXME This piece here is bad
+export interface SlothConfig extends BaseSlothConfig {
+  llm: LanguageModelLike; // FIXME this is still bad keeping instance in config is probably not best choice
   contentProvider: string;
   requirementsProvider: string;
   commands: {
+    pr: {
+      contentProvider: string;
+    };
+  };
+}
+
+/**
+ * Raw, unprocessed sloth config
+ */
+export interface RawSlothConfig extends BaseSlothConfig {
+  llm: LLMConfig;
+}
+
+/**
+ * Do not export this one
+ */
+interface BaseSlothConfig {
+  llm: unknown;
+  contentProvider?: string;
+  requirementsProvider?: string;
+  commands?: {
     pr: {
       contentProvider: string;
     };
@@ -26,9 +47,11 @@ export interface SlothConfig {
   contentProviderConfig?: Record<string, unknown>;
 }
 
+/**
+ * @deprecated
+ * this object has blurred responsibility lines and bad name.
+ */
 export interface SlothContext {
-  installDir: string;
-  currentDir: string;
   config: SlothConfig;
   stdin: string;
   session: {
@@ -38,16 +61,21 @@ export interface SlothContext {
   };
 }
 
+export interface LLMConfig extends Record<string, unknown> {
+  type: string;
+  model: string;
+}
+
 export const USER_PROJECT_CONFIG_JS = '.gsloth.config.js';
 export const USER_PROJECT_CONFIG_JSON = '.gsloth.config.json';
 export const USER_PROJECT_CONFIG_MJS = '.gsloth.config.mjs';
-export const SLOTH_INTERNAL_PREAMBLE = '.gsloth.preamble.internal.md';
+export const GSLOTH_BACKSTORY = '.gsloth.backstory.md';
 export const USER_PROJECT_REVIEW_PREAMBLE = '.gsloth.preamble.review.md';
 
 export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
-export const DEFAULT_CONFIG: SlothConfig = {
+export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   llm: undefined,
   contentProvider: 'file',
   requirementsProvider: 'file',
@@ -58,18 +86,12 @@ export const DEFAULT_CONFIG: SlothConfig = {
   },
 };
 
-// TODO this should be reworked to something more robust
-export const slothContext: SlothContext = {
-  /**
-   * Directory where the sloth is installed.
-   * index.js should set up this.
-   */
-  // installDir // FIXME
-  /**
-   * Directory where the sloth has been invoked. Usually user's project root.
-   * index.js should set up this.
-   */
-  // currentDir // FIXME
+/**
+ * @deprecated
+ * this object has blurred responsibility lines and bad name.
+ * TODO this should be reworked to something more robust
+ */
+export const slothContext = {
   config: DEFAULT_CONFIG,
   stdin: '',
   session: { configurable: { thread_id: uuidv4() } },
@@ -84,12 +106,13 @@ export async function initConfig(): Promise<void> {
   // Try loading JSON config file first
   if (existsSync(jsonConfigPath)) {
     try {
-      const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as Partial<SlothConfig>;
+      const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as RawSlothConfig;
       // If the config has an LLM with a type, create the appropriate LLM instance
       if (jsonConfig.llm && typeof jsonConfig.llm === 'object' && 'type' in jsonConfig.llm) {
         await tryJsonConfig(jsonConfig);
       } else {
-        slothContext.config = { ...slothContext.config, ...jsonConfig };
+        error(`${jsonConfigPath} is not in valid format. Should at least define llm.type`);
+        exit(1);
       }
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
@@ -156,14 +179,9 @@ export async function initConfig(): Promise<void> {
   }
 }
 
-interface LLMConfig {
-  type: string;
-  [key: string]: unknown;
-}
-
 // Process JSON LLM config by creating the appropriate LLM instance
-export async function tryJsonConfig(jsonConfig: Partial<SlothConfig>): Promise<void> {
-  const llmConfig = jsonConfig?.llm as LLMConfig;
+export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<void> {
+  const llmConfig = jsonConfig?.llm;
   const llmType = llmConfig?.type?.toLowerCase();
 
   // Check if the LLM type is in availableDefaultConfigs
@@ -171,7 +189,7 @@ export async function tryJsonConfig(jsonConfig: Partial<SlothConfig>): Promise<v
     displayError(
       `Unsupported LLM type: ${llmType}. Available types are: ${availableDefaultConfigs.join(', ')}`
     );
-    slothContext.config = { ...slothContext.config, ...jsonConfig };
+    exit(1);
     return;
   }
 
@@ -180,20 +198,22 @@ export async function tryJsonConfig(jsonConfig: Partial<SlothConfig>): Promise<v
     try {
       const configModule = await import(`./configs/${llmType}.js`);
       if (configModule.processJsonConfig) {
-        jsonConfig.llm = await configModule.processJsonConfig(llmConfig);
+        const llm = (await configModule.processJsonConfig(llmConfig)) as LanguageModelLike;
+        slothContext.config = { ...slothContext.config, ...jsonConfig, llm };
       } else {
         displayWarning(`Config module for ${llmType} does not have processJsonConfig function.`);
+        exit(1);
       }
     } catch (importError) {
       displayDebug(importError instanceof Error ? importError : String(importError));
       displayWarning(`Could not import config module for ${llmType}.`);
+      exit(1);
     }
   } catch (error) {
     displayDebug(error instanceof Error ? error : String(error));
     displayError(`Error creating LLM instance for type ${llmType}.`);
+    exit(1);
   }
-
-  slothContext.config = { ...slothContext.config, ...jsonConfig };
 }
 
 export async function createProjectConfig(configType: string): Promise<void> {
@@ -218,10 +238,8 @@ export async function createProjectConfig(configType: string): Promise<void> {
 }
 
 export function writeProjectReviewPreamble(): void {
-  if (!slothContext.currentDir) {
-    throw new Error('Current directory not set');
-  }
-  const reviewPreamblePath = path.join(slothContext.currentDir, USER_PROJECT_REVIEW_PREAMBLE);
+  const currentDir = getCurrentDir();
+  const reviewPreamblePath = path.join(currentDir, USER_PROJECT_REVIEW_PREAMBLE);
   writeFileIfNotExistsWithMessages(
     reviewPreamblePath,
     'You are doing generic code review.\n' +
@@ -232,4 +250,17 @@ export function writeProjectReviewPreamble(): void {
       USER_PROJECT_REVIEW_PREAMBLE +
       '`.'
   );
+}
+
+/**
+ * @deprecated test only
+ * TODO should be gone together with slothContext itself
+ */
+export function reset() {
+  Object.keys(slothContext).forEach((key) => {
+    delete (slothContext as unknown as Record<string, unknown>)[key];
+  });
+  slothContext.config = DEFAULT_CONFIG as SlothConfig;
+  slothContext.stdin = '';
+  slothContext.session = { configurable: { thread_id: uuidv4() } };
 }

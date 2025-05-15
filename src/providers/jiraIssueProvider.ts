@@ -1,4 +1,4 @@
-import { displayError, displayWarning } from '#src/consoleUtils.js';
+import { display, displayError, displayWarning } from '#src/consoleUtils.js';
 import { env } from '#src/systemUtils.js';
 import type { JiraConfig } from './types.js';
 
@@ -87,7 +87,6 @@ export async function get(
  * @returns Jira issue response
  */
 async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIssueResponse> {
-  console.log('Fetching issue with Scoped PAT (Personal Access Token)');
   // Jira Cloud ID can be found by authenticated user at https://company.atlassian.net/_edge/tenant_info
 
   // According to doc https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get permissions to read this resource:
@@ -107,7 +106,7 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
     'Accept-Language': 'en-US,en;q=0.9', // Prevents errors in other languages
   };
 
-  console.log(`Loading Jira issue: ${jiraKey} from ${apiUrl}`);
+  display(`Loading Jira issue: ${jiraKey} from ${apiUrl}`);
 
   const response = await fetch(apiUrl, {
     method: 'GET',

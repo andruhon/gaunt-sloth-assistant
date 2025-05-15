@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SlothConfig } from '#src/config.js';
+import type { RawSlothConfig } from '#src/config.js';
 
 // Define mocks at top level
 const consoleUtilsMock = {
@@ -10,6 +10,7 @@ const consoleUtilsMock = {
   displaySuccess: vi.fn(),
   displayDebug: vi.fn(),
 };
+vi.mock('node:fs', () => fsMock);
 
 const fsMock = {
   existsSync: vi.fn(),
@@ -21,15 +22,21 @@ const fsMock = {
     writeFileSync: vi.fn(),
   },
 };
+vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
-// Set up static mocks
-vi.mock('node:fs', () => fsMock);
-vi.mock('../src/consoleUtils.js', () => consoleUtilsMock);
-vi.mock('./consoleUtils.js', () => consoleUtilsMock);
+const systemUtilsMock = {
+  exit: vi.fn(),
+  getCurrentDir: vi.fn(),
+  getInstallDir: vi.fn(),
+  env: {},
+};
+vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
 describe('predefined AI provider configurations', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
+    systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
+    systemUtilsMock.getInstallDir.mockReturnValue('/mock/install/dir');
   });
 
   it('Should import predefined Anthropic config correctly', async () => {
@@ -69,7 +76,7 @@ describe('predefined AI provider configurations', () => {
   });
 
   async function testPredefinedAiConfig(aiProvider: string, mockInstance: any) {
-    const jsonConfig: Partial<SlothConfig> = {
+    const jsonConfig: Partial<RawSlothConfig> = {
       llm: {
         type: aiProvider,
         model: aiProvider + 'model',
@@ -87,12 +94,14 @@ describe('predefined AI provider configurations', () => {
       return '';
     });
 
-    const { initConfig, slothContext } = await import('#src/config.js');
+    const { initConfig, slothContext, reset } = await import('#src/config.js');
+    reset();
 
     // Call the function
     await initConfig();
 
     // Verify no warnings or errors were displayed
+    expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
     expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
     expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
 

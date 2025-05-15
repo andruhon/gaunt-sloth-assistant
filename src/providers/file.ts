@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
-import { slothContext } from '#src/config.js';
 import { display } from '#src/consoleUtils.js';
 import { readFileSyncWithMessages } from '#src/utils.js';
+import { getCurrentDir } from '#src/systemUtils.js';
 import type { ProviderConfig } from './types.js';
 
 /**
@@ -17,10 +17,8 @@ export async function get(
   if (!fileName) {
     return null;
   }
-  if (!slothContext.currentDir) {
-    throw new Error('Current directory not set');
-  }
-  const filePath = resolve(slothContext.currentDir, fileName);
+  const currentDir = getCurrentDir();
+  const filePath = resolve(currentDir, fileName);
   display(`Reading file ${fileName}...`);
   return readFileSyncWithMessages(filePath);
 }

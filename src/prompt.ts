@@ -1,22 +1,18 @@
 import { resolve } from 'node:path';
-import { SLOTH_INTERNAL_PREAMBLE, slothContext } from '#src/config.js';
+import { GSLOTH_BACKSTORY } from '#src/config.js';
 import { readFileSyncWithMessages, spawnCommand } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
-import { exit } from '#src/systemUtils.js';
+import { exit, getCurrentDir, getInstallDir } from '#src/systemUtils.js';
 
 export function readInternalPreamble(): string {
-  if (!slothContext.installDir) {
-    throw new Error('Install directory not set');
-  }
-  const filePath = resolve(slothContext.installDir, SLOTH_INTERNAL_PREAMBLE);
+  const installDir = getInstallDir();
+  const filePath = resolve(installDir, GSLOTH_BACKSTORY);
   return readFileSyncWithMessages(filePath, 'Error reading internal preamble file at:') || '';
 }
 
 export function readPreamble(preambleFilename: string): string {
-  if (!slothContext.currentDir) {
-    throw new Error('Current directory not set');
-  }
-  const filePath = resolve(slothContext.currentDir, preambleFilename);
+  const currentDir = getCurrentDir();
+  const filePath = resolve(currentDir, preambleFilename);
   return (
     readFileSyncWithMessages(
       filePath,

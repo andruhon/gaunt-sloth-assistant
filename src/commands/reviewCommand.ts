@@ -70,7 +70,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     )
     .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
-      const { initConfig } = await import('../config.js');
+      const { initConfig } = await import('#src/config.js');
       await initConfig();
       const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
       const content: string[] = [];
@@ -104,7 +104,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       if (options.message) {
         content.push(options.message);
       }
-      const { review } = await import('../modules/reviewModule.js');
+      const { review } = await import('#src/modules/reviewModule.js');
       await review('sloth-DIFF-review', preamble.join('\n'), content.join('\n'));
     });
 
@@ -131,7 +131,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       'Input files. Content of these files will be added BEFORE the diff, but after requirements'
     )
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
-      const { initConfig } = await import('../config.js');
+      const { initConfig } = await import('#src/config.js');
       await initConfig();
 
       const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
@@ -152,11 +152,11 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       }
 
       // Get PR diff using the 'gh' provider
-      const providerPath = `../providers/${CONTENT_PROVIDERS['gh']}`;
+      const providerPath = `#src/providers/${CONTENT_PROVIDERS['gh']}`;
       const { get } = await import(providerPath);
       content.push(await get(null, prId));
 
-      const { review } = await import('../modules/reviewModule.js');
+      const { review } = await import('#src/modules/reviewModule.js');
       await review(`sloth-PR-${prId}-review`, preamble.join('\n'), content.join('\n'));
     });
 
@@ -194,7 +194,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     if (typeof provider === 'string') {
       // Use one of the predefined providers
       if (legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]) {
-        const providerPath = `../providers/${legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]}`;
+        const providerPath = `#src/providers/${legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]}`;
         const { get } = await import(providerPath);
         return await get(config, id);
       } else {

@@ -1,4 +1,4 @@
-import { displayError, displayWarning } from '#src/consoleUtils.js';
+import { display, displayError, displayWarning } from '#src/consoleUtils.js';
 import { env } from '#src/systemUtils.js';
 import type { JiraConfig } from './types.js';
 
@@ -12,7 +12,7 @@ interface JiraIssueResponse {
 }
 
 /**
- * Gets Jira issue using Atlassian REST API v2
+ * Gets Jira issue using Atlassian REST API v2 with unscoped API token (aka Legacy Token)
  * @param config Jira configuration
  * @param issueId Jira issue ID
  * @returns Jira issue content
@@ -82,8 +82,10 @@ export async function get(
  * @returns Jira issue response
  */
 async function getJiraIssue(config: JiraConfig, issueId: string): Promise<JiraIssueResponse> {
-  const auth = Buffer.from(`${config?.username}:${config?.token}`).toString('base64');
-  const response = await fetch(`${config?.baseUrl}/rest/api/2/issue/${issueId}`, {
+  const auth = Buffer.from(`${config.username}:${config.token}`).toString('base64');
+  const url = `${config.baseUrl}${issueId}`;
+  display(`Loading Jira issue: ${config.baseUrl}${issueId}`);
+  const response = await fetch(url, {
     headers: {
       Authorization: `Basic ${auth}`,
       Accept: 'application/json',
@@ -91,7 +93,7 @@ async function getJiraIssue(config: JiraConfig, issueId: string): Promise<JiraIs
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch Jira issue: ${response.statusText}`);
+    throw new Error(`Failed to fetch Jira issue from ${url} with status: ${response.statusText}`);
   }
 
   return response.json();

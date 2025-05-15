@@ -1,4 +1,4 @@
-import { dirname, join } from 'node:path/posix';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'url';
 
 /**
@@ -26,18 +26,22 @@ export const getInstallDir = (): string => {
   }
   throw new Error('Install directory not set');
 };
-export const exit = (code?: number): never => process.exit(code);
+export const exit = (code?: number): never => process.exit(code || 0);
 export const stdin = process.stdin;
 export const stdout = process.stdout;
 export const argv = process.argv;
 export const env = process.env;
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Provide the path to the entry point of the application.
  * This is used to set the install directory.
+ * This is called from index.js root entry point.
  */
 export const setEntryPoint = (indexJs: string): void => {
-  innerState.installDir = join(dirname(fileURLToPath(indexJs)), '..');
+  const filePath = fileURLToPath(indexJs);
+  const dirPath = dirname(filePath);
+  innerState.installDir = resolve(dirPath);
 };
 
 // Console-related functions

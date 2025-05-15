@@ -1,9 +1,9 @@
 import { LanguageModelLike } from '@langchain/core/language_models/base';
 import path from 'node:path';
-import type { SlothContext } from '../config.js';
-import { displayWarning } from '../consoleUtils.js';
-import { writeFileIfNotExistsWithMessages } from '../utils.js';
-import type { LLMConfig } from './types.js';
+import { displayWarning } from '#src/consoleUtils.js';
+import { getCurrentDir } from '#src/systemUtils.js';
+import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
+import { ChatVertexAIInput } from '@langchain/google-vertexai';
 
 const jsContent = `/* eslint-disable */
 export async function configure(importFunction, global) {
@@ -30,11 +30,9 @@ const jsonContent = `{
   }
 }`;
 
-export function init(configFileName: string, context: SlothContext): void {
-  if (!context.currentDir) {
-    throw new Error('Current directory not set');
-  }
-  path.join(context.currentDir, configFileName);
+export function init(configFileName: string): void {
+  const currentDir = getCurrentDir();
+  path.join(currentDir, configFileName);
 
   // Determine which content to use based on file extension
   const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
@@ -46,7 +44,7 @@ export function init(configFileName: string, context: SlothContext): void {
 }
 
 // Function to process JSON config and create VertexAI LLM instance
-export async function processJsonConfig(llmConfig: LLMConfig): Promise<LanguageModelLike> {
+export async function processJsonConfig(llmConfig: ChatVertexAIInput): Promise<LanguageModelLike> {
   const vertexAi = await import('@langchain/google-vertexai');
   return new vertexAi.ChatVertexAI({
     ...llmConfig,

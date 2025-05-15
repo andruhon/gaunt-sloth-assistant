@@ -24,7 +24,7 @@ const utilsMock = {
 vi.mock('#src/prompt.js', () => prompt);
 vi.mock('#src/modules/reviewModule.js', () => codeReviewMock);
 vi.mock('#src/config.js', () => ({
-  SLOTH_INTERNAL_PREAMBLE: '.gsloth.preamble.internal.md',
+  GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
   slothContext: {
     config: {},

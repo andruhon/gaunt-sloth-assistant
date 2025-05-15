@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { RawSlothConfig } from '#src/config.js';
 
 const fsMock = {
   existsSync: vi.fn(),
@@ -36,15 +37,15 @@ vi.mock('#src/utils.js', () => utilsMock);
 
 const systemUtilsMock = {
   exit: vi.fn(),
-  getCurrentDir: vi.fn().mockReturnValue('/mock/current/dir'),
-  getInstallDir: vi.fn().mockReturnValue('/mock/install/dir'),
+  getCurrentDir: vi.fn(),
+  getInstallDir: vi.fn(),
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
 describe('config', async () => {
   beforeEach(async () => {
+    // Reset slothContext to default state instead of deleting all properties
     vi.resetAllMocks();
-
     // Reset and set up systemUtils mocks
     systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
     systemUtilsMock.getInstallDir.mockReturnValue('/mock/install/dir');
@@ -90,7 +91,8 @@ describe('config', async () => {
       }));
 
       // Import the module under test
-      const { initConfig, slothContext } = await import('#src/config.js');
+      const { initConfig, slothContext, reset } = await import('#src/config.js');
+      reset();
 
       // Function under test
       await initConfig();
@@ -137,7 +139,8 @@ describe('config', async () => {
       }));
 
       // Import the module under test
-      const { initConfig, slothContext } = await import('#src/config.js');
+      const { initConfig, slothContext, reset } = await import('#src/config.js');
+      reset();
 
       // Function under test
       await initConfig();
@@ -185,7 +188,8 @@ describe('config', async () => {
       }));
 
       // Import the module under test
-      const { initConfig, slothContext } = await import('#src/config.js');
+      const { initConfig, slothContext, reset } = await import('#src/config.js');
+      reset();
 
       // Function under test
       await initConfig();
@@ -211,7 +215,8 @@ describe('config', async () => {
       fsMock.existsSync.mockImplementation((_path: string) => false);
 
       // Import the module under test
-      const { initConfig } = await import('#src/config.js');
+      const { initConfig, reset } = await import('#src/config.js');
+      reset();
 
       // Function under test
       await initConfig();
@@ -241,9 +246,10 @@ describe('config', async () => {
           type: 'vertexai',
           model: 'test-model',
         },
-      };
+      } as RawSlothConfig;
 
-      const { tryJsonConfig, slothContext } = await import('#src/config.js');
+      const { tryJsonConfig, slothContext, reset } = await import('#src/config.js');
+      reset();
 
       // Function under test
       await tryJsonConfig(jsonConfig);
@@ -273,9 +279,10 @@ describe('config', async () => {
           type: 'unsupported',
           model: 'test-model',
         },
-      };
+      } as RawSlothConfig;
 
-      const { tryJsonConfig, slothContext } = await import('#src/config.js');
+      const { tryJsonConfig, slothContext, reset } = await import('#src/config.js');
+      reset();
 
       // Function under test
       await tryJsonConfig(jsonConfig);
@@ -290,31 +297,32 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
-      expect(slothContext.config).toEqual({
-        llm: {
-          type: 'unsupported',
-          model: 'test-model',
-        },
+      expect(slothContext.config, 'Should retain default config').toEqual({
+        llm: undefined,
         contentProvider: 'file',
         requirementsProvider: 'file',
         commands: { pr: { contentProvider: 'gh' } },
       });
+
+      expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
 
     it('Should handle missing LLM type', async () => {
       const jsonConfig = {
         llm: {
+          type: 'test',
           model: 'test-model',
         },
-      };
+      } as RawSlothConfig;
 
-      const { tryJsonConfig, slothContext } = await import('#src/config.js');
+      const { tryJsonConfig, slothContext, reset } = await import('#src/config.js');
+      reset();
 
       // Function under test
       await tryJsonConfig(jsonConfig);
 
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Unsupported LLM type: undefined. Available types are: vertexai, anthropic, groq'
+        'Unsupported LLM type: test. Available types are: vertexai, anthropic, groq'
       );
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
@@ -322,14 +330,14 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
-      expect(slothContext.config).toEqual({
-        llm: {
-          model: 'test-model',
-        },
+      expect(slothContext.config, 'Should retain default config').toEqual({
+        llm: undefined,
         contentProvider: 'file',
         requirementsProvider: 'file',
         commands: { pr: { contentProvider: 'gh' } },
       });
+
+      expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
   });
 });
