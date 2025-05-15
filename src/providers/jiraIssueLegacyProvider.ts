@@ -1,6 +1,6 @@
 import { display, displayError, displayWarning } from '#src/consoleUtils.js';
 import { env } from '#src/systemUtils.js';
-import type { JiraConfig } from './types.js';
+import type { JiraLegacyConfig } from '#src/providers/types.js';
 
 interface JiraIssueResponse {
   fields: {
@@ -18,7 +18,7 @@ interface JiraIssueResponse {
  * @returns Jira issue content
  */
 export async function get(
-  config: JiraConfig | null,
+  config: Partial<JiraLegacyConfig>,
   issueId: string | undefined
 ): Promise<string | null> {
   if (!config) {
@@ -53,7 +53,7 @@ export async function get(
   try {
     const issue = await getJiraIssue(
       {
-        ...config,
+        ...(config as JiraLegacyConfig),
         username,
         token,
       },
@@ -81,10 +81,13 @@ export async function get(
  * @param issueId Jira issue ID
  * @returns Jira issue response
  */
-async function getJiraIssue(config: JiraConfig, issueId: string): Promise<JiraIssueResponse> {
+async function getJiraIssue(config: JiraLegacyConfig, issueId: string): Promise<JiraIssueResponse> {
   const auth = Buffer.from(`${config.username}:${config.token}`).toString('base64');
   const url = `${config.baseUrl}${issueId}`;
-  display(`Loading Jira issue: ${config.baseUrl}${issueId}`);
+  if (config.displayUrl) {
+    display(`Loading Jira issue ${config.displayUrl}${issueId}`);
+  }
+  display(`Retrieving jira from api ${url.replace(/^https?:\/\//, '')}`);
   const response = await fetch(url, {
     headers: {
       Authorization: `Basic ${auth}`,

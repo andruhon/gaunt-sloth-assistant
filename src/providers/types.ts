@@ -5,10 +5,18 @@ export interface ProviderConfig {
   [key: string]: unknown;
 }
 
-export interface JiraConfig extends ProviderConfig {
+export interface JiraLegacyConfig extends ProviderConfig {
   username: string;
   baseUrl: string;
-  token?: string;
+  displayUrl?: string;
+  token: string;
+}
+
+export interface JiraConfig extends ProviderConfig {
+  cloudId: string;
+  username: string;
+  displayUrl?: string;
+  token: string;
 }
 
 export interface Provider {

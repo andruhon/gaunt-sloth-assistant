@@ -13,12 +13,15 @@ interface JiraIssueResponse {
 
 /**
  * Gets Jira issue using Atlassian REST API v3 with Personal Access Token
+ *
+ * TODO we need to figure out how would this work with public jira.
+ *
  * @param config Jira configuration
  * @param issueId Jira issue ID
  * @returns Jira issue content
  */
 export async function get(
-  config: JiraConfig | null,
+  config: Partial<JiraConfig> | null,
   issueId: string | undefined
 ): Promise<string | null> {
   if (!config) {
@@ -93,6 +96,10 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
   // either Classic (RECOMMENDED) read:jira-work
   // or Granular read:issue-meta:jira, read:issue-security-level:jira, read:issue.vote:jira, read:issue.changelog:jira, read:avatar:jira, read:issue:jira, read:status:jira, read:user:jira, read:field-configuration:jira
   const apiUrl = `https://api.atlassian.com/ex/jira/${config.cloudId}/rest/api/3/issue/${jiraKey}`;
+  if (config.displayUrl) {
+    display(`Loading Jira issue ${config.displayUrl}${jiraKey}`);
+  }
+  display(`Retrieving jira from api ${apiUrl.replace(/^https?:\/\//, '')}`);
 
   // Encode credentials for Basic Authentication header
   const credentials = `${config.username}:${config.token}`;
@@ -105,8 +112,6 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
     Accept: 'application/json; charset=utf-8',
     'Accept-Language': 'en-US,en;q=0.9', // Prevents errors in other languages
   };
-
-  display(`Loading Jira issue: ${jiraKey} from ${apiUrl}`);
 
   const response = await fetch(apiUrl, {
     method: 'GET',
