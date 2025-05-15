@@ -19,8 +19,8 @@
     "prepare": "npm run build"
   },
   "bin": {
-    "gsloth": "./index.js",
-    "gth": "./index.js"
+    "gsloth": "index.js",
+    "gth": "index.js"
   },
   "dependencies": {
     "@langchain/anthropic": "^0.3.20",
