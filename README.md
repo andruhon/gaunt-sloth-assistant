@@ -60,32 +60,43 @@ supplies description of JIRA issue with number PP-4242:
 gsloth pr 42 PP-4242
 ```
 
-TODO jira update this to match docs/CONFIGURATION.md
+Gaunt Sloth supports two methods to integrate with JIRA scoped tokens and unscoped tokens:
 
-Example configuration setting up JIRA integration using a legacy API token for both `review` and `pr` commands.
-Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
+#### Modern Jira REST API (Scoped Token)
 
-A legacy token can be acquired from `Atlassian Account Settings -> Security -> Create and manage API tokens`.
+This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). It requires your Atlassian Cloud ID.
+
+**Prerequisites:**
+
+1. **Cloud ID**: You can find your Cloud ID by visiting `https://yourcompany.atlassian.net/_edge/tenant_info` while authenticated.
+
+2. **Personal Access Token (PAT)**: Create a PAT with the appropriate permissions from `Atlassian Account Settings -> Security -> Create and manage API tokens -> [Create API token with scopes]`.
+   - For issue access, the recommended permission is `read:jira-work` (classic)
+
+Example configuration:
 
 ```json
 {
   "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
-  "requirementsProvider": "jira-legacy",
+  "requirementsProvider": "jira",
   "requirementsProviderConfig": {
-    "jira-legacy": {
-      "username": "user@yourcompany.com",
-      "token": "YOUR_JIRA_LEGACY_TOKEN",
-      "baseUrl": "https://yourcompany.atlassian.net/rest/api/2/issue/"
+    "jira": {
+      "username": "username@yourcompany.com",
+      "token": "YOUR_JIRA_PAT_TOKEN",
+      "cloudId": "YOUR_ATLASSIAN_CLOUD_ID"
     }
   }
 }
 ```
 
-Alternatively, and for better security, you can set the JIRA username and token using environment variables:
+For better security, you can set these values using environment variables:
 - `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
-- `JIRA_LEGACY_API_TOKEN`: Your JIRA legacy API token.
+- `JIRA_API_PAT_TOKEN`: Your JIRA Personal Access Token with scopes.
+- `JIRA_CLOUD_ID`: Your Atlassian Cloud ID.
 
-If these environment variables are set, they will take precedence over the values in the configuration file.
+For more detailed information, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
+
+For setup with legacy Unscoped tokens please refer to [CONFIGURATION.md](./docs/CONFIGURATION.md).
 
 ### Review any Diff
 ```shell

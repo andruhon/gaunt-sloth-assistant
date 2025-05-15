@@ -148,7 +148,82 @@ See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/
 
 Gaunt Sloth supports two methods to integrate with JIRA:
 
-#### 1. Legacy Jira REST API (Unscoped Token)
+#### 1. Modern Jira REST API (Scoped Token)
+
+This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). It requires your Atlassian Cloud ID.
+
+**Prerequisites:**
+
+1. **Cloud ID**: You can find your Cloud ID by visiting `https://yourcompany.atlassian.net/_edge/tenant_info` while authenticated.
+
+2. **Personal Access Token (PAT)**: Create a PAT with the appropriate permissions from `Atlassian Account Settings -> Security -> Create and manage API tokens -> [Create API token with scopes]`.
+   - For issue access, the recommended permission is `read:jira-work` (classic)
+   - Alternatively granular access would require: `read:issue-meta:jira`, `read:issue-security-level:jira`, `read:issue.vote:jira`, `read:issue.changelog:jira`, `read:avatar:jira`, `read:issue:jira`, `read:status:jira`, `read:user:jira`, `read:field-configuration:jira`
+
+Refer to JIRA API documentation for more details [https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get)
+
+**Environment Variables Support:**
+
+For better security, you can set the JIRA username, token, and cloud ID using environment variables instead of placing them in the configuration file:
+
+- `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
+- `JIRA_API_PAT_TOKEN`: Your JIRA Personal Access Token with scopes.
+- `JIRA_CLOUD_ID`: Your Atlassian Cloud ID.
+
+If these environment variables are set, they will take precedence over the values in the configuration file.
+
+JSON:
+
+```json
+{
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
+  "requirementsProvider": "jira",
+  "requirementsProviderConfig": {
+    "jira": {
+      "username": "username@yourcompany.com",
+      "token": "YOUR_JIRA_PAT_TOKEN",
+      "cloudId": "YOUR_ATLASSIAN_CLOUD_ID"
+    }
+  }
+}
+```
+
+Optionally displayUrl can be defined to have a clickable link in the output:
+
+```json
+{
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
+  "requirementsProvider": "jira",
+  "requirementsProviderConfig": {
+    "jira": {
+      "displayUrl": "https://yourcompany.atlassian.net/browse/"
+    }
+  }
+}
+```
+
+JavaScript:
+
+```javascript
+export async function configure(importFunction, global) {
+    const vertexAi = await importFunction('@langchain/google-vertexai');
+    return {
+        llm: new vertexAi.ChatVertexAI({
+            model: "gemini-2.5-pro-preview-05-06"
+        }),
+        requirementsProvider: 'jira',
+        requirementsProviderConfig: {
+            'jira': {
+                username: 'username@yourcompany.com', // Your Jira username/email
+                token: 'YOUR_JIRA_PAT_TOKEN',        // Your Personal Access Token
+                cloudId: 'YOUR_ATLASSIAN_CLOUD_ID'    // Your Atlassian Cloud ID
+            }
+        }
+    }
+}
+```
+
+#### 2. Legacy Jira REST API (Unscoped Token)
 
 This uses the Unscoped API token (Aka Legacy API token) method with REST API v2.
 
@@ -197,67 +272,6 @@ export async function configure(importFunction, global) {
                 username: 'username@yourcompany.com', // Your Jira username/email
                 token: 'YOUR_JIRA_LEGACY_TOKEN',     // Replace with your real Jira API token
                 baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
-            }
-        }
-    }
-}
-```
-
-#### 2. Modern Jira REST API (Scoped Token)
-
-This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). It requires your Atlassian Cloud ID.
-
-**Prerequisites:**
-
-1. **Cloud ID**: You can find your Cloud ID by visiting `https://yourcompany.atlassian.net/_edge/tenant_info` while authenticated.
-
-2. **Personal Access Token (PAT)**: Create a PAT with the appropriate permissions from `Atlassian Account Settings -> Security -> Create and manage API tokens -> [Create API token with scopes]`.
-   - For issue access, the recommended permission is `read:jira-work` (classic)
-   - Alternatively granular access would require: `read:issue-meta:jira`, `read:issue-security-level:jira`, `read:issue.vote:jira`, `read:issue.changelog:jira`, `read:avatar:jira`, `read:issue:jira`, `read:status:jira`, `read:user:jira`, `read:field-configuration:jira`
-
-Refer to JIRA API documentation for more details [https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get)
-
-**Environment Variables Support:**
-
-For better security, you can set the JIRA username, token, and cloud ID using environment variables instead of placing them in the configuration file:
-
-- `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
-- `JIRA_API_PAT_TOKEN`: Your JIRA Personal Access Token with scopes.
-- `JIRA_CLOUD_ID`: Your Atlassian Cloud ID.
-
-If these environment variables are set, they will take precedence over the values in the configuration file.
-
-JSON:
-
-```json
-{
-  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
-  "requirementsProvider": "jira",
-  "requirementsProviderConfig": {
-    "jira": {
-      "username": "username@yourcompany.com",
-      "token": "YOUR_JIRA_PAT_TOKEN",
-      "cloudId": "YOUR_ATLASSIAN_CLOUD_ID"
-    }
-  }
-}
-```
-
-JavaScript:
-
-```javascript
-export async function configure(importFunction, global) {
-    const vertexAi = await importFunction('@langchain/google-vertexai');
-    return {
-        llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-preview-05-06"
-        }),
-        requirementsProvider: 'jira',
-        requirementsProviderConfig: {
-            'jira': {
-                username: 'username@yourcompany.com', // Your Jira username/email
-                token: 'YOUR_JIRA_PAT_TOKEN',        // Your Personal Access Token
-                cloudId: 'YOUR_ATLASSIAN_CLOUD_ID'    // Your Atlassian Cloud ID
             }
         }
     }

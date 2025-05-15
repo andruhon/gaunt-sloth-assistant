@@ -15,7 +15,7 @@ export async function configure(importFunction, global) {
             model: "gemini-2.5-pro-preview-05-06", // Consider checking for latest recommended model versions
             // temperature: 0,
             // Other parameters might be relevant depending on Vertex AI API updates
-            // The project is not in the interface, but it is in documentation (seems to work unimarket-development as well)
+            // The project is not in the interface, but it is in documentation
             // project: 'your-cool-gcloud-project'
         })
     }
