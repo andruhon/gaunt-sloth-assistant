@@ -1,2 +1,5 @@
 spec/
 .gsloth.config.*
+.idea/
+.github/
+.junie/

@@ -16,7 +16,7 @@ git push --tags
 
 Note the release version and do 
 ```shell
-gh release create --generate-notes
+gh release create --notes "notes"
 ```
 
 Publish to NPM
