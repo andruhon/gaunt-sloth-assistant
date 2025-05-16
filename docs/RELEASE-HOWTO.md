@@ -24,3 +24,9 @@ Publish to NPM
 npm login
 npm publish
 ```
+
+Delete incidental remote and local tag
+```shell
+git push --delete v0.3.0
+git push --delete origin v0.3.0
+```
