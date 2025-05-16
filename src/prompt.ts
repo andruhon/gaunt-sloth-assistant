@@ -1,25 +1,40 @@
-import { resolve } from 'node:path';
-import { GSLOTH_BACKSTORY } from '#src/config.js';
-import { readFileSyncWithMessages, spawnCommand } from '#src/utils.js';
+import {
+  readFileFromCurrentDir,
+  readFileFromCurrentOrInstallDir,
+  spawnCommand,
+} from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
-import { exit, getCurrentDir, getInstallDir } from '#src/systemUtils.js';
+import { exit } from '#src/systemUtils.js';
+import { GSLOTH_BACKSTORY } from '#src/config.js';
 
-export function readInternalPreamble(): string {
-  const installDir = getInstallDir();
-  const filePath = resolve(installDir, GSLOTH_BACKSTORY);
-  return readFileSyncWithMessages(filePath, 'Error reading internal preamble file at:') || '';
+export function readBackstory(): string {
+  return readFileFromCurrentOrInstallDir(GSLOTH_BACKSTORY, true);
 }
 
-export function readPreamble(preambleFilename: string): string {
-  const currentDir = getCurrentDir();
-  const filePath = resolve(currentDir, preambleFilename);
-  return (
-    readFileSyncWithMessages(
-      filePath,
-      'Error reading preamble file at:',
+export function readGuidelines(guidelinesFilename: string): string {
+  try {
+    return readFileFromCurrentDir(guidelinesFilename);
+  } catch (error) {
+    displayError(
       'Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options.'
-    ) || ''
-  );
+    );
+    throw error;
+  }
+}
+
+export function readReviewInstructions(reviewInstructions: string): string {
+  return readConfigPromptFile(reviewInstructions);
+}
+
+function readConfigPromptFile(guidelinesFilename: string): string {
+  try {
+    return readFileFromCurrentOrInstallDir(guidelinesFilename);
+  } catch (error) {
+    displayError(
+      'Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options.'
+    );
+    throw error;
+  }
 }
 
 /**

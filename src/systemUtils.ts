@@ -1,5 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'url';
+import { Command } from 'commander';
+import { ProgressIndicator } from '#src/utils.js';
 
 /**
  * This file contains all system functions and objects that are globally available
@@ -12,10 +14,12 @@ import { fileURLToPath } from 'url';
 
 interface InnerState {
   installDir: string | null | undefined;
+  stringFromStdin: string;
 }
 
 const innerState: InnerState = {
   installDir: undefined,
+  stringFromStdin: '',
 };
 
 // Process-related functions and objects
@@ -25,6 +29,12 @@ export const getInstallDir = (): string => {
     return innerState.installDir;
   }
   throw new Error('Install directory not set');
+};
+/**
+ * Cached string from stdin. Should only be called after readStdin completes execution.
+ */
+export const getStringFromStdin = (): string => {
+  return innerState.stringFromStdin;
 };
 export const exit = (code?: number): never => process.exit(code || 0);
 export const stdin = process.stdin;
@@ -43,6 +53,34 @@ export const setEntryPoint = (indexJs: string): void => {
   const dirPath = dirname(filePath);
   innerState.installDir = resolve(dirPath);
 };
+
+/**
+ * Asynchronously reads the stdin and stores it as a string,
+ * it can later be retrieved with getStringFromStdin.
+ */
+export function readStdin(program: Command): Promise<void> {
+  return new Promise((resolvePromise) => {
+    if (stdin.isTTY) {
+      program.parseAsync().then(() => resolvePromise());
+    } else {
+      // Support piping diff into gsloth
+      const progressIndicator = new ProgressIndicator('reading STDIN', true);
+
+      stdin.on('readable', function (this: NodeJS.ReadStream) {
+        const chunk = this.read();
+        progressIndicator.indicate();
+        if (chunk !== null) {
+          const chunkStr = chunk.toString('utf8');
+          innerState.stringFromStdin = innerState.stringFromStdin + chunkStr;
+        }
+      });
+
+      stdin.on('end', function () {
+        program.parseAsync(argv).then(() => resolvePromise());
+      });
+    }
+  });
+}
 
 // Console-related functions
 export const log = (message: string): void => console.log(message);

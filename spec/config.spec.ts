@@ -109,6 +109,8 @@ describe('config', async () => {
         llm: { type: 'vertexai' },
         contentProvider: 'file',
         requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
         commands: { pr: { contentProvider: 'gh' } },
       });
     });
@@ -157,6 +159,8 @@ describe('config', async () => {
         llm: { type: 'anthropic' },
         contentProvider: 'file',
         requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
         commands: { pr: { contentProvider: 'gh' } },
       });
     });
@@ -206,6 +210,8 @@ describe('config', async () => {
         llm: { type: 'groq' },
         contentProvider: 'file',
         requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
         commands: { pr: { contentProvider: 'gh' } },
       });
     });
@@ -267,6 +273,8 @@ describe('config', async () => {
           type: 'vertexai',
           model: 'test-model',
         },
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
         contentProvider: 'file',
         requirementsProvider: 'file',
         commands: { pr: { contentProvider: 'gh' } },
@@ -301,6 +309,8 @@ describe('config', async () => {
         llm: undefined,
         contentProvider: 'file',
         requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
         commands: { pr: { contentProvider: 'gh' } },
       });
 
@@ -334,6 +344,8 @@ describe('config', async () => {
         llm: undefined,
         contentProvider: 'file',
         requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
         commands: { pr: { contentProvider: 'gh' } },
       });
 

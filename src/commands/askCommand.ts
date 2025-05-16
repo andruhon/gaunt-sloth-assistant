@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { readInternalPreamble } from '#src/prompt.js';
+import { readBackstory, readGuidelines } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
-import { initConfig } from '#src/config.js';
+import { initConfig, slothContext } from '#src/config.js';
 
 interface AskCommandOptions {
   file?: string[];
@@ -22,13 +22,14 @@ export function askCommand(program: Command): void {
     )
     // TODO add option consuming extra message as argument
     .action(async (message: string, options: AskCommandOptions) => {
-      const preamble = [readInternalPreamble()];
+      const preamble = [readBackstory(), readGuidelines(slothContext.config.projectGuidelines)];
       const content = [message];
       if (options.file) {
         content.push(readMultipleFilesFromCurrentDir(options.file));
       }
       await initConfig();
       const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
-      await askQuestion('sloth-ASK', preamble.join('\n'), content.join('\n'));
+      // TODO make the prefix configurable
+      await askQuestion('gth-ASK', preamble.join('\n'), content.join('\n'));
     });
 }

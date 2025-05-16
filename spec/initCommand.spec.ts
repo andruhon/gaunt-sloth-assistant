@@ -9,7 +9,7 @@ vi.mock('#src/config.js', () => ({
   createProjectConfig,
   availableDefaultConfigs: ['vertexai', 'anthropic', 'groq'],
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
-  USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
+  USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
   slothContext: {
     installDir: '/mock/install/dir',
     currentDir: '/mock/current/dir',

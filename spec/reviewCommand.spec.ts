@@ -1,12 +1,14 @@
 import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SlothContext } from '#src/config.js';
+import { SlothConfig } from '#src/config.js';
 
 // Define mocks at top level
 const review = vi.fn();
 const prompt = {
-  readInternalPreamble: vi.fn().mockReturnValue('INTERNAL PREAMBLE'),
-  readPreamble: vi.fn().mockReturnValue('PROJECT PREAMBLE'),
+  readBackstory: vi.fn(),
+  readGuidelines: vi.fn(),
+  readReviewInstructions: vi.fn(),
 };
 
 const codeReviewMock = { review };
@@ -25,7 +27,7 @@ vi.mock('#src/prompt.js', () => prompt);
 vi.mock('#src/modules/reviewModule.js', () => codeReviewMock);
 vi.mock('#src/config.js', () => ({
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
-  USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.preamble.review.md',
+  USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
   slothContext: {
     config: {},
     currentDir: '/mock/current/dir',
@@ -44,8 +46,9 @@ describe('reviewCommand', () => {
     utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue(
       'test.file:\n```\nFILE TO REVIEW\n```'
     );
-    prompt.readInternalPreamble.mockReturnValue('INTERNAL PREAMBLE');
-    prompt.readPreamble.mockReturnValue('PROJECT PREAMBLE');
+    prompt.readBackstory.mockReturnValue('INTERNAL BACKSTORY');
+    prompt.readGuidelines.mockReturnValue('PROJECT GUIDELINES');
+    prompt.readReviewInstructions.mockReturnValue('REVIEW INSTRUCTIONS');
   });
 
   it('Should call review with file contents', async () => {
@@ -55,8 +58,8 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
 
     expect(review).toHaveBeenCalledWith(
-      'sloth-DIFF-review',
-      'INTERNAL PREAMBLE\nPROJECT PREAMBLE',
+      'gth-DIFF-review',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'test.file:\n```\nFILE TO REVIEW\n```'
     );
   });
@@ -73,8 +76,8 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file', 'test2.file']);
 
     expect(review).toHaveBeenCalledWith(
-      'sloth-DIFF-review',
-      'INTERNAL PREAMBLE\nPROJECT PREAMBLE',
+      'gth-DIFF-review',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
     );
   });
@@ -126,10 +129,7 @@ describe('reviewCommand', () => {
         pr: {
           requirementsProvider: 'jira-legacy',
         },
-      },
-      installDir: '/mock/install/dir',
-      currentDir: '/mock/current/dir',
-      stdin: '',
+      } as Partial<SlothConfig> as SlothConfig,
       session: {
         configurable: {
           thread_id: 'test-thread',
@@ -147,8 +147,8 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', 'content-id', '-r', 'JIRA-123']);
 
     expect(review).toHaveBeenCalledWith(
-      'sloth-DIFF-review',
-      'INTERNAL PREAMBLE\nPROJECT PREAMBLE',
+      'gth-DIFF-review',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'JIRA Requirements\ncontent-id'
     );
   });
@@ -190,10 +190,7 @@ describe('reviewCommand', () => {
         pr: {
           requirementsProvider: 'jira-legacy',
         },
-      },
-      installDir: '/mock/install/dir',
-      currentDir: '/mock/current/dir',
-      stdin: '',
+      } as Partial<SlothConfig> as SlothConfig,
       session: {
         configurable: {
           thread_id: 'test-thread',
@@ -225,10 +222,7 @@ describe('reviewCommand', () => {
         pr: {
           requirementsProvider: 'text',
         },
-      },
-      installDir: '/mock/install/dir',
-      currentDir: '/mock/current/dir',
-      stdin: '',
+      } as Partial<SlothConfig> as SlothConfig,
       session: {
         configurable: {
           thread_id: 'test-thread',
@@ -246,8 +240,8 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', '123']);
 
     expect(review).toHaveBeenCalledWith(
-      'sloth-DIFF-review',
-      'INTERNAL PREAMBLE\nPROJECT PREAMBLE',
+      'gth-DIFF-review',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'PR Diff Content'
     );
   });
@@ -267,10 +261,7 @@ describe('reviewCommand', () => {
         pr: {
           requirementsProvider: 'text',
         },
-      },
-      installDir: '/mock/install/dir',
-      currentDir: '/mock/current/dir',
-      stdin: '',
+      } as Partial<SlothConfig> as SlothConfig,
       session: {
         configurable: {
           thread_id: 'test-thread',
@@ -288,8 +279,8 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'pr', '123']);
 
     expect(review).toHaveBeenCalledWith(
-      'sloth-PR-123-review',
-      'INTERNAL PREAMBLE\nPROJECT PREAMBLE',
+      'gth-PR-123-review',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'PR Diff Content'
     );
   });

@@ -1,9 +1,9 @@
-import { LanguageModelLike } from '@langchain/core/language_models/base';
 import path from 'node:path';
 import { displayWarning } from '#src/consoleUtils.js';
 import { getCurrentDir } from '#src/systemUtils.js';
 import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { ChatVertexAIInput } from '@langchain/google-vertexai';
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 const jsContent = `/* eslint-disable */
 export async function configure(importFunction, global) {
@@ -44,7 +44,7 @@ export function init(configFileName: string): void {
 }
 
 // Function to process JSON config and create VertexAI LLM instance
-export async function processJsonConfig(llmConfig: ChatVertexAIInput): Promise<LanguageModelLike> {
+export async function processJsonConfig(llmConfig: ChatVertexAIInput): Promise<BaseChatModel> {
   const vertexAi = await import('@langchain/google-vertexai');
   return new vertexAi.ChatVertexAI({
     ...llmConfig,

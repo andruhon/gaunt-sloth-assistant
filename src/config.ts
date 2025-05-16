@@ -4,12 +4,14 @@ import { displayDebug, displayError, displayInfo, displayWarning } from '#src/co
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { error, exit, getCurrentDir } from '#src/systemUtils.js';
-import { LanguageModelLike } from '@langchain/core/language_models/base';
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 export interface SlothConfig extends BaseSlothConfig {
-  llm: LanguageModelLike; // FIXME this is still bad keeping instance in config is probably not best choice
+  llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
   contentProvider: string;
   requirementsProvider: string;
+  projectGuidelines: string;
+  projectReviewInstructions: string;
   commands: {
     pr: {
       contentProvider: string;
@@ -31,6 +33,8 @@ interface BaseSlothConfig {
   llm: unknown;
   contentProvider?: string;
   requirementsProvider?: string;
+  projectGuidelines?: string;
+  projectReviewInstructions?: string;
   commands?: {
     pr: {
       contentProvider: string;
@@ -53,7 +57,6 @@ interface BaseSlothConfig {
  */
 export interface SlothContext {
   config: SlothConfig;
-  stdin: string;
   session: {
     configurable: {
       thread_id: string;
@@ -70,7 +73,8 @@ export const USER_PROJECT_CONFIG_JS = '.gsloth.config.js';
 export const USER_PROJECT_CONFIG_JSON = '.gsloth.config.json';
 export const USER_PROJECT_CONFIG_MJS = '.gsloth.config.mjs';
 export const GSLOTH_BACKSTORY = '.gsloth.backstory.md';
-export const USER_PROJECT_REVIEW_PREAMBLE = '.gsloth.preamble.review.md';
+export const PROJECT_GUIDELINES = '.gsloth.guidelines.md';
+export const PROJECT_REVIEW_INSTRUCTIONS = '.gsloth.review.md';
 
 export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
@@ -79,6 +83,8 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   llm: undefined,
   contentProvider: 'file',
   requirementsProvider: 'file',
+  projectGuidelines: PROJECT_GUIDELINES,
+  projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   commands: {
     pr: {
       contentProvider: 'gh',
@@ -198,7 +204,7 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<void> {
     try {
       const configModule = await import(`./configs/${llmType}.js`);
       if (configModule.processJsonConfig) {
-        const llm = (await configModule.processJsonConfig(llmConfig)) as LanguageModelLike;
+        const llm = (await configModule.processJsonConfig(llmConfig)) as BaseChatModel;
         slothContext.config = { ...slothContext.config, ...jsonConfig, llm };
       } else {
         displayWarning(`Config module for ${llmType} does not have processJsonConfig function.`);
@@ -219,9 +225,7 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<void> {
 export async function createProjectConfig(configType: string): Promise<void> {
   displayInfo(`Setting up your project\n`);
   writeProjectReviewPreamble();
-  displayWarning(
-    `Make sure you add as much detail as possible to your ${USER_PROJECT_REVIEW_PREAMBLE}.\n`
-  );
+  displayWarning(`Make sure you add as much detail as possible to your ${PROJECT_GUIDELINES}.\n`);
 
   // Check if the config type is in availableDefaultConfigs
   if (!availableDefaultConfigs.includes(configType as ConfigType)) {
@@ -239,15 +243,15 @@ export async function createProjectConfig(configType: string): Promise<void> {
 
 export function writeProjectReviewPreamble(): void {
   const currentDir = getCurrentDir();
-  const reviewPreamblePath = path.join(currentDir, USER_PROJECT_REVIEW_PREAMBLE);
+  const reviewPreamblePath = path.join(currentDir, PROJECT_GUIDELINES);
   writeFileIfNotExistsWithMessages(
     reviewPreamblePath,
     'You are doing generic code review.\n' +
       ' Important! Please remind user to prepare proper AI preamble in' +
-      USER_PROJECT_REVIEW_PREAMBLE +
+      PROJECT_GUIDELINES +
       ' for this project. Use decent amount of ⚠️ to highlight lack of config.' +
       ' Explicitly mention `' +
-      USER_PROJECT_REVIEW_PREAMBLE +
+      PROJECT_GUIDELINES +
       '`.'
   );
 }
@@ -261,6 +265,5 @@ export function reset() {
     delete (slothContext as unknown as Record<string, unknown>)[key];
   });
   slothContext.config = DEFAULT_CONFIG as SlothConfig;
-  slothContext.stdin = '';
   slothContext.session = { configurable: { thread_id: uuidv4() } };
 }

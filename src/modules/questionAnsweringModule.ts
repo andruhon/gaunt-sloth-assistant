@@ -1,14 +1,10 @@
-import type { SlothContext } from '#src/config.js';
 import { slothContext } from '#src/config.js';
 import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
-import type { Message, ProgressCallback, State } from '#src/modules/types.js';
 import { getCurrentDir } from '#src/systemUtils.js';
 import { fileSafeLocalDate, ProgressIndicator, toFileSafeString } from '#src/utils.js';
-import { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { AIMessageChunk, HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
 import { writeFileSync } from 'node:fs';
 import * as path from 'node:path';
+import { invoke } from '#src/llmUtils.js';
 
 /**
  * Ask a question and get an answer from the LLM
@@ -22,18 +18,19 @@ export async function askQuestion(
   content: string
 ): Promise<void> {
   const progressIndicator = new ProgressIndicator('Thinking.');
-  const outputContent = await askQuestionInner(
-    slothContext,
-    () => progressIndicator.indicate(),
+  const outputContent = await invoke(
+    slothContext.config.llm,
+    slothContext.session,
     preamble,
     content
   );
+  progressIndicator.stop();
   const filePath = path.resolve(
     getCurrentDir(),
     toFileSafeString(source) + '-' + fileSafeLocalDate() + '.md'
   );
   display(`\nwriting ${filePath}`);
-  // TODO highlight LLM output with something like Prism.JS
+  // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
   display('\n' + outputContent);
   try {
     writeFileSync(filePath, outputContent);
@@ -44,54 +41,4 @@ export async function askQuestion(
     // TODO Consider if we want to exit or just log the error
     // exit(1);
   }
-}
-
-/**
- * Inner function to ask a question and get an answer from the LLM
- * @param context - The context object
- * @param indicateProgress - Function to indicate progress
- * @param preamble - The preamble to send to the LLM
- * @param content - The content of the question
- * @returns The answer from the LLM
- */
-export async function askQuestionInner(
-  context: SlothContext,
-  indicateProgress: ProgressCallback,
-  preamble: string,
-  content: string
-): Promise<string> {
-  // This node receives the current state (messages) and invokes the LLM
-  const callModel = async (state: State): Promise<{ messages: AIMessageChunk }> => {
-    // state.messages will contain the list including the system preamble and user diff
-    const response = await (context.config.llm as BaseChatModel).invoke(state.messages);
-    // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
-    // Wrap the response in an array if it's a single message object.
-    return { messages: response };
-  };
-
-  // Define the graph structure with MessagesAnnotation state
-  const workflow = new StateGraph(MessagesAnnotation)
-    // Define the node and edge
-    .addNode('model', callModel)
-    .addEdge(START, 'model') // Start at the 'model' node
-    .addEdge('model', END); // End after the 'model' node completes
-
-  // Set up memory (optional but good practice for potential future multi-turn interactions)
-  const memory = new MemorySaver();
-
-  // Compile the workflow into a runnable app
-  const app = workflow.compile({ checkpointer: memory });
-
-  // Construct the initial the messages including the preamble as a system message
-  const messages: Message[] = [new SystemMessage(preamble), new HumanMessage(content)];
-
-  indicateProgress();
-  // TODO create proper progress indicator for async tasks.
-  const progress = setInterval(() => indicateProgress(), 1000);
-  const output = await app.invoke({ messages }, context.session);
-  clearInterval(progress);
-  const lastMessage = output.messages[output.messages.length - 1];
-  return typeof lastMessage.content === 'string'
-    ? lastMessage.content
-    : JSON.stringify(lastMessage.content);
 }

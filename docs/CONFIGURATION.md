@@ -1,17 +1,17 @@
 # Configuration
 
-Populate `.gsloth.preamble.review.md` with your project details and quality requirements.
+Populate `.gsloth.guidelines.md` with your project details and quality requirements.
 Proper preamble is a paramount for good inference.
-Check [.gsloth.preamble.review.md](../.gsloth.preamble.review.md) for example.
+Check [.gsloth.guidelines.md](../.gsloth.guidelines.md) for example.
 
 Your project should have the following files in order for gsloth to function:
 - Configuration file (one of):
   - `.gsloth.config.js` (JavaScript module)
   - `.gsloth.config.json` (JSON file)
   - `.gsloth.config.mjs` (JavaScript module with explicit module extension)
-- `.gsloth.preamble.review.md`
+- `.gsloth.guidelines.md`
 
-> Gaunt Sloth currently only functions from the directory which has one of the configuration files and `.gsloth.preamble.review.md`.
+> Gaunt Sloth currently only functions from the directory which has one of the configuration files and `.gsloth.guidelines.md`.
 > Global configuration to invoke gsloth anywhere is in [ROADMAP](../ROADMAP.md).
 
 ## Config initialization

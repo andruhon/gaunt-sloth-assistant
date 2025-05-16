@@ -1,11 +1,10 @@
 import { display, displayError, displaySuccess, displayWarning } from '#src/consoleUtils.js';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { SlothConfig, slothContext } from '#src/config.js';
+import { SlothConfig } from '#src/config.js';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
-import { exit, stdin, stdout, argv, getCurrentDir, getInstallDir } from '#src/systemUtils.js';
+import { getCurrentDir, getInstallDir, stdout } from '#src/systemUtils.js';
 import url from 'node:url';
-import { Command } from 'commander';
 
 export function toFileSafeString(string: string): string {
   return string.replace(/[^A-Za-z0-9]/g, '-');
@@ -24,8 +23,32 @@ export function fileSafeLocalDate(): string {
 export function readFileFromCurrentDir(fileName: string): string {
   const currentDir = getCurrentDir();
   const filePath = resolve(currentDir, fileName);
-  display(`Reading file ${fileName}...`);
+  display(`Reading file ${filePath}...`);
   return readFileSyncWithMessages(filePath);
+}
+
+export function readFileFromCurrentOrInstallDir(filePath: string, silentCurrent?: boolean): string {
+  const currentDir = getCurrentDir();
+  const currentFilePath = resolve(currentDir, filePath);
+  if (!silentCurrent) {
+    display(`Reading file ${currentFilePath}...`);
+  }
+
+  try {
+    return readFileSync(currentFilePath, { encoding: 'utf8' });
+  } catch (_error) {
+    if (!silentCurrent) {
+      display(`The ${currentFilePath} not found or can\'t be read, trying install directory...`);
+    }
+    const installDir = getInstallDir();
+    const installFilePath = resolve(installDir, filePath);
+    try {
+      return readFileSync(installFilePath, { encoding: 'utf8' });
+    } catch (readFromInstallDirError) {
+      displayError(`The ${installFilePath} not found or can\'t be read.`);
+      throw readFromInstallDirError;
+    }
+  }
 }
 
 export function writeFileIfNotExistsWithMessages(filePath: string, content: string): void {
@@ -53,34 +76,8 @@ export function readFileSyncWithMessages(
     } else {
       displayError((error as Error).message);
     }
-    exit(1); // Exit gracefully after error
-    throw error; // This line will never be reached due to exit(1), but satisfies TypeScript
+    throw error;
   }
-}
-
-export function readStdin(program: Command): Promise<void> {
-  return new Promise((resolvePromise) => {
-    if (stdin.isTTY) {
-      program.parseAsync().then(() => resolvePromise());
-    } else {
-      // Support piping diff into gsloth
-      const progressIndicator = new ProgressIndicator('reading STDIN');
-      progressIndicator.indicate();
-
-      stdin.on('readable', function (this: NodeJS.ReadStream) {
-        const chunk = this.read();
-        progressIndicator.indicate();
-        if (chunk !== null) {
-          const chunkStr = chunk.toString('utf8');
-          (slothContext as { stdin: string }).stdin = slothContext.stdin + chunkStr;
-        }
-      });
-
-      stdin.on('end', function () {
-        program.parseAsync(argv).then(() => resolvePromise());
-      });
-    }
-  });
 }
 
 interface SpawnOutput {
@@ -95,7 +92,7 @@ export async function spawnCommand(
   successMessage: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const progressIndicator = new ProgressIndicator(progressMessage);
+    const progressIndicator = new ProgressIndicator(progressMessage, true);
     const out: SpawnOutput = { stdout: '', stderr: '' };
     const spawned = spawn(command, args);
 
@@ -134,21 +131,31 @@ export function getSlothVersion(): string {
 }
 
 export class ProgressIndicator {
-  private hasBeenCalled: boolean;
-  private initialMessage: string;
+  private interval: number | undefined = undefined;
 
-  constructor(initialMessage: string) {
-    this.hasBeenCalled = false;
-    this.initialMessage = initialMessage;
+  constructor(initialMessage: string, manual?: boolean) {
+    stdout.write(initialMessage);
+    if (!manual) {
+      this.interval = setInterval(this.indicateInner, 1000) as unknown as number;
+    }
+  }
+
+  private indicateInner(): void {
+    stdout.write('.');
   }
 
   indicate(): void {
-    if (this.hasBeenCalled) {
-      stdout.write('.');
-    } else {
-      this.hasBeenCalled = true;
-      stdout.write(this.initialMessage);
+    if (this.interval) {
+      throw new Error('ProgressIndicator.indicate only to be called in manual mode');
     }
+    this.indicateInner();
+  }
+
+  stop(): void {
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
+    stdout.write('\n');
   }
 }
 

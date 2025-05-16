@@ -2,14 +2,16 @@ import path from 'node:path';
 import { displayWarning } from '#src/consoleUtils.js';
 import { env, getCurrentDir } from '#src/systemUtils.js';
 import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
-import { LanguageModelLike } from '@langchain/core/language_models/base';
 import type { AnthropicInput } from '@langchain/anthropic';
-import type { BaseChatModelParams } from '@langchain/core/language_models/chat_models';
+import type {
+  BaseChatModel,
+  BaseChatModelParams,
+} from '@langchain/core/language_models/chat_models';
 
 // Function to process JSON config and create Anthropic LLM instance
 export async function processJsonConfig(
   llmConfig: AnthropicInput & BaseChatModelParams
-): Promise<LanguageModelLike> {
+): Promise<BaseChatModel> {
   const anthropic = await import('@langchain/anthropic');
   // Use environment variable if available, otherwise use the config value
   const anthropicApiKey = env.ANTHROPIC_API_KEY || llmConfig.apiKey;

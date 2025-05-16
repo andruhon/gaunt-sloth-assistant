@@ -1,9 +1,10 @@
 import { Command, Option } from 'commander';
-import { USER_PROJECT_REVIEW_PREAMBLE } from '#src/config.js';
-import { readInternalPreamble, readPreamble } from '#src/prompt.js';
+import type { SlothContext } from '#src/config.js';
+import { slothContext } from '#src/config.js';
+import { readBackstory, readGuidelines, readReviewInstructions } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
-import type { SlothContext } from '#src/config.js';
+import { getStringFromStdin } from '#src/systemUtils.js';
 
 /**
  * Requirements providers. Expected to be in `.providers/` dir
@@ -72,7 +73,11 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
       await initConfig();
-      const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
+      const systemMessage = [
+        readBackstory(),
+        readGuidelines(slothContext.config.projectGuidelines),
+        readReviewInstructions(slothContext.config.projectReviewInstructions),
+      ];
       const content: string[] = [];
       const requirementsId = options.requirements;
       const requirementsProvider =
@@ -98,14 +103,16 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       if (options.file) {
         content.push(readMultipleFilesFromCurrentDir(options.file));
       }
-      if (context.stdin) {
-        content.push(context.stdin);
+      let stringFromStdin = getStringFromStdin();
+      if (stringFromStdin) {
+        content.push(stringFromStdin);
       }
       if (options.message) {
         content.push(options.message);
       }
       const { review } = await import('#src/modules/reviewModule.js');
-      await review('sloth-DIFF-review', preamble.join('\n'), content.join('\n'));
+      // TODO make the prefix configurable
+      await review('gth-DIFF-review', systemMessage.join('\n'), content.join('\n'));
     });
 
   program
@@ -134,7 +141,11 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       const { initConfig } = await import('#src/config.js');
       await initConfig();
 
-      const preamble = [readInternalPreamble(), readPreamble(USER_PROJECT_REVIEW_PREAMBLE)];
+      const systemMessage = [
+        readBackstory(),
+        readGuidelines(slothContext.config.projectGuidelines),
+        readReviewInstructions(slothContext.config.projectReviewInstructions),
+      ];
       const content: string[] = [];
       const requirementsProvider =
         options.requirementsProvider ??
@@ -157,7 +168,10 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       content.push(await get(null, prId));
 
       const { review } = await import('#src/modules/reviewModule.js');
-      await review(`sloth-PR-${prId}-review`, preamble.join('\n'), content.join('\n'));
+      // TODO make the prefix configurable
+      // TODO consider including requirements id
+      // TODO sanitize prId
+      await review(`gth-PR-${prId}-review`, systemMessage.join('\n'), content.join('\n'));
     });
 
   async function getRequirementsFromProvider(

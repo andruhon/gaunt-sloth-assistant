@@ -1,6 +1,7 @@
 /node_modules/
 /dist/
 /sloth-*
+/gth-*
 .junie
 .idea
 gaunt-sloth-assistant.iml

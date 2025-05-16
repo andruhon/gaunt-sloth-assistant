@@ -37,6 +37,9 @@ const utilsMock = {
   createSystemMessage: vi.fn(),
   createHumanMessage: vi.fn(),
 };
+utilsMock.ProgressIndicator.prototype.stop = vi.fn();
+utilsMock.ProgressIndicator.prototype.indicate = vi.fn();
+
 vi.mock('#src/utils.js', () => utilsMock);
 
 // Create a mock slothContext for the second test
@@ -63,31 +66,12 @@ describe('questionAnsweringModule', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
 
-    const progressIndicator = {
-      indicate: vi.fn(),
-    };
-    utilsMock.ProgressIndicator.mockImplementation(() => progressIndicator);
-    utilsMock.toFileSafeString.mockReturnValue('sloth-ASK');
+    utilsMock.toFileSafeString.mockReturnValue('gth-ASK');
     utilsMock.fileSafeLocalDate.mockReturnValue('2025-01-01T00-00-00');
     pathMock.resolve.mockImplementation((path: string, name: string) => {
-      if (name.includes('sloth-ASK')) return 'test-file-path.md';
+      if (name.includes('gth-ASK')) return 'test-file-path.md';
       return '';
     });
-  });
-
-  it('should invoke LLM (internal)', async () => {
-    // Import the module after setting up mocks
-    const { askQuestionInner } = await import('#src/modules/questionAnsweringModule.js');
-
-    // Test the function
-    const output = await askQuestionInner(
-      mockSlothContext,
-      () => {},
-      'test-preamble',
-      'test-content'
-    );
-
-    expect(output).toBe('LLM Response');
   });
 
   it('should invoke LLM', async () => {
@@ -110,6 +94,8 @@ describe('questionAnsweringModule', () => {
 
     // Verify that displaySuccess was called
     expect(consoleUtilsMock.displaySuccess).toHaveBeenCalled();
+
+    expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
   });
 
   it('Should handle file write errors', async () => {
@@ -127,12 +113,14 @@ describe('questionAnsweringModule', () => {
     const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
 
     // Call the function and wait for it to complete
-    await askQuestion('sloth-ASK', 'Test Preamble', 'Test Content');
+    await askQuestion('gth-ASK', 'Test Preamble', 'Test Content');
 
     // Verify error message was displayed
     expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
       expect.stringContaining('test-file-path.md')
     );
     expect(consoleUtilsMock.displayError).toHaveBeenCalledWith('File write error');
+
+    expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
   });
 });
