@@ -10,10 +10,7 @@ export async function review(source: string, preamble: string, diff: string): Pr
   const progressIndicator = new ProgressIndicator('Reviewing.');
   const outputContent = await invoke(slothContext.config.llm, slothContext.session, preamble, diff);
   progressIndicator.stop();
-  const filePath = path.resolve(
-    getCurrentDir(),
-    generateStandardFileName(source)
-  );
+  const filePath = path.resolve(getCurrentDir(), generateStandardFileName(source));
   stdout.write('\n');
   display(`writing ${filePath}`);
   stdout.write('\n');

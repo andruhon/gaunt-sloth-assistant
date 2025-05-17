@@ -25,10 +25,7 @@ export async function askQuestion(
     content
   );
   progressIndicator.stop();
-  const filePath = path.resolve(
-    getCurrentDir(),
-    generateStandardFileName(source)
-  );
+  const filePath = path.resolve(getCurrentDir(), generateStandardFileName(source));
   display(`\nwriting ${filePath}`);
   // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
   display('\n' + outputContent);

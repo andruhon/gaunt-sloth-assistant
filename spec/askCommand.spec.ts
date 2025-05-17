@@ -17,6 +17,7 @@ const utilsMock = {
   extractLastMessageContent: vi.fn(),
   toFileSafeString: vi.fn(),
   fileSafeLocalDate: vi.fn(),
+  generateStandardFileName: vi.fn(),
 };
 
 // Set up static mocks

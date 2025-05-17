@@ -27,7 +27,7 @@ export function fileSafeLocalDate(): string {
  */
 export function generateStandardFileName(command: string): string {
   const date = new Date();
-  
+
   // Format: YYYY-MM-DD_HH-MM-SS using local time directly
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -35,10 +35,10 @@ export function generateStandardFileName(command: string): string {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const seconds = String(date.getSeconds()).padStart(2, '0');
-  
+
   const formattedDate = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
   const commandStr = toFileSafeString(command.toUpperCase());
-  
+
   return `gth_${formattedDate}_${commandStr}.md`;
 }
 
