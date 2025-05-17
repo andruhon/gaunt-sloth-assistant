@@ -36,6 +36,7 @@ const utilsMock = {
   fileSafeLocalDate: vi.fn(),
   createSystemMessage: vi.fn(),
   createHumanMessage: vi.fn(),
+  generateStandardFileName: vi.fn(),
 };
 utilsMock.ProgressIndicator.prototype.stop = vi.fn();
 utilsMock.ProgressIndicator.prototype.indicate = vi.fn();
@@ -66,10 +67,10 @@ describe('questionAnsweringModule', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
 
-    utilsMock.toFileSafeString.mockReturnValue('gth-ASK');
-    utilsMock.fileSafeLocalDate.mockReturnValue('2025-01-01T00-00-00');
+    // Setup mock for our new generateStandardFileName function
+    utilsMock.generateStandardFileName.mockReturnValue('gth_2025-05-17_21-00-00_ASK.md');
     pathMock.resolve.mockImplementation((path: string, name: string) => {
-      if (name.includes('gth-ASK')) return 'test-file-path.md';
+      if (name.includes('gth_')) return 'test-file-path.md';
       return '';
     });
   });

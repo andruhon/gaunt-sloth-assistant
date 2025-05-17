@@ -29,7 +29,6 @@ export function askCommand(program: Command): void {
       }
       await initConfig();
       const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
-      // TODO make the prefix configurable
-      await askQuestion('gth-ASK', preamble.join('\n'), content.join('\n'));
+      await askQuestion('ASK', preamble.join('\n'), content.join('\n'));
     });
 }

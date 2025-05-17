@@ -17,6 +17,7 @@ const utilsMock = {
   extractLastMessageContent: vi.fn(),
   toFileSafeString: vi.fn(),
   fileSafeLocalDate: vi.fn(),
+  generateStandardFileName: vi.fn(),
 };
 
 // Set up static mocks
@@ -68,7 +69,7 @@ describe('askCommand', () => {
     await askCommand(program);
     await program.parseAsync(['na', 'na', 'ask', 'test message']);
     expect(askQuestion).toHaveBeenCalledWith(
-      'gth-ASK',
+      'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test message'
     );
@@ -80,7 +81,7 @@ describe('askCommand', () => {
     await askCommand(program);
     await program.parseAsync(['na', 'na', 'ask', 'test message', '-f', 'test.file']);
     expect(askQuestion).toHaveBeenCalledWith(
-      'gth-ASK',
+      'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test message\ntest.file:\n```\nFILE CONTENT\n```'
     );
@@ -98,7 +99,7 @@ describe('askCommand', () => {
     });
     await program.parseAsync(['na', 'na', 'ask', 'test message', '-f', 'test.file', 'test2.file']);
     expect(askQuestion).toHaveBeenCalledWith(
-      'gth-ASK',
+      'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test message\ntest.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```'
     );

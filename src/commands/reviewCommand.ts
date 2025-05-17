@@ -111,8 +111,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
         content.push(options.message);
       }
       const { review } = await import('#src/modules/reviewModule.js');
-      // TODO make the prefix configurable
-      await review('gth-DIFF-review', systemMessage.join('\n'), content.join('\n'));
+      await review('REVIEW', systemMessage.join('\n'), content.join('\n'));
     });
 
   program
@@ -168,10 +167,9 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       content.push(await get(null, prId));
 
       const { review } = await import('#src/modules/reviewModule.js');
-      // TODO make the prefix configurable
       // TODO consider including requirements id
       // TODO sanitize prId
-      await review(`gth-PR-${prId}-review`, systemMessage.join('\n'), content.join('\n'));
+      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'));
     });
 
   async function getRequirementsFromProvider(

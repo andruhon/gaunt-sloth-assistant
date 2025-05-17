@@ -41,6 +41,7 @@ const utilsMock = {
   ProgressIndicator: vi.fn(),
   toFileSafeString: vi.fn(),
   fileSafeLocalDate: vi.fn(),
+  generateStandardFileName: vi.fn(),
 };
 utilsMock.ProgressIndicator.prototype.stop = vi.fn();
 utilsMock.ProgressIndicator.prototype.indicate = vi.fn();
@@ -77,11 +78,11 @@ describe('reviewModule', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
 
-    utilsMock.toFileSafeString.mockReturnValue('gth-REVIEW');
-    utilsMock.fileSafeLocalDate.mockReturnValue('2025-01-01T00-00-00');
+    // Setup mock for our new generateStandardFileName function
+    utilsMock.generateStandardFileName.mockReturnValue('gth_2025-05-17_21-00-00_REVIEW.md');
     // Setup both the top-level resolve and the default.resolve functions
     const resolveMock = (path: string, name: string) => {
-      if (name.includes('gth-REVIEW')) return 'test-review-file-path.md';
+      if (name.includes('gth_')) return 'test-review-file-path.md';
       return '';
     };
     pathMock.resolve.mockImplementation(resolveMock);
