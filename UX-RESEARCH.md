@@ -1,5 +1,13 @@
 # UX Research
 
+## By default, gsloth writes all their files to the user's project's root directory. For tidier experience, user may create a special directory named .gsloth in the root of user's project, and gsloth will write all their files there.
+
+## Every time gsloth is about to write any file, including during the process of installation, it should search for .gsloth directory in the root directory of user's project and write files there. If .gsloth directory is not found, gsloth should write files to the root of user's project.
+
+## For user's convenience, please, make all gsloth's output file names structured to contain prefix gth first, then information about the time of creation (in format YYYY-MM-DD_HH-MM-SS), then the name of the command that created it (like ASK, PR, REVIEW, etc.)
+
+## For example, if user runs gsloth ask "What is the best way to implement this feature?", gsloth should create a file named gth_2025-05-17_21-09-08_ASK.md in the .gsloth directory if .gsloth directory is found, or in the root of user's project if .gsloth directory is not found.
+
 ## Currently available commands:
 ```
 gsloth --help
