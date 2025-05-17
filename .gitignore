@@ -2,6 +2,7 @@
 /dist/
 /sloth-*
 /gth-*
+/gth_*
 .junie
 .idea
 gaunt-sloth-assistant.iml

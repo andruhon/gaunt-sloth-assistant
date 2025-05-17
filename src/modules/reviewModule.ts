@@ -1,7 +1,7 @@
 import { slothContext } from '#src/config.js';
 import { display, displayDebug, displayError, displaySuccess } from '#src/consoleUtils.js';
 import { getCurrentDir, stdout } from '#src/systemUtils.js';
-import { fileSafeLocalDate, ProgressIndicator, toFileSafeString } from '#src/utils.js';
+import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { invoke } from '#src/llmUtils.js';
@@ -12,7 +12,7 @@ export async function review(source: string, preamble: string, diff: string): Pr
   progressIndicator.stop();
   const filePath = path.resolve(
     getCurrentDir(),
-    toFileSafeString(source) + '-' + fileSafeLocalDate() + '.md'
+    generateStandardFileName(source)
   );
   stdout.write('\n');
   display(`writing ${filePath}`);

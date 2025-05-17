@@ -58,7 +58,7 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
 
     expect(review).toHaveBeenCalledWith(
-      'gth-DIFF-review',
+      'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'test.file:\n```\nFILE TO REVIEW\n```'
     );
@@ -76,7 +76,7 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file', 'test2.file']);
 
     expect(review).toHaveBeenCalledWith(
-      'gth-DIFF-review',
+      'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
     );
@@ -147,7 +147,7 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', 'content-id', '-r', 'JIRA-123']);
 
     expect(review).toHaveBeenCalledWith(
-      'gth-DIFF-review',
+      'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'JIRA Requirements\ncontent-id'
     );

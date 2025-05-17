@@ -16,8 +16,30 @@ export function fileSafeLocalDate(): string {
   const msLocal = date.getTime() - offsetMs;
   const dateLocal = new Date(msLocal);
   const iso = dateLocal.toISOString();
-  const isoLocal = iso.slice(0, 19);
+  const isoLocal = iso.slice(0, 19).replace('T', '-');
   return toFileSafeString(isoLocal);
+}
+
+/**
+ * Generates a standardized filename with the format: gth_YYYY-MM-DD_HH-MM-SS_COMMAND.md
+ * @param command - The command that created the file (ASK, REVIEW, PR, etc.)
+ * @returns A standardized filename string
+ */
+export function generateStandardFileName(command: string): string {
+  const date = new Date();
+  
+  // Format: YYYY-MM-DD_HH-MM-SS using local time directly
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  
+  const formattedDate = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+  const commandStr = toFileSafeString(command.toUpperCase());
+  
+  return `gth_${formattedDate}_${commandStr}.md`;
 }
 
 export function readFileFromCurrentDir(fileName: string): string {
