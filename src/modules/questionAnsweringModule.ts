@@ -1,7 +1,7 @@
 import { slothContext } from '#src/config.js';
 import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
 import { getCurrentDir } from '#src/systemUtils.js';
-import { fileSafeLocalDate, ProgressIndicator, toFileSafeString } from '#src/utils.js';
+import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { invoke } from '#src/llmUtils.js';
@@ -25,10 +25,7 @@ export async function askQuestion(
     content
   );
   progressIndicator.stop();
-  const filePath = path.resolve(
-    getCurrentDir(),
-    toFileSafeString(source) + '-' + fileSafeLocalDate() + '.md'
-  );
+  const filePath = path.resolve(getCurrentDir(), generateStandardFileName(source));
   display(`\nwriting ${filePath}`);
   // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
   display('\n' + outputContent);

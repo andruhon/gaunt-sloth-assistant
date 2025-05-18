@@ -20,6 +20,7 @@ const utilsMock = {
   extractLastMessageContent: vi.fn(),
   toFileSafeString: vi.fn(),
   fileSafeLocalDate: vi.fn(),
+  generateStandardFileName: vi.fn(),
 };
 
 // Set up static mocks
@@ -58,7 +59,7 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
 
     expect(review).toHaveBeenCalledWith(
-      'gth-DIFF-review',
+      'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'test.file:\n```\nFILE TO REVIEW\n```'
     );
@@ -76,7 +77,7 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file', 'test2.file']);
 
     expect(review).toHaveBeenCalledWith(
-      'gth-DIFF-review',
+      'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
     );
@@ -147,7 +148,7 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', 'content-id', '-r', 'JIRA-123']);
 
     expect(review).toHaveBeenCalledWith(
-      'gth-DIFF-review',
+      'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'JIRA Requirements\ncontent-id'
     );
@@ -240,7 +241,7 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'review', '123']);
 
     expect(review).toHaveBeenCalledWith(
-      'gth-DIFF-review',
+      'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'PR Diff Content'
     );
@@ -279,7 +280,7 @@ describe('reviewCommand', () => {
     await program.parseAsync(['na', 'na', 'pr', '123']);
 
     expect(review).toHaveBeenCalledWith(
-      'gth-PR-123-review',
+      'PR-123',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'PR Diff Content'
     );
