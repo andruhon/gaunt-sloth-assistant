@@ -6,6 +6,7 @@ import {
 import { displayError } from '#src/consoleUtils.js';
 import { exit } from '#src/systemUtils.js';
 import { GSLOTH_BACKSTORY } from '#src/config.js';
+import { getGslothConfigReadPath } from '#src/filePathUtils.js';
 
 export function readBackstory(): string {
   return readFileFromCurrentOrInstallDir(GSLOTH_BACKSTORY, true);
@@ -13,7 +14,8 @@ export function readBackstory(): string {
 
 export function readGuidelines(guidelinesFilename: string): string {
   try {
-    return readFileFromCurrentDir(guidelinesFilename);
+    const filePath = getGslothConfigReadPath(guidelinesFilename);
+    return readFileFromCurrentDir(filePath);
   } catch (error) {
     displayError(
       'Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options.'
@@ -28,7 +30,8 @@ export function readReviewInstructions(reviewInstructions: string): string {
 
 function readConfigPromptFile(guidelinesFilename: string): string {
   try {
-    return readFileFromCurrentOrInstallDir(guidelinesFilename);
+    const filePath = getGslothConfigReadPath(guidelinesFilename);
+    return readFileFromCurrentOrInstallDir(filePath);
   } catch (error) {
     displayError(
       'Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options.'

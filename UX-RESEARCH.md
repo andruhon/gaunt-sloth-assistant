@@ -1,12 +1,30 @@
 # UX Research
 
-## By default, gsloth writes all their files to the user's project's root directory. For tidier experience, user may create a special directory named .gsloth in the root of user's project, and gsloth will write all their files there.
 
-## Every time gsloth is about to write any file, including during the process of installation, it should search for .gsloth directory in the root directory of user's project and write files there. If .gsloth directory is not found, gsloth should write files to the root of user's project.
+## Introducing .gsloth files directory
 
-## For user's convenience, please, make all gsloth's output file names structured to contain prefix gth first, then information about the time of creation (in format YYYY-MM-DD_HH-MM-SS), then the name of the command that created it (like ASK, PR, REVIEW, etc.)
+By default, gsloth writes all its files to the user's project's root directory. For tidier experience, user may create a special directory named .gsloth in the root of user's project, and gsloth will write all its files there.
 
-## For example, if user runs gsloth ask "What is the best way to implement this feature?", gsloth should create a file named gth_2025-05-17_21-09-08_ASK.md in the .gsloth directory if .gsloth directory is found, or in the root of user's project if .gsloth directory is not found.
+First of all important to note that when .gsloth directory is not present in project root, gsloth will write all its files to the root of user's project which means behavior of gsloth remains unchanged.
+
+### Example structure of .gsloth directory
+.gsloth/.gsloth-settings/.gsloth-config.json
+.gsloth/.gsloth-settings/.gsloth.guidelines.md
+.gsloth/.gsloth-settings/.gsloth.review.md
+.gsloth/gth_2025-05-18_09-34-38_ASK.md
+.gsloth/gth_2025-05-18_22-09-00_PR-22.md
+
+### Details of implementation
+- Every time gsloth is about to write any file, including during the process of installation, gsloth must search for .gsloth directory in the root of user's project.
+- If .gsloth directory is found, gsloth must check the type of file it is going to write: 
+- if gsloth is going to write an output file which name has ending (suffix) made of the name of the command that created that file, gsloth must write that file to the .gsloth directory;
+- otherwise gsloth must search for .gsloth-settings directory inside of the .gsloth directory:
+- if the .gsloth-settings directory is found inside of .gsloth directory, then gsloth must write these files there; 
+- if .gsloth-settings directory is not found inside of .gsloth directory, then gsloth must create the .gsloth-settings directory inside of the existed .gsloth directory and write these files there. 
+- If .gsloth directory is not found, gsloth must write all its files to the root of user's project (as it does now)
+
+- For example, if user runs gsloth ask "What is the best way to implement this feature?", gsloth should create a file named gth_2025-05-17_21-09-08_ASK.md in the .gsloth directory if .gsloth directory is found, or in the root of user's project if .gsloth directory is not found.
+- For example, if user installs gsloth, gsloth should create a .gsloth-settings directory in the .gsloth directory, if it is found in the root of user's project and write their files, which are not output-type, there, or simply write all files in the root of user's project if .gsloth directory is not found.
 
 ## Currently available commands:
 ```

@@ -1,7 +1,7 @@
 import { display, displayError, displaySuccess, displayWarning } from '#src/consoleUtils.js';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { SlothConfig } from '#src/config.js';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentDir, getInstallDir, stdout } from '#src/systemUtils.js';
 import url from 'node:url';
@@ -74,6 +74,11 @@ export function readFileFromCurrentOrInstallDir(filePath: string, silentCurrent?
 export function writeFileIfNotExistsWithMessages(filePath: string, content: string): void {
   display(`checking ${filePath} existence`);
   if (!existsSync(filePath)) {
+    // Create parent directories if they don't exist
+    const parentDir = dirname(filePath);
+    if (!existsSync(parentDir)) {
+      mkdirSync(parentDir, { recursive: true });
+    }
     writeFileSync(filePath, content);
     displaySuccess(`Created ${filePath}`);
   } else {
