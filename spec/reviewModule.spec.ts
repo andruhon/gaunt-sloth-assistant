@@ -6,6 +6,7 @@ import { SlothConfig } from '#src/config.js';
 // Mock fs module
 const fsMock = {
   writeFileSync: vi.fn(),
+  existsSync: vi.fn(),
 };
 vi.mock('node:fs', () => fsMock);
 
@@ -35,6 +36,13 @@ const consoleUtilsMock = {
   displayDebug: vi.fn(),
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+
+// Mock filePathUtils module
+const filePathUtilsMock = {
+  getGslothFilePath: vi.fn(),
+  gslothDirExists: vi.fn(),
+};
+vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
 
 // Mock utils module
 const utilsMock = {
@@ -87,6 +95,11 @@ describe('reviewModule', () => {
     };
     pathMock.resolve.mockImplementation(resolveMock);
     pathMock.default.resolve.mockImplementation(resolveMock);
+
+    // Setup filePathUtils mocks
+    filePathUtilsMock.getGslothFilePath.mockReturnValue('test-review-file-path.md');
+    filePathUtilsMock.gslothDirExists.mockReturnValue(false);
+
     llmUtilsMock.invoke.mockResolvedValue('LLM Review Response');
   });
 

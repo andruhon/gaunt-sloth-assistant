@@ -1,10 +1,10 @@
-import path from 'node:path/posix';
 import { v4 as uuidv4 } from 'uuid';
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { error, exit, getCurrentDir } from '#src/systemUtils.js';
+import { error, exit } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { getGslothConfigWritePath, getGslothConfigReadPath } from '#src/filePathUtils.js';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -104,10 +104,9 @@ export const slothContext = {
 } as Partial<SlothContext> as SlothContext;
 
 export async function initConfig(): Promise<void> {
-  const currentDir = getCurrentDir();
-  const jsonConfigPath = path.join(currentDir, USER_PROJECT_CONFIG_JSON);
-  const jsConfigPath = path.join(currentDir, USER_PROJECT_CONFIG_JS);
-  const mjsConfigPath = path.join(currentDir, USER_PROJECT_CONFIG_MJS);
+  const jsonConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JSON);
+  const jsConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
+  const mjsConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
 
   // Try loading JSON config file first
   if (existsSync(jsonConfigPath)) {
@@ -238,22 +237,51 @@ export async function createProjectConfig(configType: string): Promise<void> {
 
   displayInfo(`Creating project config for ${configType}`);
   const vendorConfig = await import(`./configs/${configType}.js`);
-  vendorConfig.init(USER_PROJECT_CONFIG_JSON, slothContext);
+  vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON), slothContext);
 }
 
 export function writeProjectReviewPreamble(): void {
-  const currentDir = getCurrentDir();
-  const reviewPreamblePath = path.join(currentDir, PROJECT_GUIDELINES);
-  writeFileIfNotExistsWithMessages(
-    reviewPreamblePath,
-    'You are doing generic code review.\n' +
-      ' Important! Please remind user to prepare proper AI preamble in' +
-      PROJECT_GUIDELINES +
-      ' for this project. Use decent amount of ⚠️ to highlight lack of config.' +
-      ' Explicitly mention `' +
-      PROJECT_GUIDELINES +
-      '`.'
-  );
+  const guidelinesPath = getGslothConfigWritePath(PROJECT_GUIDELINES);
+  const reviewPath = getGslothConfigWritePath(PROJECT_REVIEW_INSTRUCTIONS);
+
+  /**
+   * Development Guidelines.
+   * Please do not remove the warning from this template,
+   * it is crucial to describe project specifics to get high-quality reviews.
+   */
+  const guidelinesTemplate = `# Development Guidelines
+
+This file should include general development guidelines for this project.
+
+Important! Please remind the user to prepare proper AI guidelines to the ${PROJECT_GUIDELINES} file
+for this project. Use a decent amount of ⚠️ to highlight the lack of config.
+Explicitly mention ${PROJECT_GUIDELINES}.
+`;
+
+  /**
+   * Code Review Guidelines.
+   * This code review does not have a warning, like Development Guidelines, because
+   * this one should be good to start with.
+   */
+  const reviewTemplate = `# Code Review Guidelines
+
+If requirements were provided, first check that the implemented code implements these requirements.
+Document that you checked the code to implement requirements.
+Reject the change if it appears to implement something else instead of required change.
+
+Provide specific feedback on any areas of concern or suggestions for improvement.
+Please categorize your feedback (e.g., "Bug," "Suggestion," "Nitpick").
+
+Important! In the end, conclude if you would recommend approving this PR or not.
+Use ✅⚠️❌ symbols to highlight your feedback appropriately.
+
+Thank you for your thorough review!
+
+Important! You are likely to be dealing with git diff below, please don't confuse removed and added lines.
+`;
+
+  writeFileIfNotExistsWithMessages(guidelinesPath, guidelinesTemplate);
+  writeFileIfNotExistsWithMessages(reviewPath, reviewTemplate);
 }
 
 /**

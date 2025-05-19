@@ -14,6 +14,27 @@ Your project should have the following files in order for gsloth to function:
 > Gaunt Sloth currently only functions from the directory which has one of the configuration files and `.gsloth.guidelines.md`.
 > Global configuration to invoke gsloth anywhere is in [ROADMAP](../ROADMAP.md).
 
+## Using .gsloth Directory
+
+For a tidier project structure, you can create a `.gsloth` directory in your project root. When this directory exists, gsloth will:
+
+1. Write all output files (like responses from commands) to the `.gsloth` directory instead of the project root
+2. Look for configuration files in `.gsloth/.gsloth-settings/` subdirectory
+
+Example directory structure when using the `.gsloth` directory:
+
+```
+.gsloth/.gsloth-settings/.gsloth-config.json
+.gsloth/.gsloth-settings/.gsloth.guidelines.md
+.gsloth/.gsloth-settings/.gsloth.review.md
+.gsloth/gth_2025-05-18_09-34-38_ASK.md
+.gsloth/gth_2025-05-18_22-09-00_PR-22.md
+```
+
+If the `.gsloth` directory doesn't exist, gsloth will continue writing all files to the project root directory as it did previously.
+
+**Note:** When initializing a project with an existing `.gsloth` directory, the configuration files will be created in the `.gsloth/.gsloth-settings` directory automatically. There is no automated migration for existing configurations - if you create a `.gsloth` directory after initialization, you'll need to manually move your configuration files into the `.gsloth/.gsloth-settings` directory.
+
 ## Config initialization
 Configuration can be created with `gsloth init [vendor]` command.
 Currently, vertexai, anthropic and groq can be configured with `gsloth init [vendor]`.

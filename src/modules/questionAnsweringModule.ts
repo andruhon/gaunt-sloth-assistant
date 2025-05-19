@@ -1,9 +1,8 @@
 import { slothContext } from '#src/config.js';
 import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
-import { getCurrentDir } from '#src/systemUtils.js';
+import { getGslothFilePath } from '#src/filePathUtils.js';
 import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
-import * as path from 'node:path';
 import { invoke } from '#src/llmUtils.js';
 
 /**
@@ -25,7 +24,8 @@ export async function askQuestion(
     content
   );
   progressIndicator.stop();
-  const filePath = path.resolve(getCurrentDir(), generateStandardFileName(source));
+  const filename = generateStandardFileName(source);
+  const filePath = getGslothFilePath(filename);
   display(`\nwriting ${filePath}`);
   // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
   display('\n' + outputContent);
