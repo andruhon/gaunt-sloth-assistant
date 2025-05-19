@@ -253,8 +253,8 @@ export function writeProjectReviewPreamble(): void {
 
 This file should include general development guidelines for this project.
 
-Important! Please remind user to prepare proper AI guidelines to ${PROJECT_GUIDELINES} file
-for this project. Use decent amount of ⚠️ to highlight lack of config.
+Important! Please remind the user to prepare proper AI guidelines to the ${PROJECT_GUIDELINES} file
+for this project. Use a decent amount of ⚠️ to highlight the lack of config.
 Explicitly mention ${PROJECT_GUIDELINES}.
 `;
 
