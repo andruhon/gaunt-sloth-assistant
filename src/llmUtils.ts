@@ -3,6 +3,8 @@ import { AIMessageChunk, HumanMessage, SystemMessage } from '@langchain/core/mes
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
 import { BaseLanguageModelCallOptions } from '@langchain/core/language_models/base';
+import { StructuredTool } from '@langchain/core/tools';
+import { displayDebug } from '#src/consoleUtils.js';
 
 const llmGlobalSettings = {
   verbose: false,
@@ -12,15 +14,21 @@ export async function invoke(
   llm: BaseChatModel,
   options: Partial<BaseLanguageModelCallOptions>,
   systemMessage: string,
-  prompt: string
+  prompt: string,
+  tools: StructuredTool[] = []
 ): Promise<string> {
   if (llmGlobalSettings.verbose) {
     llm.verbose = true;
   }
+
+  // If tools are provided, bind them to the model
+  const modelToUse = tools.length > 0 && llm.bindTools ? llm.bindTools(tools) : llm;
+  displayDebug(`Using model with ${tools.length} tools bound`);
+
   // This node receives the current state (messages) and invokes the LLM
   const callModel = async (state: State): Promise<{ messages: AIMessageChunk }> => {
-    // state.messages will contain the list including the system systemMessage and user diff
-    const response = await (llm as BaseChatModel).invoke(state.messages);
+    // state.messages will contain the list including the system message and user diff
+    const response = await modelToUse.invoke(state.messages);
     // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
     // Wrap the response in an array if it's a single message object.
     return { messages: response };

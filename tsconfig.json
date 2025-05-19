@@ -16,7 +16,8 @@
     "checkJs": false,
     "baseUrl": ".",
     "paths": {
-      "#src/*": ["./src/*"]
+      "#src/*": ["./src/*"],
+      "#nm/*": ["./node_modules/*"]
     }
   },
   "include": ["src/**/*"],
