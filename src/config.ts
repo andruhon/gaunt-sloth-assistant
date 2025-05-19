@@ -4,7 +4,7 @@ import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils
 import { existsSync, readFileSync } from 'node:fs';
 import { error, exit } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { getGslothConfigPath, getGslothConfigReadPath } from '#src/filePathUtils.js';
+import { getGslothConfigWritePath, getGslothConfigReadPath } from '#src/filePathUtils.js';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -237,12 +237,12 @@ export async function createProjectConfig(configType: string): Promise<void> {
 
   displayInfo(`Creating project config for ${configType}`);
   const vendorConfig = await import(`./configs/${configType}.js`);
-  vendorConfig.init(getGslothConfigPath(USER_PROJECT_CONFIG_JSON), slothContext);
+  vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON), slothContext);
 }
 
 export function writeProjectReviewPreamble(): void {
-  const guidelinesPath = getGslothConfigPath(PROJECT_GUIDELINES);
-  const reviewPath = getGslothConfigPath(PROJECT_REVIEW_INSTRUCTIONS);
+  const guidelinesPath = getGslothConfigWritePath(PROJECT_GUIDELINES);
+  const reviewPath = getGslothConfigWritePath(PROJECT_REVIEW_INSTRUCTIONS);
 
   /**
    * Development Guidelines.

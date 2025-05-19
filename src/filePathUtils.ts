@@ -33,11 +33,13 @@ export function getGslothFilePath(filename: string): string {
 }
 
 /**
- * Gets the path where gsloth should write configuration files based on .gsloth directory existence
+ * Gets the path where gsloth should write configuration files based on .gsloth directory existence.
+ * The main difference from {@link #getGslothConfigReadPath} is that this getGslothConfigWritePath
+ * method creates internal settings directory if it does not exist.
  * @param filename The configuration filename
  * @returns The resolved path where the configuration file should be written
  */
-export function getGslothConfigPath(filename: string): string {
+export function getGslothConfigWritePath(filename: string): string {
   const currentDir = getCurrentDir();
 
   if (gslothDirExists()) {

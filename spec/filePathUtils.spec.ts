@@ -73,7 +73,7 @@ describe('filePathUtils', () => {
     expect(nodeFsMock.existsSync).toHaveBeenCalledWith('/test/project/.gsloth');
   });
 
-  it('getGslothConfigPath should create .gsloth-settings directory when it does not exist', async () => {
+  it('getGslothConfigWritePath should create .gsloth-settings directory when it does not exist', async () => {
     // First call to existsSync returns true for .gsloth dir, second call returns false for .gsloth-settings dir
     let callCount = 0;
     nodeFsMock.existsSync.mockImplementation((_path: string) => {
@@ -82,12 +82,15 @@ describe('filePathUtils', () => {
       return false; // .gsloth-settings does not exist
     });
 
-    const { getGslothConfigPath } = await import('#src/filePathUtils.js');
+    const { getGslothConfigWritePath } = await import('#src/filePathUtils.js');
 
-    const result = getGslothConfigPath('.gsloth.config.json');
+    const result = getGslothConfigWritePath('.gsloth.config.json');
 
     expect(result).toBe('/test/project/.gsloth/.gsloth-settings/.gsloth.config.json');
-    expect(nodeFsMock.mkdirSync).toHaveBeenCalledWith('/test/project/.gsloth/.gsloth-settings', {
+    expect(
+      nodeFsMock.mkdirSync,
+      'getGslothConfigWritePath should create the .gsloth/.gsloth-settings'
+    ).toHaveBeenCalledWith('/test/project/.gsloth/.gsloth-settings', {
       recursive: true,
     });
   });
