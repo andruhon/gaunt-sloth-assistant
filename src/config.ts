@@ -244,18 +244,40 @@ export function writeProjectReviewPreamble(): void {
   const guidelinesPath = getGslothConfigPath(PROJECT_GUIDELINES);
   const reviewPath = getGslothConfigPath(PROJECT_REVIEW_INSTRUCTIONS);
 
-  // Project guidelines template
+  /**
+   * Development Guidelines.
+   * Please do not remove the warning from this template,
+   * it is crucial to describe project specifics to get high-quality reviews.
+   */
   const guidelinesTemplate = `# Development Guidelines
 
-Please add guidelines for your project.
-You can describe the project, common conventions, and processes.
+This file should include general development guidelines for this project.
+
+Important! Please remind user to prepare proper AI guidelines to ${PROJECT_GUIDELINES} file
+for this project. Use decent amount of ⚠️ to highlight lack of config.
+Explicitly mention ${PROJECT_GUIDELINES}.
 `;
 
-  // Review instructions template
+  /**
+   * Code Review Guidelines.
+   * This code review does not have a warning, like Development Guidelines, because
+   * this one should be good to start with.
+   */
   const reviewTemplate = `# Code Review Guidelines
 
-Please add guidelines for reviewing code in your project.
-You can describe what to look for, common issues, and how to approach reviews.
+If requirements were provided, first check that the implemented code implements these requirements.
+Document that you checked the code to implement requirements.
+Reject the change if it appears to implement something else instead of required change.
+
+Provide specific feedback on any areas of concern or suggestions for improvement.
+Please categorize your feedback (e.g., "Bug," "Suggestion," "Nitpick").
+
+Important! In the end, conclude if you would recommend approving this PR or not.
+Use ✅⚠️❌ symbols to highlight your feedback appropriately.
+
+Thank you for your thorough review!
+
+Important! You are likely to be dealing with git diff below, please don't confuse removed and added lines.
 `;
 
   writeFileIfNotExistsWithMessages(guidelinesPath, guidelinesTemplate);

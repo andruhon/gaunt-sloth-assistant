@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import * as path from 'node:path';
+import { resolve } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { getCurrentDir } from '#src/systemUtils.js';
 
@@ -12,7 +12,7 @@ const GSLOTH_SETTINGS_DIR = '.gsloth-settings';
  */
 export function gslothDirExists(): boolean {
   const currentDir = getCurrentDir();
-  const gslothDirPath = path.resolve(currentDir, GSLOTH_DIR);
+  const gslothDirPath = resolve(currentDir, GSLOTH_DIR);
   return existsSync(gslothDirPath);
 }
 
@@ -25,11 +25,11 @@ export function getGslothFilePath(filename: string): string {
   const currentDir = getCurrentDir();
 
   if (gslothDirExists()) {
-    const gslothDirPath = path.resolve(currentDir, GSLOTH_DIR);
-    return path.resolve(gslothDirPath, filename);
+    const gslothDirPath = resolve(currentDir, GSLOTH_DIR);
+    return resolve(gslothDirPath, filename);
   }
 
-  return path.resolve(currentDir, filename);
+  return resolve(currentDir, filename);
 }
 
 /**
@@ -41,18 +41,18 @@ export function getGslothConfigPath(filename: string): string {
   const currentDir = getCurrentDir();
 
   if (gslothDirExists()) {
-    const gslothDirPath = path.resolve(currentDir, GSLOTH_DIR);
-    const gslothSettingsPath = path.resolve(gslothDirPath, GSLOTH_SETTINGS_DIR);
+    const gslothDirPath = resolve(currentDir, GSLOTH_DIR);
+    const gslothSettingsPath = resolve(gslothDirPath, GSLOTH_SETTINGS_DIR);
 
     // Create .gsloth-settings directory if it doesn't exist
     if (!existsSync(gslothSettingsPath)) {
       mkdirSync(gslothSettingsPath, { recursive: true });
     }
 
-    return path.resolve(gslothSettingsPath, filename);
+    return resolve(gslothSettingsPath, filename);
   }
 
-  return path.resolve(currentDir, filename);
+  return resolve(currentDir, filename);
 }
 
 /**
@@ -64,14 +64,14 @@ export function getGslothConfigReadPath(filename: string): string {
   const currentDir = getCurrentDir();
 
   if (gslothDirExists()) {
-    const gslothDirPath = path.resolve(currentDir, GSLOTH_DIR);
-    const gslothSettingsPath = path.resolve(gslothDirPath, GSLOTH_SETTINGS_DIR);
-    const configPath = path.resolve(gslothSettingsPath, filename);
+    const gslothDirPath = resolve(currentDir, GSLOTH_DIR);
+    const gslothSettingsPath = resolve(gslothDirPath, GSLOTH_SETTINGS_DIR);
+    const configPath = resolve(gslothSettingsPath, filename);
 
     if (existsSync(configPath)) {
       return configPath;
     }
   }
 
-  return path.resolve(currentDir, filename);
+  return resolve(currentDir, filename);
 }
