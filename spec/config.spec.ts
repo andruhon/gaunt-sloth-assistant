@@ -44,7 +44,7 @@ vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
 describe('config', async () => {
   beforeEach(async () => {
-    // Reset slothContext to default state instead of deleting all properties
+    // Reset mocks for each test
     vi.resetAllMocks();
     // Reset and set up systemUtils mocks
     systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
@@ -91,11 +91,10 @@ describe('config', async () => {
       }));
 
       // Import the module under test
-      const { initConfig, slothContext, reset } = await import('#src/config.js');
-      reset();
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      await initConfig();
+      const config = await initConfig();
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -105,7 +104,7 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
-      expect(slothContext.config).toEqual({
+      expect(config).toEqual({
         llm: { type: 'vertexai' },
         contentProvider: 'file',
         requirementsProvider: 'file',
@@ -141,11 +140,10 @@ describe('config', async () => {
       }));
 
       // Import the module under test
-      const { initConfig, slothContext, reset } = await import('#src/config.js');
-      reset();
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      await initConfig();
+      const config = await initConfig();
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -155,7 +153,7 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
-      expect(slothContext.config).toEqual({
+      expect(config).toEqual({
         llm: { type: 'anthropic' },
         contentProvider: 'file',
         requirementsProvider: 'file',
@@ -192,11 +190,10 @@ describe('config', async () => {
       }));
 
       // Import the module under test
-      const { initConfig, slothContext, reset } = await import('#src/config.js');
-      reset();
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      await initConfig();
+      const config = await initConfig();
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -206,7 +203,7 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
-      expect(slothContext.config).toEqual({
+      expect(config).toEqual({
         llm: { type: 'groq' },
         contentProvider: 'file',
         requirementsProvider: 'file',
@@ -221,8 +218,7 @@ describe('config', async () => {
       fsMock.existsSync.mockImplementation((_path: string) => false);
 
       // Import the module under test
-      const { initConfig, reset } = await import('#src/config.js');
-      reset();
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
       await initConfig();
@@ -254,11 +250,10 @@ describe('config', async () => {
         },
       } as RawSlothConfig;
 
-      const { tryJsonConfig, slothContext, reset } = await import('#src/config.js');
-      reset();
+      const { tryJsonConfig } = await import('#src/config.js');
 
       // Function under test
-      await tryJsonConfig(jsonConfig);
+      const config = await tryJsonConfig(jsonConfig);
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -268,7 +263,7 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
-      expect(slothContext.config).toEqual({
+      expect(config).toEqual({
         llm: {
           type: 'vertexai',
           model: 'test-model',
@@ -289,8 +284,7 @@ describe('config', async () => {
         },
       } as RawSlothConfig;
 
-      const { tryJsonConfig, slothContext, reset } = await import('#src/config.js');
-      reset();
+      const { tryJsonConfig } = await import('#src/config.js');
 
       // Function under test
       await tryJsonConfig(jsonConfig);
@@ -305,15 +299,6 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
-      expect(slothContext.config, 'Should retain default config').toEqual({
-        llm: undefined,
-        contentProvider: 'file',
-        requirementsProvider: 'file',
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
-      });
-
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
 
@@ -325,8 +310,7 @@ describe('config', async () => {
         },
       } as RawSlothConfig;
 
-      const { tryJsonConfig, slothContext, reset } = await import('#src/config.js');
-      reset();
+      const { tryJsonConfig } = await import('#src/config.js');
 
       // Function under test
       await tryJsonConfig(jsonConfig);
@@ -339,15 +323,6 @@ describe('config', async () => {
       expect(consoleUtilsMock.display).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
-
-      expect(slothContext.config, 'Should retain default config').toEqual({
-        llm: undefined,
-        contentProvider: 'file',
-        requirementsProvider: 'file',
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
-      });
 
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });

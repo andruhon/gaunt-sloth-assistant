@@ -94,11 +94,10 @@ describe('predefined AI provider configurations', () => {
       return '';
     });
 
-    const { initConfig, slothContext, reset } = await import('#src/config.js');
-    reset();
+    const { initConfig } = await import('#src/config.js');
 
     // Call the function
-    await initConfig();
+    const config = await initConfig();
 
     // Verify no warnings or errors were displayed
     expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -106,6 +105,6 @@ describe('predefined AI provider configurations', () => {
     expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
 
     // Verify the config was set correctly with the mock instance
-    expect(slothContext.config.llm).toBe(mockInstance);
+    expect(config.llm).toBe(mockInstance);
   }
 });

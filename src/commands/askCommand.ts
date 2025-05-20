@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { readBackstory, readGuidelines } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
-import { initConfig, slothContext } from '#src/config.js';
+import { initConfig, createSession } from '#src/config.js';
 
 interface AskCommandOptions {
   file?: string[];
@@ -22,13 +22,14 @@ export function askCommand(program: Command): void {
     )
     // TODO add option consuming extra message as argument
     .action(async (message: string, options: AskCommandOptions) => {
-      await initConfig();
-      const preamble = [readBackstory(), readGuidelines(slothContext.config.projectGuidelines)];
+      const config = await initConfig();
+      const session = createSession();
+      const preamble = [readBackstory(), readGuidelines(config.projectGuidelines)];
       const content = [message];
       if (options.file) {
         content.push(readMultipleFilesFromCurrentDir(options.file));
       }
       const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
-      await askQuestion('ASK', preamble.join('\n'), content.join('\n'));
+      await askQuestion('ASK', preamble.join('\n'), content.join('\n'), config, session);
     });
 }

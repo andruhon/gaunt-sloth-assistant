@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
-import type { SlothContext } from '#src/config.js';
+import type { SlothConfig, Session } from '#src/config.js';
 import { SlothConfig } from '#src/config.js';
 
 // Mock fs module for the second test
@@ -51,24 +51,22 @@ utilsMock.ProgressIndicator.prototype.indicate = vi.fn();
 
 vi.mock('#src/utils.js', () => utilsMock);
 
-// Create a mock slothContext for the second test
-const mockSlothContext = {
-  config: {
-    llm: new FakeListChatModel({
-      responses: ['LLM Response'],
-    }),
-  } as Partial<SlothConfig>,
-  stdin: '',
-  session: {
-    configurable: {
-      thread_id: 'test-thread-id',
-    },
-  },
-} as SlothContext;
+// Create mock config and session objects
+const mockConfig = {
+  llm: new FakeListChatModel({
+    responses: ['LLM Response'],
+  }),
+} as SlothConfig;
 
-// Mock config module for the second test
-vi.mock('#src/config.js', () => ({
-  slothContext: mockSlothContext,
+const mockSession = {
+  configurable: {
+    thread_id: 'test-thread-id',
+  },
+} as Session;
+
+// Mock the askQuestion function to use our mock objects
+vi.mock('#src/llmUtils.js', () => ({
+  invoke: vi.fn().mockResolvedValue('LLM Response'),
 }));
 
 describe('questionAnsweringModule', () => {
@@ -88,16 +86,11 @@ describe('questionAnsweringModule', () => {
   });
 
   it('should invoke LLM', async () => {
-    // Reset the mock LLM for this test
-    mockSlothContext.config.llm = new FakeListChatModel({
-      responses: ['LLM Response'],
-    });
-
     // Import the module after setting up mocks
     const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
 
-    // Call askQuestion
-    await askQuestion('test-source', 'test-preamble', 'test-content');
+    // Call askQuestion with our mock objects
+    await askQuestion('test-source', 'test-preamble', 'test-content', mockConfig, mockSession);
 
     // Verify that writeFileSync was called
     expect(fsMock.writeFileSync).toHaveBeenCalled();
@@ -112,10 +105,6 @@ describe('questionAnsweringModule', () => {
   });
 
   it('Should handle file write errors', async () => {
-    mockSlothContext.config.llm = new FakeListChatModel({
-      responses: ['LLM Response'],
-    });
-
     // Mock file write to throw an error
     const error = new Error('File write error');
     fsMock.writeFileSync.mockImplementation(() => {
@@ -125,8 +114,8 @@ describe('questionAnsweringModule', () => {
     // Import the module after setting up mocks
     const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
 
-    // Call the function and wait for it to complete
-    await askQuestion('gth-ASK', 'Test Preamble', 'Test Content');
+    // Call the function with our mock objects
+    await askQuestion('gth-ASK', 'Test Preamble', 'Test Content', mockConfig, mockSession);
 
     // Verify error message was displayed
     expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(

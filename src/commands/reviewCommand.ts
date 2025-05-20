@@ -1,6 +1,6 @@
 import { Command, Option } from 'commander';
-import type { SlothContext } from '#src/config.js';
-import { slothContext } from '#src/config.js';
+import type { SlothConfig } from '#src/config.js';
+import { createSession } from '#src/config.js';
 import { readBackstory, readGuidelines, readReviewInstructions } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
@@ -42,7 +42,7 @@ interface PrCommandOptions {
   requirementsProvider?: RequirementsProviderType;
 }
 
-export function reviewCommand(program: Command, context: SlothContext): void {
+export function reviewCommand(program: Command): void {
   program
     .command('review')
     .description('Review provided diff or other content')
@@ -72,30 +72,31 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
-      await initConfig();
+      const config = await initConfig();
+      const session = createSession();
       const systemMessage = [
         readBackstory(),
-        readGuidelines(slothContext.config.projectGuidelines),
-        readReviewInstructions(slothContext.config.projectReviewInstructions),
+        readGuidelines(config.projectGuidelines),
+        readReviewInstructions(config.projectReviewInstructions),
       ];
       const content: string[] = [];
       const requirementsId = options.requirements;
       const requirementsProvider =
         options.requirementsProvider ??
-        (context.config?.review?.requirementsProvider as RequirementsProviderType | undefined) ??
-        (context.config?.requirementsProvider as RequirementsProviderType | undefined);
+        (config?.review?.requirementsProvider as RequirementsProviderType | undefined) ??
+        (config?.requirementsProvider as RequirementsProviderType | undefined);
       const contentProvider =
         options.contentProvider ??
-        (context.config?.review?.contentProvider as ContentProviderType | undefined) ??
-        (context.config?.contentProvider as ContentProviderType | undefined);
+        (config?.review?.contentProvider as ContentProviderType | undefined) ??
+        (config?.contentProvider as ContentProviderType | undefined);
 
       // TODO consider calling these in parallel
-      const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
+      const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId, config);
       if (requirements) {
         content.push(requirements);
       }
 
-      const providedContent = await getContentFromProvider(contentProvider, contentId);
+      const providedContent = await getContentFromProvider(contentProvider, contentId, config);
       if (providedContent) {
         content.push(providedContent);
       }
@@ -111,7 +112,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
         content.push(options.message);
       }
       const { review } = await import('#src/modules/reviewModule.js');
-      await review('REVIEW', systemMessage.join('\n'), content.join('\n'));
+      await review('REVIEW', systemMessage.join('\n'), content.join('\n'), config, session);
     });
 
   program
@@ -138,21 +139,22 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     )
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
-      await initConfig();
+      const config = await initConfig();
+      const session = createSession();
 
       const systemMessage = [
         readBackstory(),
-        readGuidelines(slothContext.config.projectGuidelines),
-        readReviewInstructions(slothContext.config.projectReviewInstructions),
+        readGuidelines(config.projectGuidelines),
+        readReviewInstructions(config.projectReviewInstructions),
       ];
       const content: string[] = [];
       const requirementsProvider =
         options.requirementsProvider ??
-        (context.config?.pr?.requirementsProvider as RequirementsProviderType | undefined) ??
-        (context.config?.requirementsProvider as RequirementsProviderType | undefined);
+        (config?.pr?.requirementsProvider as RequirementsProviderType | undefined) ??
+        (config?.requirementsProvider as RequirementsProviderType | undefined);
 
       // Handle requirements
-      const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
+      const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId, config);
       if (requirements) {
         content.push(requirements);
       }
@@ -169,29 +171,31 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       const { review } = await import('#src/modules/reviewModule.js');
       // TODO consider including requirements id
       // TODO sanitize prId
-      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'));
+      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'), config, session);
     });
 
   async function getRequirementsFromProvider(
     requirementsProvider: RequirementsProviderType | undefined,
-    requirementsId: string | undefined
+    requirementsId: string | undefined,
+    config: SlothConfig
   ): Promise<string> {
     return getFromProvider(
       requirementsProvider,
       requirementsId,
-      (context.config?.requirementsProviderConfig ?? {})[requirementsProvider as string],
+      (config?.requirementsProviderConfig ?? {})[requirementsProvider as string],
       REQUIREMENTS_PROVIDERS
     );
   }
 
   async function getContentFromProvider(
     contentProvider: ContentProviderType | undefined,
-    contentId: string | undefined
+    contentId: string | undefined,
+    config: SlothConfig
   ): Promise<string> {
     return getFromProvider(
       contentProvider,
       contentId,
-      (context.config?.contentProviderConfig ?? {})[contentProvider as string],
+      (config?.contentProviderConfig ?? {})[contentProvider as string],
       CONTENT_PROVIDERS
     );
   }

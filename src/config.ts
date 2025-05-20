@@ -1,4 +1,5 @@
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
+import { v4 as uuidv4 } from 'uuid';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { error, exit } from '#src/systemUtils.js';
@@ -16,6 +17,15 @@ export interface SlothConfig extends BaseSlothConfig {
       contentProvider: string;
     };
   };
+  review?: {
+    contentProvider?: string;
+    requirementsProvider?: string;
+  };
+  pr?: {
+    requirementsProvider?: string;
+  };
+  requirementsProviderConfig?: Record<string, unknown>;
+  contentProviderConfig?: Record<string, unknown>;
 }
 
 /**
@@ -50,16 +60,25 @@ interface BaseSlothConfig {
   contentProviderConfig?: Record<string, unknown>;
 }
 
+// The SlothContext interface has been removed as part of the refactoring
+
 /**
- * @deprecated
- * this object has blurred responsibility lines and bad name.
+ * Session object containing configurable parameters for a single session
  */
-export interface SlothContext {
-  config: SlothConfig;
-  session: {
+export interface Session {
+  configurable: {
+    thread_id: string;
+  };
+}
+
+/**
+ * Creates a new session object with a unique thread_id
+ */
+export function createSession(): Session {
+  return {
     configurable: {
-      thread_id: string;
-    };
+      thread_id: uuidv4()
+    }
   };
 }
 
@@ -78,8 +97,8 @@ export const PROJECT_REVIEW_INSTRUCTIONS = '.gsloth.review.md';
 export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
-export const DEFAULT_CONFIG: Partial<SlothConfig> = {
-  llm: undefined,
+export const DEFAULT_CONFIG = {
+  llm: undefined as unknown as BaseChatModel, // This will be replaced during config initialization
   contentProvider: 'file',
   requirementsProvider: 'file',
   projectGuidelines: PROJECT_GUIDELINES,
@@ -89,21 +108,15 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
       contentProvider: 'gh',
     },
   },
-};
+} satisfies Partial<SlothConfig>;
 
-/**
- * @deprecated
- * this object has blurred responsibility lines and bad name.
- * TODO this should be reworked to something more robust
- */
-export const slothContext = {
-  config: DEFAULT_CONFIG,
-} as Partial<SlothContext> as SlothContext;
+// The slothContext object has been removed as part of the refactoring
 
-export async function initConfig(): Promise<void> {
+export async function initConfig(): Promise<SlothConfig> {
   const jsonConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JSON);
   const jsConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
   const mjsConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
+  let config: SlothConfig | undefined;
 
   // Try loading JSON config file first
   if (existsSync(jsonConfigPath)) {
@@ -111,10 +124,12 @@ export async function initConfig(): Promise<void> {
       const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as RawSlothConfig;
       // If the config has an LLM with a type, create the appropriate LLM instance
       if (jsonConfig.llm && typeof jsonConfig.llm === 'object' && 'type' in jsonConfig.llm) {
-        await tryJsonConfig(jsonConfig);
+        config = await tryJsonConfig(jsonConfig);
+        return config;
       } else {
         error(`${jsonConfigPath} is not in valid format. Should at least define llm.type`);
         exit(1);
+        return DEFAULT_CONFIG as SlothConfig; // Never reached due to exit(1)
       }
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
@@ -122,31 +137,30 @@ export async function initConfig(): Promise<void> {
         `Failed to read config from ${USER_PROJECT_CONFIG_JSON}, will try other formats.`
       );
       // Continue to try other formats
-      return tryJsConfig();
+      config = await tryJsConfig();
+      return config;
     }
   } else {
     // JSON config not found, try JS
-    return tryJsConfig();
+    config = await tryJsConfig();
+    return config;
   }
 
   // Helper function to try loading JS config
-  async function tryJsConfig(): Promise<void> {
+  async function tryJsConfig(): Promise<SlothConfig> {
     if (existsSync(jsConfigPath)) {
-      return importExternalFile(jsConfigPath)
-        .then((i: { configure: (module: string) => Promise<Partial<SlothConfig>> }) =>
-          i.configure(jsConfigPath)
-        )
-        .then((config) => {
-          slothContext.config = { ...slothContext.config, ...config };
-        })
-        .catch((e) => {
-          displayDebug(e instanceof Error ? e : String(e));
-          displayError(
-            `Failed to read config from ${USER_PROJECT_CONFIG_JS}, will try other formats.`
-          );
-          // Continue to try other formats
-          return tryMjsConfig();
-        });
+      try {
+        const configModule = await importExternalFile(jsConfigPath);
+        const partialConfig = await configModule.configure(jsConfigPath);
+        return { ...DEFAULT_CONFIG, ...partialConfig } as SlothConfig;
+      } catch (e) {
+        displayDebug(e instanceof Error ? e : String(e));
+        displayError(
+          `Failed to read config from ${USER_PROJECT_CONFIG_JS}, will try other formats.`
+        );
+        // Continue to try other formats
+        return tryMjsConfig();
+      }
     } else {
       // JS config not found, try MJS
       return tryMjsConfig();
@@ -154,21 +168,20 @@ export async function initConfig(): Promise<void> {
   }
 
   // Helper function to try loading MJS config
-  async function tryMjsConfig(): Promise<void> {
+  async function tryMjsConfig(): Promise<SlothConfig> {
     if (existsSync(mjsConfigPath)) {
-      return importExternalFile(mjsConfigPath)
-        .then((i: { configure: (module: string) => Promise<Partial<SlothConfig>> }) =>
-          i.configure(mjsConfigPath)
-        )
-        .then((config) => {
-          slothContext.config = { ...slothContext.config, ...config };
-        })
-        .catch((e) => {
-          displayDebug(e instanceof Error ? e : String(e));
-          displayError(`Failed to read config from ${USER_PROJECT_CONFIG_MJS}.`);
-          displayError(`No valid configuration found. Please create a valid configuration file.`);
-          exit();
-        });
+      try {
+        const configModule = await importExternalFile(mjsConfigPath);
+        const partialConfig = await configModule.configure(mjsConfigPath);
+        return { ...DEFAULT_CONFIG, ...partialConfig } as SlothConfig;
+      } catch (e) {
+        displayDebug(e instanceof Error ? e : String(e));
+        displayError(`Failed to read config from ${USER_PROJECT_CONFIG_MJS}.`);
+        displayError(`No valid configuration found. Please create a valid configuration file.`);
+        exit(1);
+      }
+      // This should never be reached as we exit on error
+      return DEFAULT_CONFIG as SlothConfig;
     } else {
       // No config files found
       displayError(
@@ -176,13 +189,15 @@ export async function initConfig(): Promise<void> {
           `${USER_PROJECT_CONFIG_JSON}, ${USER_PROJECT_CONFIG_JS}, or ${USER_PROJECT_CONFIG_MJS} ` +
           'in your project directory.'
       );
-      exit();
+      exit(1);
+      // This should never be reached as we exit on error
+      return DEFAULT_CONFIG as SlothConfig;
     }
   }
 }
 
 // Process JSON LLM config by creating the appropriate LLM instance
-export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<void> {
+export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<SlothConfig> {
   const llmConfig = jsonConfig?.llm;
   const llmType = llmConfig?.type?.toLowerCase();
 
@@ -192,7 +207,8 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<void> {
       `Unsupported LLM type: ${llmType}. Available types are: ${availableDefaultConfigs.join(', ')}`
     );
     exit(1);
-    return;
+    // This line will never be reached due to exit(1)
+    return DEFAULT_CONFIG;
   }
 
   try {
@@ -201,7 +217,7 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<void> {
       const configModule = await import(`./configs/${llmType}.js`);
       if (configModule.processJsonConfig) {
         const llm = (await configModule.processJsonConfig(llmConfig)) as BaseChatModel;
-        slothContext.config = { ...slothContext.config, ...jsonConfig, llm };
+        return { ...DEFAULT_CONFIG, ...jsonConfig, llm } as SlothConfig;
       } else {
         displayWarning(`Config module for ${llmType} does not have processJsonConfig function.`);
         exit(1);
@@ -216,6 +232,9 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<void> {
     displayError(`Error creating LLM instance for type ${llmType}.`);
     exit(1);
   }
+  
+  // This should never happen as we should exit on error
+  return DEFAULT_CONFIG as SlothConfig;
 }
 
 export async function createProjectConfig(configType: string): Promise<void> {
@@ -229,12 +248,15 @@ export async function createProjectConfig(configType: string): Promise<void> {
       `Unsupported config type: ${configType}. Available types are: ${availableDefaultConfigs.join(', ')}`
     );
     exit(1);
+    // This line will never be reached due to exit(1)
     return;
   }
 
   displayInfo(`Creating project config for ${configType}`);
   const vendorConfig = await import(`./configs/${configType}.js`);
-  vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON), slothContext);
+  const config = DEFAULT_CONFIG as SlothConfig;
+  const session = createSession();
+  vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON), { config, session });
 }
 
 export function writeProjectReviewPreamble(): void {
@@ -281,13 +303,3 @@ Important! You are likely to be dealing with git diff below, please don't confus
   writeFileIfNotExistsWithMessages(reviewPath, reviewTemplate);
 }
 
-/**
- * @deprecated test only
- * TODO should be gone together with slothContext itself
- */
-export function reset() {
-  Object.keys(slothContext).forEach((key) => {
-    delete (slothContext as unknown as Record<string, unknown>)[key];
-  });
-  slothContext.config = DEFAULT_CONFIG as SlothConfig;
-}

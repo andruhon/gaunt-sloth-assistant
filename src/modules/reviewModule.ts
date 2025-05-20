@@ -1,4 +1,4 @@
-import { slothContext } from '#src/config.js';
+import type { SlothConfig, Session } from '#src/config.js';
 import { display, displayDebug, displayError, displaySuccess } from '#src/consoleUtils.js';
 import { stdout } from '#src/systemUtils.js';
 import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
@@ -6,9 +6,15 @@ import { writeFileSync } from 'node:fs';
 import { invoke } from '#src/llmUtils.js';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 
-export async function review(source: string, preamble: string, diff: string): Promise<void> {
+export async function review(
+  source: string,
+  preamble: string,
+  diff: string,
+  config: SlothConfig,
+  session: Session
+): Promise<void> {
   const progressIndicator = new ProgressIndicator('Reviewing.');
-  const outputContent = await invoke(slothContext.config.llm, slothContext.session, preamble, diff);
+  const outputContent = await invoke(config.llm, session, preamble, diff);
   progressIndicator.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);

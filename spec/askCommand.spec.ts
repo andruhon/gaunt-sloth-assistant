@@ -26,17 +26,23 @@ vi.mock('#src/modules/questionAnsweringModule.js', () => questionAnsweringModule
 vi.mock('#src/config.js', () => ({
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
-  slothContext: {
-    config: {
-      llm: {
-        invoke: vi.fn(),
-      },
+  initConfig: vi.fn().mockImplementation(() => Promise.resolve({
+    llm: {
+      invoke: vi.fn(),
     },
     currentDir: '/mock/current/dir',
     installDir: '/mock/install/dir',
-    session: { configurable: { thread_id: 'test-thread-id' } },
-  },
-  initConfig: vi.fn(),
+    projectGuidelines: '.gsloth.guidelines.md',
+    projectReviewInstructions: '.gsloth.review.md',
+    contentProvider: 'file',
+    requirementsProvider: 'file',
+    commands: {
+      pr: {
+        contentProvider: 'gh',
+      },
+    },
+  })),
+  createSession: vi.fn().mockReturnValue({ configurable: { thread_id: 'test-thread-id' } }),
 }));
 vi.mock('#src/utils.js', () => utilsMock);
 
@@ -71,7 +77,9 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test message'
+      'test message',
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -83,7 +91,9 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test message\ntest.file:\n```\nFILE CONTENT\n```'
+      'test message\ntest.file:\n```\nFILE CONTENT\n```',
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -101,7 +111,9 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test message\ntest.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```'
+      'test message\ntest.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```',
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 

@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import { askCommand } from '#src/commands/askCommand.js';
 import { initCommand } from '#src/commands/initCommand.js';
 import { reviewCommand } from '#src/commands/reviewCommand.js';
-import { slothContext } from '#src/config.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
 import { setVerbose } from '#src/llmUtils.js';
@@ -23,7 +22,7 @@ if (program.getOptionValue('verbose')) {
 }
 
 initCommand(program);
-reviewCommand(program, slothContext);
+reviewCommand(program);
 askCommand(program);
 // TODO add general interactive chat command
 

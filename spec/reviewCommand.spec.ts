@@ -29,12 +29,21 @@ vi.mock('#src/modules/reviewModule.js', () => codeReviewMock);
 vi.mock('#src/config.js', () => ({
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
-  slothContext: {
-    config: {},
+  initConfig: vi.fn().mockImplementation(() => Promise.resolve({
+    llm: {},
+    contentProvider: 'file',
+    requirementsProvider: 'file',
+    projectGuidelines: '.gsloth.guidelines.md',
+    projectReviewInstructions: '.gsloth.review.md',
+    commands: {
+      pr: {
+        contentProvider: 'gh',
+      },
+    },
     currentDir: '/mock/current/dir',
     installDir: '/mock/install/dir',
-  },
-  initConfig: vi.fn(),
+  })),
+  createSession: vi.fn().mockReturnValue({ configurable: { thread_id: 'test-thread-id' } }),
 }));
 vi.mock('#src/utils.js', () => utilsMock);
 
@@ -55,20 +64,22 @@ describe('reviewCommand', () => {
   it('Should call review with file contents', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    await reviewCommand(program, {} as SlothContext);
+    await reviewCommand(program);
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
 
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'test.file:\n```\nFILE TO REVIEW\n```'
+      'test.file:\n```\nFILE TO REVIEW\n```',
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 
   it('Should call review with multiple file contents', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    await reviewCommand(program, {} as SlothContext);
+    await reviewCommand(program);
 
     utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue(
       'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
@@ -79,7 +90,9 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
+      'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```',
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -93,7 +106,7 @@ describe('reviewCommand', () => {
       writeErr: (str: string) => (testOutput.text += str),
     });
 
-    await reviewCommand(program, {} as SlothContext);
+    await reviewCommand(program);
 
     const commandUnderTest = program.commands.find((c) => c.name() === 'review');
     expect(commandUnderTest).toBeDefined();
@@ -144,13 +157,15 @@ describe('reviewCommand', () => {
       get: jiraProvider,
     }));
 
-    await reviewCommand(program, context);
+    await reviewCommand(program);
     await program.parseAsync(['na', 'na', 'review', 'content-id', '-r', 'JIRA-123']);
 
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'JIRA Requirements\ncontent-id'
+      'JIRA Requirements\ncontent-id',
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -199,7 +214,7 @@ describe('reviewCommand', () => {
       },
     };
 
-    await reviewCommand(program, context);
+    await reviewCommand(program);
 
     await expect(program.parseAsync(['na', 'na', 'pr', 'content-id', 'JIRA-123'])).rejects.toThrow(
       'Missing JIRA Legacy API token. ' +
@@ -237,13 +252,15 @@ describe('reviewCommand', () => {
       get: ghProvider,
     }));
 
-    await reviewCommand(program, context);
+    await reviewCommand(program);
     await program.parseAsync(['na', 'na', 'review', '123']);
 
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'PR Diff Content'
+      'PR Diff Content',
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -276,13 +293,15 @@ describe('reviewCommand', () => {
       get: ghProvider,
     }));
 
-    await reviewCommand(program, context);
+    await reviewCommand(program);
     await program.parseAsync(['na', 'na', 'pr', '123']);
 
     expect(review).toHaveBeenCalledWith(
       'PR-123',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'PR Diff Content'
+      'PR Diff Content',
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 });

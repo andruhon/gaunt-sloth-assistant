@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
-import type { SlothContext } from '#src/config.js';
+import type { Session } from '#src/config.js';
 import { SlothConfig } from '#src/config.js';
 
 // Mock fs module
@@ -62,25 +62,18 @@ const llmUtilsMock = {
 };
 vi.mock('#src/llmUtils.js', () => llmUtilsMock);
 
-// Create a mock slothContext
-const mockSlothContext = {
-  config: {
-    llm: new FakeListChatModel({
-      responses: ['LLM Review Response'],
-    }),
-  } as Partial<SlothConfig>,
-  stdin: '',
-  session: {
-    configurable: {
-      thread_id: 'test-thread-id',
-    },
-  },
-} as SlothContext;
+// Create mock config and session objects
+const mockConfig = {
+  llm: new FakeListChatModel({
+    responses: ['LLM Review Response'],
+  }),
+} as SlothConfig;
 
-// Mock config module
-vi.mock('#src/config.js', () => ({
-  slothContext: mockSlothContext,
-}));
+const mockSession = {
+  configurable: {
+    thread_id: 'test-thread-id',
+  },
+} as Session;
 
 describe('reviewModule', () => {
   beforeEach(async () => {
@@ -107,13 +100,13 @@ describe('reviewModule', () => {
     // Import the module after setting up mocks
     const { review } = await import('#src/modules/reviewModule.js');
 
-    // Call review function
-    await review('test-source', 'test-preamble', 'test-diff');
+    // Call review function with mock objects
+    await review('test-source', 'test-preamble', 'test-diff', mockConfig, mockSession);
 
     // Verify that invoke was called with correct parameters
     expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      mockSlothContext.config.llm,
-      mockSlothContext.session,
+      mockConfig.llm,
+      mockSession,
       'test-preamble',
       'test-diff'
     );
@@ -147,8 +140,8 @@ describe('reviewModule', () => {
     // Import the module after setting up mocks
     const { review } = await import('#src/modules/reviewModule.js');
 
-    // Call the function and wait for it to complete
-    await review('test-source', 'test-preamble', 'test-diff');
+    // Call the function with mock objects and wait for it to complete
+    await review('test-source', 'test-preamble', 'test-diff', mockConfig, mockSession);
 
     // Verify error message was displayed
     expect(consoleUtilsMock.displayDebug).toHaveBeenCalled();
