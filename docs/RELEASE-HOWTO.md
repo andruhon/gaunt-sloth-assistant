@@ -27,6 +27,8 @@ npm login
 npm publish
 ```
 
+Remember to review a list of files in the build, before confirming it.
+
 Delete incidental remote and local tag
 ```shell
 git tag -d v0.3.0
