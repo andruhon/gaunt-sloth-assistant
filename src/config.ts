@@ -99,7 +99,6 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
  */
 export const slothContext = {
   config: DEFAULT_CONFIG,
-  stdin: '',
   session: { configurable: { thread_id: uuidv4() } },
 } as Partial<SlothContext> as SlothContext;
 
