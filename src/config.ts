@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
@@ -99,7 +98,6 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
  */
 export const slothContext = {
   config: DEFAULT_CONFIG,
-  session: { configurable: { thread_id: uuidv4() } },
 } as Partial<SlothContext> as SlothContext;
 
 export async function initConfig(): Promise<void> {
@@ -292,5 +290,4 @@ export function reset() {
     delete (slothContext as unknown as Record<string, unknown>)[key];
   });
   slothContext.config = DEFAULT_CONFIG as SlothConfig;
-  slothContext.session = { configurable: { thread_id: uuidv4() } };
 }
