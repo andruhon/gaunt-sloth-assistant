@@ -1,9 +1,9 @@
-import { slothContext } from '#src/config.js';
 import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
-import { invoke } from '#src/llmUtils.js';
+import { invokeWithCurrentSession } from '#src/llmUtils.js';
+import { ConfigManager } from '#src/managers/configManager.js';
 
 /**
  * Ask a question and get an answer from the LLM
@@ -17,12 +17,12 @@ export async function askQuestion(
   content: string
 ): Promise<void> {
   const progressIndicator = new ProgressIndicator('Thinking.');
-  const outputContent = await invoke(
-    slothContext.config.llm,
-    slothContext.session,
-    preamble,
-    content
-  );
+
+  // Get the config from ConfigManager
+  const configManager = ConfigManager.getInstance();
+
+  const outputContent = await invokeWithCurrentSession(configManager.config.llm, preamble, content);
+
   progressIndicator.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);

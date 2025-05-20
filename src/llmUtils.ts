@@ -3,14 +3,23 @@ import { AIMessageChunk, HumanMessage, SystemMessage } from '@langchain/core/mes
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
 import { BaseLanguageModelCallOptions } from '@langchain/core/language_models/base';
+import { SessionManager, type Session } from '#src/managers/sessionManager.js';
 
 const llmGlobalSettings = {
   verbose: false,
 };
 
+/**
+ * Invoke the LLM with the given prompt
+ * @param llm - The LLM to use
+ * @param options - Optional LLM call options (can be session or other options)
+ * @param systemMessage - The system message to prepend
+ * @param prompt - The user prompt
+ * @returns The LLM response
+ */
 export async function invoke(
   llm: BaseChatModel,
-  options: Partial<BaseLanguageModelCallOptions>,
+  options: Partial<BaseLanguageModelCallOptions> | Session,
   systemMessage: string,
   prompt: string
 ): Promise<string> {
@@ -49,6 +58,26 @@ export async function invoke(
     : JSON.stringify(lastMessage.content);
 }
 
+/**
+ * A simplified version of invoke that uses the current session
+ * @param llm - The LLM to use
+ * @param systemMessage - The system message to prepend
+ * @param prompt - The user prompt
+ * @returns The LLM response
+ */
+export async function invokeWithCurrentSession(
+  llm: BaseChatModel,
+  systemMessage: string,
+  prompt: string
+): Promise<string> {
+  const sessionManager = SessionManager.getInstance();
+  return invoke(llm, sessionManager.getAsLLMOptions(), systemMessage, prompt);
+}
+
+/**
+ * Set verbose mode for LLM calls
+ * @param debug - Whether to enable verbose mode
+ */
 export function setVerbose(debug: boolean) {
   llmGlobalSettings.verbose = debug;
 }

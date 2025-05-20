@@ -298,3 +298,130 @@ export async function configure(importFunction, global) {
     }
 }
 ```
+
+## Internal Configuration Management
+
+This section explains the internal configuration management approach used in the Gaunt Sloth Assistant project for developers and contributors.
+
+### Overview
+
+We use a singleton-based configuration management system with two main managers:
+
+1. `ConfigManager` - Handles loading and accessing configuration values
+2. `SessionManager` - Handles session state management
+
+These managers provide a clean, centralized way to access config and session data throughout the application.
+
+### ConfigManager
+
+The `ConfigManager` is responsible for loading configuration from various file formats (JSON, JS, MJS) and providing access to the configuration values.
+
+#### Usage
+
+```typescript
+import { ConfigManager } from '#src/managers/configManager.js';
+
+// Get the singleton instance
+const configManager = ConfigManager.getInstance();
+
+// Access configuration values
+const llm = configManager.config.llm;
+const contentProvider = configManager.config.contentProvider;
+
+// Initialize configuration (load from config files)
+await configManager.init();
+
+// Create project configuration
+await configManager.createProjectConfig('anthropic');
+```
+
+### SessionManager
+
+The `SessionManager` handles session-specific state, like the current thread ID.
+
+#### Usage
+
+```typescript
+import { SessionManager } from '#src/managers/sessionManager.js';
+
+// Get the singleton instance
+const sessionManager = SessionManager.getInstance();
+
+// Access session values
+const threadId = sessionManager.session.configurable.thread_id;
+
+// Generate a new thread ID
+sessionManager.generateNewThreadId();
+
+// Get session as LLM options (for compatibility with invoke function)
+const options = sessionManager.getAsLLMOptions();
+```
+
+### LLM Utilities
+
+The `llmUtils.js` file provides functions to invoke the LLM with the current session:
+
+```typescript
+import { invokeWithCurrentSession } from '#src/llmUtils.js';
+import { ConfigManager } from '#src/managers/configManager.js';
+
+// Get the config
+const configManager = ConfigManager.getInstance();
+
+// Invoke the LLM with the current session
+const result = await invokeWithCurrentSession(
+  configManager.config.llm,
+  systemMessage,
+  userPrompt
+);
+```
+
+### Legacy Support
+
+For backward compatibility, we maintain the deprecated `slothContext` object as a proxy to the new managers. This allows for a gradual migration of existing code.
+
+```typescript
+// Deprecated - Use ConfigManager and SessionManager instead
+import { slothContext } from '#src/config.js';
+
+// This works but will use the new managers behind the scenes
+const llm = slothContext.config.llm;
+const threadId = slothContext.session.configurable.thread_id;
+```
+
+### Migration Guide
+
+To migrate from the old `slothContext` approach to the new managers:
+
+1. Replace imports:
+   ```typescript
+   // Old
+   import { slothContext } from '#src/config.js';
+   
+   // New
+   import { ConfigManager } from '#src/managers/configManager.js';
+   import { SessionManager } from '#src/managers/sessionManager.js';
+   ```
+
+2. Replace usage:
+   ```typescript
+   // Old
+   const llm = slothContext.config.llm;
+   const threadId = slothContext.session.configurable.thread_id;
+   
+   // New
+   const configManager = ConfigManager.getInstance();
+   const sessionManager = SessionManager.getInstance();
+   
+   const llm = configManager.config.llm;
+   const threadId = sessionManager.session.configurable.thread_id;
+   ```
+
+3. For LLM invocation, use the new helper function:
+   ```typescript
+   // Old
+   const result = await invoke(slothContext.config.llm, slothContext.session, systemMessage, userPrompt);
+   
+   // New
+   const result = await invokeWithCurrentSession(configManager.config.llm, systemMessage, userPrompt);
+   ```
