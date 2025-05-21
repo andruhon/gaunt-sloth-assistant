@@ -105,7 +105,7 @@ describe('reviewCommand', () => {
 
     // Verify requirements providers are displayed
     expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
-    expect(testOutput.text).toContain('(choices: "jira-legacy", "jira", "text", "file")');
+    expect(testOutput.text).toContain('(choices: "jira-legacy", "jira", "github", "text", "file")');
   });
 
   it('Should call review with predefined requirements provider', async () => {

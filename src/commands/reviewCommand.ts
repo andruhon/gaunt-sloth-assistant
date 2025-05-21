@@ -12,6 +12,7 @@ import { getStringFromStdin } from '#src/systemUtils.js';
 const REQUIREMENTS_PROVIDERS = {
   'jira-legacy': 'jiraIssueLegacyProvider.js',
   jira: 'jiraIssueProvider.js',
+  github: 'ghIssueProvider.js',
   text: 'text.js',
   file: 'file.js',
 } as const;
