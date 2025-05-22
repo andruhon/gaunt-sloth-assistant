@@ -101,7 +101,7 @@ describe('reviewCommand', () => {
 
     // Verify content providers are displayed
     expect(testOutput.text).toContain('--content-provider <contentProvider>');
-    expect(testOutput.text).toContain('(choices: "gh", "text", "file")');
+    expect(testOutput.text).toContain('(choices: "github", "text", "file")');
 
     // Verify requirements providers are displayed
     expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
@@ -124,7 +124,7 @@ describe('reviewCommand', () => {
         contentProvider: 'text',
         commands: {
           pr: {
-            contentProvider: 'gh',
+            contentProvider: 'github',
           },
         },
         pr: {
@@ -185,7 +185,7 @@ describe('reviewCommand', () => {
         contentProvider: 'text',
         commands: {
           pr: {
-            contentProvider: 'gh',
+            contentProvider: 'github',
           },
         },
         pr: {
@@ -213,11 +213,11 @@ describe('reviewCommand', () => {
     const program = new Command();
     const context: SlothContext = {
       config: {
-        contentProvider: 'gh',
+        contentProvider: 'github',
         requirementsProvider: 'text',
         commands: {
           pr: {
-            contentProvider: 'gh',
+            contentProvider: 'github',
           },
         },
         pr: {
@@ -256,7 +256,7 @@ describe('reviewCommand', () => {
         requirementsProvider: 'text',
         commands: {
           pr: {
-            contentProvider: 'gh',
+            contentProvider: 'github',
           },
         },
         pr: {

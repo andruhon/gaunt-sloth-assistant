@@ -111,7 +111,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github' } },
       });
     });
 
@@ -161,7 +161,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github' } },
       });
     });
 
@@ -212,7 +212,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github' } },
       });
     });
 
@@ -277,7 +277,7 @@ describe('config', async () => {
         projectReviewInstructions: '.gsloth.review.md',
         contentProvider: 'file',
         requirementsProvider: 'file',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github' } },
       });
     });
 
@@ -311,7 +311,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github' } },
       });
 
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
@@ -346,7 +346,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github' } },
       });
 
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);

@@ -87,7 +87,7 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   commands: {
     pr: {
-      contentProvider: 'gh',
+      contentProvider: 'github',
     },
   },
 };
