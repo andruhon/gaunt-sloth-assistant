@@ -144,6 +144,46 @@ See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/
 
 ## Content providers
 
+### GitHub Issues
+
+Gaunt Sloth supports GitHub issues as a requirements provider using the GitHub CLI. This integration is simple to use and requires minimal setup.
+
+**Prerequisites:**
+
+1. **GitHub CLI**: Make sure the official [GitHub CLI (gh)](https://cli.github.com/) is installed and authenticated
+2. **Repository Access**: Ensure you have access to the repository's issues
+
+**Usage:**
+
+The command syntax is `gsloth pr <prId> [githubIssueId]`. For example:
+
+```shell
+gsloth pr 42 23
+```
+
+This will review PR #42 and include GitHub issue #23 as requirements.
+
+To explicitly specify the GitHub issue provider:
+
+```shell
+gsloth pr 42 23 -p github
+```
+
+**Configuration:**
+
+To set GitHub as your default requirements provider, add this to your configuration file:
+
+```json
+{
+  ...
+  "commands": {
+    "pr": {
+      "requirementsProvider": "github"
+    }
+  }
+}
+```
+
 ### JIRA
 
 Gaunt Sloth supports two methods to integrate with JIRA:
