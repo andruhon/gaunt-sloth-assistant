@@ -17,7 +17,7 @@ Doing the following below and making it work stably should be sufficient to call
   -[ ] Local LLm 
 - [ ] Allow global configuration
 - [ ] Streamline and stabilize configuration
-- [ ] Add JIRA legacy token integration plugin
+- [x] Add JIRA legacy token integration plugin
 - [ ] Teach assistant to identify important files and include their contents into prompt
   The idea is to ask smaller model like flash to find important files from diff then pick them up and include into prompt.
 - [ ] Teach assistant to access provided public web links

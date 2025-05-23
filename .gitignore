@@ -1,9 +1,12 @@
 /node_modules/
-/sloth-DIFF-review*
-/sloth-PR-review*
-/sloth-ASK*
+/dist/
+/sloth-*
+/gth-*
+/gth_*
+.junie
 .idea
+.claude
+CLAUDE.md
 gaunt-sloth-assistant.iml
-/.gsloth.config.js
-/.gsloth.config.json
+/.gsloth.config.j*
 /.gsloth.config.mjs

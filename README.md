@@ -60,29 +60,43 @@ supplies description of JIRA issue with number PP-4242:
 gsloth pr 42 PP-4242
 ```
 
-Example configuration setting up JIRA integration using a legacy API token.
-Make sure you use your actual company domain in `baseUrl` and your personal legacy `token`.
+Gaunt Sloth supports two methods to integrate with JIRA scoped tokens and unscoped tokens:
 
-A legacy token can be acquired from `Atlassian Account Settings -> Security -> Create and manage API tokens`.
+#### Modern Jira REST API (Scoped Token)
 
-```javascript
-export async function configure(importFunction, global) {
-    const vertexAi = await importFunction('@langchain/google-vertexai');
-    return {
-        llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-exp-03-25"
-        }),
-        requirementsProvider: 'jira-legacy',
-        requirementsProviderConfig: {
-            'jira-legacy': {
-                username: 'user.name@company.com', // Your Jira username/email
-                token: 'YOURSECRETTOKEN',     // Replace with your real Jira API token
-                baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
-            }
-        }
+This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). It requires your Atlassian Cloud ID.
+
+**Prerequisites:**
+
+1. **Cloud ID**: You can find your Cloud ID by visiting `https://yourcompany.atlassian.net/_edge/tenant_info` while authenticated.
+
+2. **Personal Access Token (PAT)**: Create a PAT with the appropriate permissions from `Atlassian Account Settings -> Security -> Create and manage API tokens -> [Create API token with scopes]`.
+   - For issue access, the recommended permission is `read:jira-work` (classic)
+
+Example configuration:
+
+```json
+{
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
+  "requirementsProvider": "jira",
+  "requirementsProviderConfig": {
+    "jira": {
+      "username": "username@yourcompany.com",
+      "token": "YOUR_JIRA_PAT_TOKEN",
+      "cloudId": "YOUR_ATLASSIAN_CLOUD_ID"
     }
+  }
 }
 ```
+
+For better security, you can set these values using environment variables:
+- `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
+- `JIRA_API_PAT_TOKEN`: Your JIRA Personal Access Token with scopes.
+- `JIRA_CLOUD_ID`: Your Atlassian Cloud ID.
+
+For more detailed information, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
+
+For setup with legacy Unscoped tokens please refer to [CONFIGURATION.md](./docs/CONFIGURATION.md).
 
 ### Review any Diff
 ```shell
@@ -121,7 +135,7 @@ npm install gaunt-sloth-assistant -g
 
 ## Configuration
 
-> Gaunt Sloth currently only functions from the directory which has a configuration file (`.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs`) and `.gsloth.preamble.review.md`.
+> Gaunt Sloth currently only functions from the directory which has a configuration file (`.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs`) and `.gsloth.guidelines.md`.
 > Global configuration to invoke gsloth anywhere is in [ROADMAP](ROADMAP.md).
 
 Configuration can be created with `gsloth init [vendor]` command.
