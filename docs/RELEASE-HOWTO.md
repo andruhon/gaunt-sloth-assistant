@@ -19,6 +19,10 @@ Note the release version and do
 ```shell
 gh release create --notes-from-tag
 ```
+or
+```shell
+gh release create --notes-file pathToFile
+```
 Alternatively `gh release create --notes "notes"`
 
 Publish to NPM
