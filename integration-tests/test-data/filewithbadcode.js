@@ -1,3 +1,4 @@
+/* eslint-disable */
 function factorial(n) {
   if (n == 0) {
     return 1;
@@ -14,12 +15,11 @@ function isPrime(num) {
       return false;
     }
   }
-  
+
   return true;
 }
 
-var secretKey = "1234567890";
-
+var secretKey = '1234567890';
 
 function createLargeArray() {
   let array = [];

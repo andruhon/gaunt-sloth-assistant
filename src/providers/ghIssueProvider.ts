@@ -28,9 +28,10 @@ export async function get(
 
     return `GitHub Issue: #${issueId}\n\n${issueContent}`;
   } catch (error) {
-    displayWarning(
-      `Failed to get GitHub issue #${issueId}: ${error instanceof Error ? error.message : String(error)}`
-    );
+    displayWarning(`
+Failed to get GitHub issue #${issueId}: ${error instanceof Error ? error.message : String(error)}
+Consider checking if gh cli (https://cli.github.com/) is installed and authenticated.
+    `);
     return null;
   }
 }

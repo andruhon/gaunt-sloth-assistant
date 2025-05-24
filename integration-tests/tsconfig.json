@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true
   },
   "include": ["./**/*"]
 }

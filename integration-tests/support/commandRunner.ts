@@ -8,13 +8,17 @@ import path from 'path';
  */
 export function runCommandInTestDir(command: string): string {
   const testDir = path.resolve('./integration-tests');
-  return execSync(command, { 
-    cwd: testDir,
-    env: {
-      ...process.env,
-      // Add any environment variables needed for testing
-      // For example, if using Claude, you might need:
-      // ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY
-    }
-  }).toString();
+  try {
+    return execSync(command, {
+      cwd: testDir,
+      env: {
+        ...process.env,
+        // Add any environment variables needed for testing
+        // For example, if using Claude, you might need:
+        // ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY
+      },
+    }).toString();
+  } catch (e) {
+    throw new Error(`Command failed: ${command}\n${e.message}`);
+  }
 }

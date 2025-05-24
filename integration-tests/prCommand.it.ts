@@ -10,6 +10,7 @@ describe('PR Command Integration Tests', () => {
 
     // Check for approval in the response
     expect(checkOutputForExpectedContent(output, '<REVIEW>APPROVE</REVIEW>')).toBe(true);
+    expect(checkOutputForExpectedContent(output, '<REVIEW>REQUEST_CHANGES</REVIEW>')).toBe(false);
   });
 
   // Test for PR review with rejection
