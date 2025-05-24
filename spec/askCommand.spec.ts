@@ -23,6 +23,9 @@ const utilsMock = {
 // Set up static mocks
 vi.mock('#src/prompt.js', () => prompt);
 vi.mock('#src/modules/questionAnsweringModule.js', () => questionAnsweringModule);
+vi.mock('#src/systemUtils.js', () => ({
+  getStringFromStdin: vi.fn().mockReturnValue(''),
+}));
 vi.mock('#src/config.js', () => ({
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
@@ -83,7 +86,7 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test message\ntest.file:\n```\nFILE CONTENT\n```'
+      'test.file:\n```\nFILE CONTENT\n```\ntest message'
     );
   });
 
@@ -101,7 +104,7 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test message\ntest.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```'
+      'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```\ntest message'
     );
   });
 
@@ -123,7 +126,45 @@ describe('askCommand', () => {
 
     // Verify help content
     expect(testOutput.text).toContain('Ask a question');
-    expect(testOutput.text).toContain('<message>');
+    expect(testOutput.text).toContain('[message]');
     expect(testOutput.text).toContain('-f, --file');
+  });
+
+  it('Should call askQuestion with file content only (no message)', async () => {
+    const { askCommand } = await import('#src/commands/askCommand.js');
+    const program = new Command();
+    await askCommand(program);
+    await program.parseAsync(['na', 'na', 'ask', '-f', 'test.file']);
+    expect(askQuestion).toHaveBeenCalledWith(
+      'ASK',
+      'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
+      'test.file:\n```\nFILE CONTENT\n```'
+    );
+  });
+
+  it('Should call askQuestion with stdin content only (no message)', async () => {
+    const { askCommand } = await import('#src/commands/askCommand.js');
+    const program = new Command();
+    vi.mocked(await import('#src/systemUtils.js')).getStringFromStdin.mockReturnValue(
+      'STDIN CONTENT'
+    );
+    await askCommand(program);
+    await program.parseAsync(['na', 'na', 'ask']);
+    expect(askQuestion).toHaveBeenCalledWith(
+      'ASK',
+      'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
+      'STDIN CONTENT'
+    );
+  });
+
+  it('Should throw error when no input source is provided', async () => {
+    const { askCommand } = await import('#src/commands/askCommand.js');
+    const program = new Command();
+    vi.mocked(await import('#src/systemUtils.js')).getStringFromStdin.mockReturnValue('');
+    await askCommand(program);
+
+    await expect(program.parseAsync(['na', 'na', 'ask'])).rejects.toThrow(
+      'At least one of the following is required: file, stdin, or message'
+    );
   });
 });

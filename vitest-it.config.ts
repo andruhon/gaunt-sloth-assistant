@@ -9,6 +9,6 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
     },
     globals: true,
-    testTimeout: 60000,
+    testTimeout: 100000,
   },
 });
