@@ -1,4 +1,5 @@
 spec/
+integration-tests/
 .gsloth.config.*
 .idea/
 .github/
