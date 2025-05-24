@@ -24,7 +24,7 @@
     "gth": "index.js"
   },
   "dependencies": {
-    "@langchain/anthropic": "^0.3.20",
+    "@langchain/anthropic": "^0.3.21",
     "@langchain/core": "^0.3.55",
     "@langchain/google-vertexai": "^0.2.8",
     "@langchain/groq": "^0.2.2",
