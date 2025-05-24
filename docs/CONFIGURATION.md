@@ -1,7 +1,7 @@
 # Configuration
 
 Populate `.gsloth.guidelines.md` with your project details and quality requirements.
-Proper preamble is a paramount for good inference.
+A proper preamble is paramount for good inference.
 Check [.gsloth.guidelines.md](../.gsloth.guidelines.md) for example.
 
 Your project should have the following files in order for gsloth to function:
@@ -120,9 +120,7 @@ export async function configure(importFunction, global) {
 }
 ```
 
-**Example of .gsloth.config.js for Groq**  
-VertexAI usually needs `gcloud auth application-default login`
-(or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
+**Example of .gsloth.config.js for Groq**
 ```javascript
 export async function configure(importFunction, global) {
     // this is going to be imported from sloth dependencies,

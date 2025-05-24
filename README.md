@@ -41,14 +41,14 @@ Type command: `gsloth pr [desired pull request number]`, for example:
 gsloth pr 42
 ``` 
 
-Review providing markdown file with requirements and notes.
+Review PR providing a markdown file with requirements and notes.
 ```shell
 gsloth pr 42 -f PROJ-1234.md
 ```
 
 ### GitHub Issues Integration
 
-Gaunt Sloth will refer to GitHub issue when GitHub provider is configured in .gsloth.config.json file, like:
+Gaunt Sloth will refer to a GitHub issue when GitHub provider is configured in .gsloth.config.json file, like:
 
 ```json
 {
