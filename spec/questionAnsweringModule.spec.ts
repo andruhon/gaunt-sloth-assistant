@@ -6,6 +6,7 @@ import { SlothConfig } from '#src/config.js';
 // Mock fs module for the second test
 const fsMock = {
   writeFileSync: vi.fn(),
+  existsSync: vi.fn(),
 };
 vi.mock('node:fs', () => fsMock);
 
@@ -28,6 +29,13 @@ const consoleUtilsMock = {
   displayError: vi.fn(),
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+
+// Mock filePathUtils module
+const filePathUtilsMock = {
+  getGslothFilePath: vi.fn(),
+  gslothDirExists: vi.fn(),
+};
+vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
 
 // Mock utils module for the second test
 const utilsMock = {
@@ -73,6 +81,10 @@ describe('questionAnsweringModule', () => {
       if (name.includes('gth_')) return 'test-file-path.md';
       return '';
     });
+
+    // Setup filePathUtils mocks
+    filePathUtilsMock.getGslothFilePath.mockReturnValue('test-file-path.md');
+    filePathUtilsMock.gslothDirExists.mockReturnValue(false);
   });
 
   it('should invoke LLM', async () => {

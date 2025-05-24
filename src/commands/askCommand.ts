@@ -22,12 +22,12 @@ export function askCommand(program: Command): void {
     )
     // TODO add option consuming extra message as argument
     .action(async (message: string, options: AskCommandOptions) => {
+      await initConfig();
       const preamble = [readBackstory(), readGuidelines(slothContext.config.projectGuidelines)];
       const content = [message];
       if (options.file) {
         content.push(readMultipleFilesFromCurrentDir(options.file));
       }
-      await initConfig();
       const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
       await askQuestion('ASK', preamble.join('\n'), content.join('\n'));
     });
