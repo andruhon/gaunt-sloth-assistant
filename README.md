@@ -1,11 +1,11 @@
 # Gaunt Sloth Assistant
 [![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml)
 
-Gaunt Sloth Assistant is a lightweight **command line AI assistant** for software developers
+Gaunt GSloth Assistant is a lightweight **command line AI assistant** for software developers
 designed to enhance code review quality while reducing cognitive load and time investment on **code reviews**
 and pull request diff analysis.
 
-![Gsloth Banner](assets/gaunt-sloth-logo.png)
+![GSloth Banner](assets/gaunt-sloth-logo.png)
 
 Based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
 
@@ -30,7 +30,7 @@ While there are many powerful AI assistants available, Gaunt Sloth Assistant sta
 2. **Open-source transparency** - Complete visibility into how your code and data are processed, with no vendor lock-in
 3. **Command-line integration** - Seamless workflow integration with existing developer tools and processes
 4. **Specialized focus** - Purpose-built for code review and PR analysis rather than general-purpose assistance
-5. **Extensibility** - Gsloth is based on LangChain JS and can be easily extended, configured or augmented in different ways.
+5. **Extensibility** - GSloth is based on LangChain JS and can be easily extended, configured or augmented in different ways.
 6. **Cost Effectiveness** - When agentic tools will send a number of requests to figure out a user's intent burning thousands of tokens, gsloth simply sends your diff prefixed with guidelines for review.
 
 Unlike proprietary solutions that restrict you to a single AI provider, Gaunt Sloth empowers developers with choice and control while maintaining the specialized capabilities needed for effective code review.
@@ -41,6 +41,8 @@ Unlike proprietary solutions that restrict you to a single AI provider, Gaunt Sl
 - Groq.
 
 ## Primary Functions:
+
+`gth` and `gsloth` commands are used interchangeably, both `gsloth pr 42` and `gth pr 42` do the same thing.
 
 ### Review PR (Pull Request)
 To review PR by PR number:
@@ -63,25 +65,10 @@ gsloth pr 42 -f PROJ-1234.md
 
 ### GitHub Issues Integration
 
-Gaunt Sloth will refer to a GitHub issue when GitHub provider is configured in .gsloth.config.json file, like:
-
-```json
-{
-  "llm": {
-    "type": "YOUR LLM PROVIDER"
-  },
-  "commands": {
-    "pr": {
-      "requirementsProvider": "github"
-    }
-  }
-}
-```
-
 The command syntax is `gsloth pr <prId> [githubIssueId]`. For example, to review PR #42 and include GitHub issue #23 as requirements:
 
 ```shell
-gsloth pr 42 23
+gsloth pr 42 37
 ```
 
 **Prerequisites:**
@@ -89,12 +76,12 @@ gsloth pr 42 23
 1. Make sure the official [GitHub CLI (gh)](https://cli.github.com/) is installed and authenticated
 2. Ensure you have access to the repository's issues
 
-No additional configuration is needed! Gaunt Sloth will automatically fetch the GitHub issue content using the GitHub CLI.
+No further configuration is needed! Gaunt Sloth will automatically fetch the GitHub issue content using the GitHub CLI.
 
 The project review preamble can be modified to reject a pull request immediately if it appears to implement something different from what was requested in the requirements.
 
 Gaunt Sloth also supports JIRA integration as an alternative requirements provider.
-For more information on JIRA setup and other configuration options, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
+For more information on **JIRA** setup and other configuration options, see [CONFIGURATION.md#jira](./docs/CONFIGURATION.md#jira).
 
 ### Review any Diff
 
