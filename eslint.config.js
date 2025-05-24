@@ -76,7 +76,7 @@ export default defineConfig([
   },
   // Test TypeScript files with separate project reference
   {
-    files: ['spec/**/*.ts', 'vitest.config.ts'],
+    files: ['spec/**/*.ts', 'integration-tests/**/*.ts', 'vitest.config.ts', 'vitest-it.config.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

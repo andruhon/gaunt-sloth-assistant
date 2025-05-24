@@ -14,10 +14,10 @@ Based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
 - Reviews Diffs provided with pipe (|);
   - You can ask GSloth to review your own code before committing.
 - Reviews Pull Requests (PRs);
-  - Fetches descriptions (requirements) from Jira;
+  - Fetches descriptions (requirements) from Jira and GitHub issues;
 - Answers questions about provided code;
 - Writes code;
-- Saves all responses to the project directory;
+- Saves all responses in .md file in the project directory;
 - Anything else you need, when combined with other command line tools.
 
 ### To make GSloth work, you need an **API key** from some AI provider, such as:
@@ -41,62 +41,45 @@ Type command: `gsloth pr [desired pull request number]`, for example:
 gsloth pr 42
 ``` 
 
-Review providing markdown file with requirements and notes.
+Review PR providing a markdown file with requirements and notes.
 ```shell
 gsloth pr 42 -f PROJ-1234.md
 ```
 
-### JIRA Integration
+### GitHub Issues Integration
 
-When JIRA integration is configured, the JIRA issue text can be included alongside the diff for review.
-The project review preamble can be modified to reject a pull request immediately
-if it appears to implement something different from what was requested in the requirements.
-
-The command syntax is generally `gsloth pr <prId> [requirementsId]`,
-for example, the snippet below does review of PR 42 and
-supplies description of JIRA issue with number PP-4242:
-
-```shell
-gsloth pr 42 PP-4242
-```
-
-Gaunt Sloth supports two methods to integrate with JIRA scoped tokens and unscoped tokens:
-
-#### Modern Jira REST API (Scoped Token)
-
-This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). It requires your Atlassian Cloud ID.
-
-**Prerequisites:**
-
-1. **Cloud ID**: You can find your Cloud ID by visiting `https://yourcompany.atlassian.net/_edge/tenant_info` while authenticated.
-
-2. **Personal Access Token (PAT)**: Create a PAT with the appropriate permissions from `Atlassian Account Settings -> Security -> Create and manage API tokens -> [Create API token with scopes]`.
-   - For issue access, the recommended permission is `read:jira-work` (classic)
-
-Example configuration:
+Gaunt Sloth will refer to a GitHub issue when GitHub provider is configured in .gsloth.config.json file, like:
 
 ```json
 {
-  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
-  "requirementsProvider": "jira",
-  "requirementsProviderConfig": {
-    "jira": {
-      "username": "username@yourcompany.com",
-      "token": "YOUR_JIRA_PAT_TOKEN",
-      "cloudId": "YOUR_ATLASSIAN_CLOUD_ID"
+  "llm": {
+    "type": "YOUR LLM PROVIDER"
+  },
+  "commands": {
+    "pr": {
+      "requirementsProvider": "github"
     }
   }
 }
 ```
 
-For better security, you can set these values using environment variables:
-- `JIRA_USERNAME`: Your JIRA username (e.g., `user@yourcompany.com`).
-- `JIRA_API_PAT_TOKEN`: Your JIRA Personal Access Token with scopes.
-- `JIRA_CLOUD_ID`: Your Atlassian Cloud ID.
+The command syntax is `gsloth pr <prId> [githubIssueId]`. For example, to review PR #42 and include GitHub issue #23 as requirements:
 
-For more detailed information, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
+```shell
+gsloth pr 42 23
+```
 
-For setup with legacy Unscoped tokens please refer to [CONFIGURATION.md](./docs/CONFIGURATION.md).
+**Prerequisites:**
+
+1. Make sure the official [GitHub CLI (gh)](https://cli.github.com/) is installed and authenticated
+2. Ensure you have access to the repository's issues
+
+No additional configuration is needed! Gaunt Sloth will automatically fetch the GitHub issue content using the GitHub CLI.
+
+The project review preamble can be modified to reject a pull request immediately if it appears to implement something different from what was requested in the requirements.
+
+Gaunt Sloth also supports JIRA integration as an alternative requirements provider.
+For more information on JIRA setup and other configuration options, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
 
 ### Review any Diff
 ```shell

@@ -7,11 +7,13 @@ import { displayError } from '#src/consoleUtils.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
 
 /**
- * Requirements providers. Expected to be in `.providers/` dir
+ * Requirements providers. Expected to be in `.providers/` dir.
+ * Aliases are mapped to actual providers in this file
  */
 const REQUIREMENTS_PROVIDERS = {
   'jira-legacy': 'jiraIssueLegacyProvider.js',
   jira: 'jiraIssueProvider.js',
+  github: 'ghIssueProvider.js',
   text: 'text.js',
   file: 'file.js',
 } as const;
@@ -19,10 +21,11 @@ const REQUIREMENTS_PROVIDERS = {
 type RequirementsProviderType = keyof typeof REQUIREMENTS_PROVIDERS;
 
 /**
- * Content providers. Expected to be in `.providers/` dir
+ * Content providers. Expected to be in `.providers/` dir.
+ * Aliases are mapped to actual providers in this file
  */
 const CONTENT_PROVIDERS = {
-  gh: 'ghPrDiffProvider.js',
+  github: 'ghPrDiffProvider.js',
   text: 'text.js',
   file: 'file.js',
 } as const;
@@ -82,11 +85,13 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       const requirementsId = options.requirements;
       const requirementsProvider =
         options.requirementsProvider ??
-        (context.config?.review?.requirementsProvider as RequirementsProviderType | undefined) ??
+        (context.config?.commands?.review?.requirementsProvider as
+          | RequirementsProviderType
+          | undefined) ??
         (context.config?.requirementsProvider as RequirementsProviderType | undefined);
       const contentProvider =
         options.contentProvider ??
-        (context.config?.review?.contentProvider as ContentProviderType | undefined) ??
+        (context.config?.commands?.review?.contentProvider as ContentProviderType | undefined) ??
         (context.config?.contentProvider as ContentProviderType | undefined);
 
       // TODO consider calling these in parallel
@@ -118,8 +123,8 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     .command('pr')
     .description(
       'Review provided Pull Request in current directory. ' +
-        'This command is similar to `review`, but default content provider is `gh`. ' +
-        '(assuming that GH cli is installed and authenticated for current project'
+        'This command is similar to `review`, but default content provider is `github`. ' +
+        '(assuming that GitHub CLI is installed and authenticated for current project'
     )
     .argument('<prId>', 'Pull request ID to review.')
     .argument(
@@ -148,7 +153,9 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       const content: string[] = [];
       const requirementsProvider =
         options.requirementsProvider ??
-        (context.config?.pr?.requirementsProvider as RequirementsProviderType | undefined) ??
+        (context.config?.commands?.pr?.requirementsProvider as
+          | RequirementsProviderType
+          | undefined) ??
         (context.config?.requirementsProvider as RequirementsProviderType | undefined);
 
       // Handle requirements
@@ -161,8 +168,8 @@ export function reviewCommand(program: Command, context: SlothContext): void {
         content.push(readMultipleFilesFromCurrentDir(options.file));
       }
 
-      // Get PR diff using the 'gh' provider
-      const providerPath = `#src/providers/${CONTENT_PROVIDERS['gh']}`;
+      // Get PR diff using the 'github' provider
+      const providerPath = `#src/providers/${CONTENT_PROVIDERS['github']}`;
       const { get } = await import(providerPath);
       content.push(await get(null, prId));
 

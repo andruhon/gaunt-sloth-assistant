@@ -1,7 +1,7 @@
 # Configuration
 
 Populate `.gsloth.guidelines.md` with your project details and quality requirements.
-Proper preamble is a paramount for good inference.
+A proper preamble is paramount for good inference.
 Check [.gsloth.guidelines.md](../.gsloth.guidelines.md) for example.
 
 Your project should have the following files in order for gsloth to function:
@@ -34,6 +34,35 @@ Example directory structure when using the `.gsloth` directory:
 If the `.gsloth` directory doesn't exist, gsloth will continue writing all files to the project root directory as it did previously.
 
 **Note:** When initializing a project with an existing `.gsloth` directory, the configuration files will be created in the `.gsloth/.gsloth-settings` directory automatically. There is no automated migration for existing configurations - if you create a `.gsloth` directory after initialization, you'll need to manually move your configuration files into the `.gsloth/.gsloth-settings` directory.
+
+## Configuration Object
+
+It is always worth checking sourcecode in [config.ts](../src/config.ts) for more insightful information.
+
+| Parameter                                | Required                          | Default Value | Description                                                                                                                                                                                                                                                |
+|------------------------------------------|-----------------------------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `llm`                                    | Required                          | -             | An object configuring LLM. In JS config could be actual instance of LangChainJS [BaseChatModel](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html), allowing to use LLMs which do not have a preset. |
+| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq` and `vertexai`. To use other models supported by LangChainJS, please use JavaScript config.                                                                                      |
+| `llm.model`                              | Optional                          | -             | Particular LLM model string (Check in your provider documentation).                                                                                                                                                                                        |
+| `llm.apiKey`                             | Optional                          | -             | API key for the LLM provider. You can either use this parameter or use environment variable.                                                                                                                                                               |
+| `contentProvider`                        | Optional                          | `file`        | Default content provider used to get content for review. Options available are `github`, `file` and `text` (`text` provides text as it is).                                                                                                                |
+| `pr.contentProvider`                     | Optional                          | `github`      | Default content provider used to get content for PR review (`gsloth pr`).                                                                                                                                                                                  |
+| `review.contentProvider`                 | Optional                          | -             | Content provider specifically for the review command. If not specified, falls back to `contentProvider`.                                                                                                                                                    |
+| `requirementsProvider`                   | Optional                          | `file`        | Default requirements provider used to get requirements for review. Options available are `jira`, `jira-legacy`, `github`, `file` and `text`.                                                                                                               |
+| `review.requirementsProvider`            | Optional                          | -             | Requirements provider specifically for the review command. If not specified, falls back to `requirementsProvider`.                                                                                                                                          |
+| `pr.requirementsProvider`                | Optional                          | -             | Requirements provider specifically for the PR command. If not specified, falls back to `requirementsProvider`.                                                                                                                                              |
+| `requirementsProviderConfig`             | Optional                          | -             | Configuration for requirements providers. Contains provider-specific configurations.                                                                                                                                                                        |
+| `requirementsProviderConfig.jira`        | Optional                          | -             | Configuration for the Jira requirements provider (Atlassian REST API v3 with Personal Access Token).                                                                                                                                                       |
+| `requirementsProviderConfig.jira.username` | Optional                          | -             | Jira username (email). Can also be set via JIRA_USERNAME environment variable.                                                                                                                                                                             |
+| `requirementsProviderConfig.jira.token`  | Optional                          | -             | Jira Personal Access Token. Can also be set via JIRA_API_PAT_TOKEN environment variable.                                                                                                                                                                   |
+| `requirementsProviderConfig.jira.cloudId` | Requied for `jira`                  | -             | Atlassian Cloud ID. Can also be set via JIRA_CLOUD_ID environment variable.                                                                                                                                                                                |
+| `requirementsProviderConfig.jira.displayUrl` | Optional                          | -             | Optional URL for displaying Jira issues (e.g., "https://yourcompany.atlassian.net/browse/").                                                                                                                                                               |
+| `requirementsProviderConfig.jira-legacy` | Optional                          | -             | Configuration for the Jira Legacy requirements provider (Atlassian REST API v2 with Legacy API Token).                                                                                                                                                     |
+| `requirementsProviderConfig.jira-legacy.username` | Optional                          | -             | Jira username (email). Can also be set via JIRA_USERNAME environment variable.                                                                                                                                                                             |
+| `requirementsProviderConfig.jira-legacy.token` | Optional                          | -             | Jira Legacy API Token. Can also be set via JIRA_LEGACY_API_TOKEN environment variable.                                                                                                                                                                     |
+| `requirementsProviderConfig.jira-legacy.baseUrl` | Required for `jira-legacy`          | -             | Base URL for the Jira API (e.g., "https://yourcompany.atlassian.net/rest/api/2/issue/").                                                                                                                                                                  |
+| `requirementsProviderConfig.jira-legacy.displayUrl` | Optional                          | -             | Optional URL for displaying Jira issues (e.g., "https://yourcompany.atlassian.net/browse/").                                                                                                                                                               |
+| `contentProviderConfig`                  | Optional                          | -             | Configuration for content providers. Currently, the available content providers (`github`, `file`, and `text`) don't require specific configuration.                                                                                                        |
 
 ## Config initialization
 Configuration can be created with `gsloth init [vendor]` command.
@@ -141,9 +170,7 @@ export async function configure(importFunction, global) {
 }
 ```
 
-**Example of .gsloth.config.js for Groq**  
-VertexAI usually needs `gcloud auth application-default login`
-(or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
+**Example of .gsloth.config.js for Groq**
 ```javascript
 export async function configure(importFunction, global) {
     // this is going to be imported from sloth dependencies,
@@ -164,6 +191,46 @@ The configure function should simply return instance of langchain [chat model](h
 See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/) for more details.
 
 ## Content providers
+
+### GitHub Issues
+
+Gaunt Sloth supports GitHub issues as a requirements provider using the GitHub CLI. This integration is simple to use and requires minimal setup.
+
+**Prerequisites:**
+
+1. **GitHub CLI**: Make sure the official [GitHub CLI (gh)](https://cli.github.com/) is installed and authenticated
+2. **Repository Access**: Ensure you have access to the repository's issues
+
+**Usage:**
+
+The command syntax is `gsloth pr <prId> [githubIssueId]`. For example:
+
+```shell
+gsloth pr 42 23
+```
+
+This will review PR #42 and include GitHub issue #23 as requirements.
+
+To explicitly specify the GitHub issue provider:
+
+```shell
+gsloth pr 42 23 -p github
+```
+
+**Configuration:**
+
+To set GitHub as your default requirements provider, add this to your configuration file:
+
+```json
+{
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
+  "commands": {
+    "pr": {
+      "requirementsProvider": "github"
+    }
+  }
+}
+```
 
 ### JIRA
 

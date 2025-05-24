@@ -11,8 +11,7 @@ npm install -g ./
 ```
 ## Testing
 
-Unit tests are implemented with [Jasmine](https://github.com/jasmine/jasmine)
-and [testdouble.js](https://github.com/testdouble/testdouble.js).
+Unit tests are implemented with [Vitest](https://vitest.dev/).
 
 Running unit tests:
 

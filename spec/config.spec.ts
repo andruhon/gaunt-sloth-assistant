@@ -77,8 +77,7 @@ describe('config', async () => {
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
-        if (path.includes('.gsloth.config.json')) return true;
-        return false;
+        return path.includes('.gsloth.config.json');
       });
       fsMock.readFileSync.mockImplementation((path: string) => {
         if (path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
@@ -111,7 +110,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
 
@@ -125,8 +124,7 @@ describe('config', async () => {
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
         if (path.includes('.gsloth.config.json')) return false;
-        if (path.includes('.gsloth.config.js')) return true;
-        return false;
+        return path.includes('.gsloth.config.js');
       });
 
       // Mock the import function
@@ -161,7 +159,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
 
@@ -176,8 +174,7 @@ describe('config', async () => {
       fsMock.existsSync.mockImplementation((path: string) => {
         if (path.includes('.gsloth.config.json')) return false;
         if (path.includes('.gsloth.config.js')) return false;
-        if (path.includes('.gsloth.config.mjs')) return true;
-        return false;
+        return path.includes('.gsloth.config.mjs');
       });
 
       // Mock the import function
@@ -212,7 +209,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
 
@@ -277,7 +274,7 @@ describe('config', async () => {
         projectReviewInstructions: '.gsloth.review.md',
         contentProvider: 'file',
         requirementsProvider: 'file',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
 
@@ -311,7 +308,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
 
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
@@ -346,7 +343,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-        commands: { pr: { contentProvider: 'gh' } },
+        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
 
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);

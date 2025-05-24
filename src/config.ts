@@ -15,6 +15,11 @@ export interface SlothConfig extends BaseSlothConfig {
   commands: {
     pr: {
       contentProvider: string;
+      requirementsProvider?: string;
+    };
+    review?: {
+      requirementsProvider?: string;
+      contentProvider?: string;
     };
   };
 }
@@ -38,14 +43,12 @@ interface BaseSlothConfig {
   commands?: {
     pr: {
       contentProvider: string;
+      requirementsProvider?: string;
     };
-  };
-  review?: {
-    requirementsProvider?: string;
-    contentProvider?: string;
-  };
-  pr?: {
-    requirementsProvider?: string;
+    review?: {
+      requirementsProvider?: string;
+      contentProvider?: string;
+    };
   };
   requirementsProviderConfig?: Record<string, unknown>;
   contentProviderConfig?: Record<string, unknown>;
@@ -87,7 +90,8 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   commands: {
     pr: {
-      contentProvider: 'gh',
+      contentProvider: 'github', // gh pr diff NN
+      requirementsProvider: 'github', // gh issue view NN
     },
   },
 };
