@@ -16,6 +16,8 @@ Your project should have the following files in order for gsloth to function:
 
 ## Configuration Object
 
+It is always worth checking sourcecode in [config.ts](../src/config.ts) for more insightful information.
+
 | Parameter                                | Required                          | Default Value | Description                                                                                                                                                                                                                                                |
 |------------------------------------------|-----------------------------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `llm`                                    | Required                          | -             | An object configuring LLM. In JS config could be actual instance of LangChainJS [BaseChatModel](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html), allowing to use LLMs which do not have a preset. |
@@ -40,7 +42,6 @@ Your project should have the following files in order for gsloth to function:
 | `requirementsProviderConfig.jira-legacy.baseUrl` | Required for `jira-legacy`          | -             | Base URL for the Jira API (e.g., "https://yourcompany.atlassian.net/rest/api/2/issue/").                                                                                                                                                                  |
 | `requirementsProviderConfig.jira-legacy.displayUrl` | Optional                          | -             | Optional URL for displaying Jira issues (e.g., "https://yourcompany.atlassian.net/browse/").                                                                                                                                                               |
 | `contentProviderConfig`                  | Optional                          | -             | Configuration for content providers. Currently, the available content providers (`github`, `file`, and `text`) don't require specific configuration.                                                                                                        |
-
 
 ## Config initialization
 Configuration can be created with `gsloth init [vendor]` command.
