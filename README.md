@@ -52,7 +52,9 @@ Gaunt Sloth will refer to a GitHub issue when GitHub provider is configured in .
 
 ```json
 {
-  ...
+  "llm": {
+    "type": "YOUR LLM PROVIDER"
+  },
   "commands": {
     "pr": {
       "requirementsProvider": "github"
@@ -76,7 +78,8 @@ No additional configuration is needed! Gaunt Sloth will automatically fetch the 
 
 The project review preamble can be modified to reject a pull request immediately if it appears to implement something different from what was requested in the requirements.
 
-Gaunt Sloth also supports JIRA integration as an alternative requirements provider. For more information on JIRA setup and other configuration options, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
+Gaunt Sloth also supports JIRA integration as an alternative requirements provider.
+For more information on JIRA setup and other configuration options, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
 
 ### Review any Diff
 ```shell

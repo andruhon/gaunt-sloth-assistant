@@ -85,11 +85,13 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       const requirementsId = options.requirements;
       const requirementsProvider =
         options.requirementsProvider ??
-        (context.config?.review?.requirementsProvider as RequirementsProviderType | undefined) ??
+        (context.config?.commands?.review?.requirementsProvider as
+          | RequirementsProviderType
+          | undefined) ??
         (context.config?.requirementsProvider as RequirementsProviderType | undefined);
       const contentProvider =
         options.contentProvider ??
-        (context.config?.review?.contentProvider as ContentProviderType | undefined) ??
+        (context.config?.commands?.review?.contentProvider as ContentProviderType | undefined) ??
         (context.config?.contentProvider as ContentProviderType | undefined);
 
       // TODO consider calling these in parallel
@@ -151,7 +153,9 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       const content: string[] = [];
       const requirementsProvider =
         options.requirementsProvider ??
-        (context.config?.pr?.requirementsProvider as RequirementsProviderType | undefined) ??
+        (context.config?.commands?.pr?.requirementsProvider as
+          | RequirementsProviderType
+          | undefined) ??
         (context.config?.requirementsProvider as RequirementsProviderType | undefined);
 
       // Handle requirements
