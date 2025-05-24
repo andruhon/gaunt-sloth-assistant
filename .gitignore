@@ -1,8 +1,7 @@
 /node_modules/
 /dist/
-/sloth-*
-/gth-*
 /gth_*
+/integration-tests/gth_*
 .junie
 .idea
 .claude
