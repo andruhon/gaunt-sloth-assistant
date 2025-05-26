@@ -70,11 +70,6 @@ const mockSlothContext = {
     }),
   } as Partial<SlothConfig>,
   stdin: '',
-  session: {
-    configurable: {
-      thread_id: 'test-thread-id',
-    },
-  },
 } as SlothContext;
 
 // Mock config module
@@ -113,7 +108,6 @@ describe('reviewModule', () => {
     // Verify that invoke was called with correct parameters
     expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
       mockSlothContext.config.llm,
-      mockSlothContext.session,
       'test-preamble',
       'test-diff'
     );

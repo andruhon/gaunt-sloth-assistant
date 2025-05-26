@@ -29,6 +29,8 @@
     "@langchain/google-vertexai": "^0.2.8",
     "@langchain/groq": "^0.2.2",
     "@langchain/langgraph": "^0.2.71",
+    "@langchain/mcp-adapters": "^0.4.5",
+    "@modelcontextprotocol/server-filesystem": "^2025.3.28",
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
     "uuid": "^11.1.0"

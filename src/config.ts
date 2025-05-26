@@ -4,7 +4,8 @@ import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils
 import { existsSync, readFileSync } from 'node:fs';
 import { error, exit } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { getGslothConfigWritePath, getGslothConfigReadPath } from '#src/filePathUtils.js';
+import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
+import type { Connection } from '@langchain/mcp-adapters';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -52,6 +53,7 @@ interface BaseSlothConfig {
   };
   requirementsProviderConfig?: Record<string, unknown>;
   contentProviderConfig?: Record<string, unknown>;
+  mcpServers?: Record<string, Connection>;
 }
 
 /**
@@ -60,11 +62,6 @@ interface BaseSlothConfig {
  */
 export interface SlothContext {
   config: SlothConfig;
-  session: {
-    configurable: {
-      thread_id: string;
-    };
-  };
 }
 
 export interface LLMConfig extends Record<string, unknown> {
@@ -103,7 +100,6 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
  */
 export const slothContext = {
   config: DEFAULT_CONFIG,
-  session: { configurable: { thread_id: uuidv4() } },
 } as Partial<SlothContext> as SlothContext;
 
 export async function initConfig(): Promise<void> {
@@ -296,5 +292,4 @@ export function reset() {
     delete (slothContext as unknown as Record<string, unknown>)[key];
   });
   slothContext.config = DEFAULT_CONFIG as SlothConfig;
-  slothContext.session = { configurable: { thread_id: uuidv4() } };
 }

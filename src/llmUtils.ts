@@ -1,8 +1,10 @@
-import type { Message, State } from '#src/modules/types.js';
-import { AIMessageChunk, HumanMessage, SystemMessage } from '@langchain/core/messages';
+import type { Message } from '#src/modules/types.js';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
-import { BaseLanguageModelCallOptions } from '@langchain/core/language_models/base';
+import { slothContext } from '#src/config.js';
+import { MultiServerMCPClient } from '@langchain/mcp-adapters';
+import { displayError, displayInfo } from '#src/consoleUtils.js';
+import { createReactAgent } from '@langchain/langgraph/prebuilt';
 
 const llmGlobalSettings = {
   verbose: false,
@@ -10,45 +12,75 @@ const llmGlobalSettings = {
 
 export async function invoke(
   llm: BaseChatModel,
-  options: Partial<BaseLanguageModelCallOptions>,
   systemMessage: string,
   prompt: string
 ): Promise<string> {
   if (llmGlobalSettings.verbose) {
     llm.verbose = true;
   }
-  // This node receives the current state (messages) and invokes the LLM
-  const callModel = async (state: State): Promise<{ messages: AIMessageChunk }> => {
-    // state.messages will contain the list including the system systemMessage and user diff
-    const response = await (llm as BaseChatModel).invoke(state.messages);
-    // MessagesAnnotation expects the node to return the new message(s) to be added to the state.
-    // Wrap the response in an array if it's a single message object.
-    return { messages: response };
-  };
 
-  // Define the graph structure with MessagesAnnotation state
-  const workflow = new StateGraph(MessagesAnnotation)
-    // Define the node and edge
-    .addNode('model', callModel)
-    .addEdge(START, 'model') // Start at the 'model' node
-    .addEdge('model', END); // End after the 'model' node completes
+  const client = getClient();
 
-  // Set up memory (optional but good practice for potential future multi-turn interactions)
-  const memory = new MemorySaver();
+  const tools = (await client?.getTools()) ?? [];
+  if (tools && tools.length > 0) {
+    displayInfo(`Loaded ${tools.length} MCP tools.`);
+  }
 
-  // Compile the workflow into a runnable app
-  const app = workflow.compile({ checkpointer: memory });
+  // Create the React agent
+  const agent = createReactAgent({
+    llm,
+    tools,
+  });
 
-  // Construct the initial the messages including the systemMessage as a system message
-  const messages: Message[] = [new SystemMessage(systemMessage), new HumanMessage(prompt)];
+  // Run the agent
+  try {
+    const messages: Message[] = [new SystemMessage(systemMessage), new HumanMessage(prompt)];
+    // const response = await agent.invoke({
+    //   messages,
+    // });
+    const stream = await agent.stream({ messages }, { streamMode: 'values' });
 
-  const output = await app.invoke({ messages }, options);
-  const lastMessage = output.messages[output.messages.length - 1];
-  return typeof lastMessage.content === 'string'
-    ? lastMessage.content
-    : JSON.stringify(lastMessage.content);
+    const output = { aiMessage: '' };
+    for await (const chunk of stream) {
+      if (chunk.messages && chunk.messages.length > 0) {
+        const lastMessage = chunk.messages[chunk.messages.length - 1];
+        if (lastMessage && lastMessage.constructor.name === 'ToolMessage') {
+          displayInfo(`Using tool ${lastMessage?.name}`);
+        }
+        if (lastMessage && lastMessage.constructor.name === 'AIMessageChunk') {
+          output.aiMessage += '\n\n' + lastMessage.content;
+        }
+      }
+    }
+    return output.aiMessage;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === 'ToolException') {
+        displayError(`Tool execution failed: ${error.message}`);
+      }
+    }
+    throw error;
+  } finally {
+    if (client) {
+      console.log('closing');
+      await client.close();
+    }
+  }
 }
 
 export function setVerbose(debug: boolean) {
   llmGlobalSettings.verbose = debug;
+}
+
+function getClient() {
+  if (slothContext.config.mcpServers && Object.keys(slothContext.config.mcpServers).length > 0) {
+    return new MultiServerMCPClient({
+      throwOnLoadError: true,
+      prefixToolNameWithServerName: true,
+      additionalToolNamePrefix: 'mcp',
+      mcpServers: slothContext.config.mcpServers,
+    });
+  } else {
+    return null;
+  }
 }

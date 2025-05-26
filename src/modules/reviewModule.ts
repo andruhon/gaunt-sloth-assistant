@@ -8,7 +8,7 @@ import { getGslothFilePath } from '#src/filePathUtils.js';
 
 export async function review(source: string, preamble: string, diff: string): Promise<void> {
   const progressIndicator = new ProgressIndicator('Reviewing.');
-  const outputContent = await invoke(slothContext.config.llm, slothContext.session, preamble, diff);
+  const outputContent = await invoke(slothContext.config.llm, preamble, diff);
   progressIndicator.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);

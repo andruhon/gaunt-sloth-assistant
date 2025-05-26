@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FakeListChatModel } from '@langchain/core/utils/testing';
+import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import type { SlothContext } from '#src/config.js';
 import { SlothConfig } from '#src/config.js';
 
@@ -59,11 +59,6 @@ const mockSlothContext = {
     }),
   } as Partial<SlothConfig>,
   stdin: '',
-  session: {
-    configurable: {
-      thread_id: 'test-thread-id',
-    },
-  },
 } as SlothContext;
 
 // Mock config module for the second test
@@ -89,9 +84,10 @@ describe('questionAnsweringModule', () => {
 
   it('should invoke LLM', async () => {
     // Reset the mock LLM for this test
-    mockSlothContext.config.llm = new FakeListChatModel({
+    mockSlothContext.config.llm = new FakeStreamingChatModel({
       responses: ['LLM Response'],
     });
+    mockSlothContext.config.llm.bindTools = vi.fn();
 
     // Import the module after setting up mocks
     const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');

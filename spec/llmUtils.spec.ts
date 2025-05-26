@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FakeListChatModel } from '@langchain/core/utils/testing';
+import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
+import { AIMessage, AIMessageChunk } from '@langchain/core/messages';
 
 describe('reviewModule', () => {
   beforeEach(async () => {
@@ -8,20 +9,19 @@ describe('reviewModule', () => {
 
   it('should invoke LLM (internal)', async () => {
     // Setup mock for slothContext
-    const fakeListChatModel = new FakeListChatModel({
-      responses: ['First LLM message', 'Second LLM message'],
+    let aiMessageChunk = new AIMessageChunk({
+      content: 'First LLM message',
+      name: 'AIMessageChunk',
     });
-    const options = {
-      configurable: {
-        thread_id: 'test-thread-id',
-      },
-    };
+    const fakeListChatModel = new FakeStreamingChatModel({
+      responses: [aiMessageChunk],
+    });
 
     // Import the module after setting up mocks
     const { invoke } = await import('#src/llmUtils.js');
 
     // Test the function
-    const output = await invoke(fakeListChatModel, options, 'test-preamble', 'test-diff');
+    const output = await invoke(fakeListChatModel, 'test-preamble', 'test-diff');
 
     expect(output).toBe('First LLM message');
   });
