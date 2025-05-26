@@ -30,7 +30,7 @@
     "@langchain/groq": "^0.2.2",
     "@langchain/langgraph": "^0.2.71",
     "chalk": "^5.4.1",
-    "commander": "^13.1.0",
+    "commander": "^14.0.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
