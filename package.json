@@ -1,6 +1,6 @@
 {
   "name": "gaunt-sloth-assistant",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "",
   "license": "MIT",
   "author": "Andrew Kondratev",
@@ -32,7 +32,7 @@
     "@langchain/mcp-adapters": "^0.4.5",
     "@modelcontextprotocol/server-filesystem": "^2025.3.28",
     "chalk": "^5.4.1",
-    "commander": "^13.1.0",
+    "commander": "^14.0.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
