@@ -1,6 +1,7 @@
 import { display, displayError, displayWarning } from '#src/consoleUtils.js';
 import { env } from '#src/systemUtils.js';
 import type { JiraConfig } from './types.js';
+import { ProgressIndicator } from '#src/utils.js';
 
 interface JiraIssueResponse {
   fields: {
@@ -105,7 +106,6 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
   if (config.displayUrl) {
     display(`Loading Jira issue ${config.displayUrl}${jiraKey}`);
   }
-  display(`Retrieving jira from api ${apiUrl.replace(/^https?:\/\//, '')}`);
 
   // This filter will be necessary for V3: `&expand=renderedFields` to convert ADF to HTML
   const filters = '?fields=summary,description'; // Limit JSON to summary and description
@@ -122,10 +122,14 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
     'Accept-Language': 'en-US,en;q=0.9', // Prevents errors in other languages
   };
 
+  const progressIndicator = new ProgressIndicator(
+    `Retrieving jira from api ${apiUrl.replace(/^https?:\/\//, '')}`
+  );
   const response = await fetch(apiUrl + filters, {
     method: 'GET',
     headers: headers,
   });
+  progressIndicator.stop();
 
   if (!response?.ok) {
     try {

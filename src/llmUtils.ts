@@ -3,7 +3,7 @@ import { HumanMessage, isAIMessageChunk, SystemMessage } from '@langchain/core/m
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { SlothConfig } from '#src/config.js';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
-import { displayError, displayInfo } from '#src/consoleUtils.js';
+import { display, displayError, displayInfo } from '#src/consoleUtils.js';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { stdout } from '#src/systemUtils.js';
 
@@ -37,6 +37,7 @@ export async function invoke(
   // Run the agent
   try {
     const messages: Message[] = [new SystemMessage(systemMessage), new HumanMessage(prompt)];
+    display(`Connecting to LLM...`);
     const stream = await agent.stream({ messages }, { streamMode: 'messages' });
 
     const output = { aiMessage: '' };
