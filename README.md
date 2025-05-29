@@ -31,7 +31,8 @@ While there are many powerful AI assistants available, Gaunt Sloth Assistant sta
 3. **Command-line integration** - Seamless workflow integration with existing developer tools and processes
 4. **Specialized focus** - Purpose-built for code review and PR analysis rather than general-purpose assistance
 5. **Extensibility** - GSloth is based on LangChain JS and can be easily extended, configured or augmented in different ways.
-6. **Cost Effectiveness** - When agentic tools will send a number of requests to figure out a user's intent burning thousands of tokens, gsloth simply sends your diff prefixed with guidelines for review.
+6. **Model Context Protocol (MCP)** - Support for MCP allows for enhanced context management.
+7. **Cost Effectiveness** - When agentic tools will send a number of requests to figure out a user's intent burning thousands of tokens, gsloth simply sends your diff prefixed with guidelines for review.
 
 Unlike proprietary solutions that restrict you to a single AI provider, Gaunt Sloth empowers developers with choice and control while maintaining the specialized capabilities needed for effective code review.
 
