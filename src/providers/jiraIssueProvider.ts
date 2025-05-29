@@ -8,6 +8,7 @@ interface JiraIssueResponse {
     description: string;
     [key: string]: unknown;
   };
+
   [key: string]: unknown;
 }
 
@@ -74,6 +75,8 @@ export async function get(
     const summary = issue.fields.summary;
     const description = issue.fields.description;
 
+    console.log(JSON.stringify(issue, null, 2));
+
     return `Jira Issue: ${issueId}\nSummary: ${summary}\n\nDescription:\n${description}`;
   } catch (error) {
     displayError(
@@ -84,7 +87,11 @@ export async function get(
 }
 
 /**
- * Helper function to get Jira issue details using Atlassian REST API v3
+ * Helper function to get Jira issue details using Atlassian REST API v2.
+ *
+ * The feature was initially developed to use Atlassian REST API v3, which by
+ * default returns the ADF JSON format for description, which is not very useful for us.
+ *
  * @param config Jira configuration
  * @param jiraKey Jira issue ID
  * @returns Jira issue response
@@ -93,13 +100,17 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
   // Jira Cloud ID can be found by authenticated user at https://company.atlassian.net/_edge/tenant_info
 
   // According to doc https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get permissions to read this resource:
+  // https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues/#api-rest-api-2-issue-issueidorkey-get
   // either Classic (RECOMMENDED) read:jira-work
   // or Granular read:issue-meta:jira, read:issue-security-level:jira, read:issue.vote:jira, read:issue.changelog:jira, read:avatar:jira, read:issue:jira, read:status:jira, read:user:jira, read:field-configuration:jira
-  const apiUrl = `https://api.atlassian.com/ex/jira/${config.cloudId}/rest/api/3/issue/${jiraKey}`;
+  const apiUrl = `https://api.atlassian.com/ex/jira/${config.cloudId}/rest/api/2/issue/${jiraKey}`;
   if (config.displayUrl) {
     display(`Loading Jira issue ${config.displayUrl}${jiraKey}`);
   }
   display(`Retrieving jira from api ${apiUrl.replace(/^https?:\/\//, '')}`);
+
+  // This filter will be necessary for V3: `&expand=renderedFields` to convert ADF to HTML
+  const filters = '?fields=summary,description'; // Limit JSON to summary and description
 
   // Encode credentials for Basic Authentication header
   const credentials = `${config.username}:${config.token}`;
@@ -113,7 +124,7 @@ async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIs
     'Accept-Language': 'en-US,en;q=0.9', // Prevents errors in other languages
   };
 
-  const response = await fetch(apiUrl, {
+  const response = await fetch(apiUrl + filters, {
     method: 'GET',
     headers: headers,
   });
