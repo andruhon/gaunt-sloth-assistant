@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
-import { AIMessage, AIMessageChunk } from '@langchain/core/messages';
+import { AIMessageChunk } from '@langchain/core/messages';
 
 describe('reviewModule', () => {
   beforeEach(async () => {

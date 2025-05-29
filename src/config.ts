@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
@@ -13,6 +12,7 @@ export interface SlothConfig extends BaseSlothConfig {
   requirementsProvider: string;
   projectGuidelines: string;
   projectReviewInstructions: string;
+  streamOutput: boolean;
   commands: {
     pr: {
       contentProvider: string;
@@ -41,6 +41,7 @@ interface BaseSlothConfig {
   requirementsProvider?: string;
   projectGuidelines?: string;
   projectReviewInstructions?: string;
+  streamOutput?: boolean;
   commands?: {
     pr: {
       contentProvider: string;
@@ -85,6 +86,7 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   requirementsProvider: 'file',
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
+  streamOutput: true,
   commands: {
     pr: {
       contentProvider: 'github', // gh pr diff NN
@@ -110,6 +112,7 @@ export async function initConfig(): Promise<void> {
   // Try loading JSON config file first
   if (existsSync(jsonConfigPath)) {
     try {
+      // TODO makes sense to employ ZOD to validate config
       const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as RawSlothConfig;
       // If the config has an LLM with a type, create the appropriate LLM instance
       if (jsonConfig.llm && typeof jsonConfig.llm === 'object' && 'type' in jsonConfig.llm) {

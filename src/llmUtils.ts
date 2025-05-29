@@ -1,10 +1,11 @@
 import type { Message } from '#src/modules/types.js';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { HumanMessage, isAIMessageChunk, SystemMessage } from '@langchain/core/messages';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { slothContext } from '#src/config.js';
+import { SlothConfig } from '#src/config.js';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { displayError, displayInfo } from '#src/consoleUtils.js';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
+import { stdout } from '#src/systemUtils.js';
 
 const llmGlobalSettings = {
   verbose: false,
@@ -13,13 +14,14 @@ const llmGlobalSettings = {
 export async function invoke(
   llm: BaseChatModel,
   systemMessage: string,
-  prompt: string
+  prompt: string,
+  config: SlothConfig
 ): Promise<string> {
   if (llmGlobalSettings.verbose) {
     llm.verbose = true;
   }
 
-  const client = getClient();
+  const client = getClient(config);
 
   const tools = (await client?.getTools()) ?? [];
   if (tools && tools.length > 0) {
@@ -38,24 +40,27 @@ export async function invoke(
     // const response = await agent.invoke({
     //   messages,
     // });
-    const stream = await agent.stream({ messages }, { streamMode: 'values' });
+    const stream = await agent.stream({ messages }, { streamMode: 'messages' });
 
     const output = { aiMessage: '' };
-    for await (const chunk of stream) {
-      if (chunk.messages && chunk.messages.length > 0) {
-        const lastMessage = chunk.messages[chunk.messages.length - 1];
-        if (lastMessage && lastMessage.constructor.name === 'ToolMessage') {
-          displayInfo(`Using tool ${lastMessage?.name}`);
+    for await (const [chunk, _metadata] of stream) {
+      if (isAIMessageChunk(chunk)) {
+        if (config.streamOutput) {
+          stdout.write(chunk.content as string);
         }
-        if (lastMessage && lastMessage.constructor.name === 'AIMessageChunk') {
-          output.aiMessage += '\n\n' + lastMessage.content;
+        output.aiMessage += chunk.content;
+        let toolCalls = chunk.tool_calls;
+        if (toolCalls && toolCalls.length > 0) {
+          const suffix = toolCalls.length > 1 ? 's' : '';
+          const toolCallsString = toolCalls.map((t) => t?.name).join(', ');
+          displayInfo(`Using tool${suffix} ${toolCallsString}`);
         }
       }
     }
     return output.aiMessage;
   } catch (error) {
     if (error instanceof Error) {
-      if (error.name === 'ToolException') {
+      if (error?.name === 'ToolException') {
         displayError(`Tool execution failed: ${error.message}`);
       }
     }
@@ -72,13 +77,13 @@ export function setVerbose(debug: boolean) {
   llmGlobalSettings.verbose = debug;
 }
 
-function getClient() {
-  if (slothContext.config.mcpServers && Object.keys(slothContext.config.mcpServers).length > 0) {
+function getClient(config: SlothConfig) {
+  if (config.mcpServers && Object.keys(config.mcpServers).length > 0) {
     return new MultiServerMCPClient({
       throwOnLoadError: true,
       prefixToolNameWithServerName: true,
       additionalToolNamePrefix: 'mcp',
-      mcpServers: slothContext.config.mcpServers,
+      mcpServers: config.mcpServers,
     });
   } else {
     return null;
