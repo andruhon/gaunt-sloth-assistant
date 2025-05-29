@@ -110,6 +110,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
@@ -159,6 +160,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
@@ -209,6 +211,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
@@ -274,6 +277,7 @@ describe('config', async () => {
         projectReviewInstructions: '.gsloth.review.md',
         contentProvider: 'file',
         requirementsProvider: 'file',
+        streamOutput: true,
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
@@ -308,6 +312,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
 
@@ -343,6 +348,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
 

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import { AIMessageChunk } from '@langchain/core/messages';
+import type { SlothConfig } from '#src/config.js';
 
 describe('reviewModule', () => {
   beforeEach(async () => {
@@ -20,8 +21,13 @@ describe('reviewModule', () => {
     // Import the module after setting up mocks
     const { invoke } = await import('#src/llmUtils.js');
 
+    // Create a mock config
+    const mockConfig = {
+      streamOutput: false,
+    } as SlothConfig;
+
     // Test the function
-    const output = await invoke(fakeListChatModel, 'test-preamble', 'test-diff');
+    const output = await invoke(fakeListChatModel, 'test-preamble', 'test-diff', mockConfig);
 
     expect(output).toBe('First LLM message');
   });

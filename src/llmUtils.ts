@@ -37,16 +37,13 @@ export async function invoke(
   // Run the agent
   try {
     const messages: Message[] = [new SystemMessage(systemMessage), new HumanMessage(prompt)];
-    // const response = await agent.invoke({
-    //   messages,
-    // });
     const stream = await agent.stream({ messages }, { streamMode: 'messages' });
 
     const output = { aiMessage: '' };
     for await (const [chunk, _metadata] of stream) {
       if (isAIMessageChunk(chunk)) {
         if (config.streamOutput) {
-          stdout.write(chunk.content as string);
+          stdout.write(chunk.content as string, 'utf-8');
         }
         output.aiMessage += chunk.content;
         let toolCalls = chunk.tool_calls;
@@ -57,6 +54,7 @@ export async function invoke(
         }
       }
     }
+
     return output.aiMessage;
   } catch (error) {
     if (error instanceof Error) {

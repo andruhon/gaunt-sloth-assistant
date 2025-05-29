@@ -16,18 +16,21 @@ export async function askQuestion(
   preamble: string,
   content: string
 ): Promise<void> {
-  const progressIndicator = new ProgressIndicator('Thinking.');
+  const progressIndicator = slothContext.config.streamOutput
+    ? undefined
+    : new ProgressIndicator('Thinking.');
   const outputContent = await invoke(
     slothContext.config.llm,
     preamble,
     content,
     slothContext.config
   );
-  progressIndicator.stop();
+  progressIndicator?.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);
-  display(`\nwriting ${filePath}`);
-  display('\n' + outputContent);
+  if (!slothContext.config.streamOutput) {
+    display('\n' + outputContent);
+  }
   try {
     writeFileSync(filePath, outputContent);
     displaySuccess(`This report can be found in ${filePath}`);

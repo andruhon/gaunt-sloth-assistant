@@ -1,22 +1,21 @@
 import { slothContext } from '#src/config.js';
 import { display, displayDebug, displayError, displaySuccess } from '#src/consoleUtils.js';
-import { stdout } from '#src/systemUtils.js';
 import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
 import { invoke } from '#src/llmUtils.js';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 
 export async function review(source: string, preamble: string, diff: string): Promise<void> {
-  const progressIndicator = new ProgressIndicator('Reviewing.');
+  const progressIndicator = slothContext.config.streamOutput
+    ? undefined
+    : new ProgressIndicator('Reviewing.');
   const outputContent = await invoke(slothContext.config.llm, preamble, diff, slothContext.config);
-  progressIndicator.stop();
+  progressIndicator?.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);
-  stdout.write('\n');
-  display(`writing ${filePath}`);
-  stdout.write('\n');
-  // TODO highlight LLM output with something like Prism.JS (maybe system emoj are enough ✅⚠️❌)
-  display(outputContent);
+  if (!slothContext.config.streamOutput) {
+    display('\n' + outputContent);
+  }
   try {
     writeFileSync(filePath, outputContent);
     displaySuccess(`This report can be found in ${filePath}`);

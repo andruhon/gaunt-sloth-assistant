@@ -54,7 +54,7 @@ vi.mock('#src/utils.js', () => utilsMock);
 // Create a mock slothContext for the second test
 const mockSlothContext = {
   config: {
-    llm: new FakeListChatModel({
+    llm: new FakeStreamingChatModel({
       responses: ['LLM Response'],
     }),
   } as Partial<SlothConfig>,
@@ -65,6 +65,12 @@ const mockSlothContext = {
 vi.mock('#src/config.js', () => ({
   slothContext: mockSlothContext,
 }));
+
+// Mock llmUtils module
+const llmUtilsMock = {
+  invoke: vi.fn().mockResolvedValue('LLM Response'),
+};
+vi.mock('#src/llmUtils.js', () => llmUtilsMock);
 
 describe('questionAnsweringModule', () => {
   beforeEach(async () => {
@@ -95,6 +101,14 @@ describe('questionAnsweringModule', () => {
     // Call askQuestion
     await askQuestion('test-source', 'test-preamble', 'test-content');
 
+    // Verify that invoke was called with correct parameters
+    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
+      mockSlothContext.config.llm,
+      'test-preamble',
+      'test-content',
+      mockSlothContext.config
+    );
+
     // Verify that writeFileSync was called
     expect(fsMock.writeFileSync).toHaveBeenCalled();
 
@@ -104,11 +118,12 @@ describe('questionAnsweringModule', () => {
     // Verify that displaySuccess was called
     expect(consoleUtilsMock.displaySuccess).toHaveBeenCalled();
 
+    // Verify that ProgressIndicator.stop() was called
     expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
   });
 
   it('Should handle file write errors', async () => {
-    mockSlothContext.config.llm = new FakeListChatModel({
+    mockSlothContext.config.llm = new FakeStreamingChatModel({
       responses: ['LLM Response'],
     });
 
@@ -130,6 +145,7 @@ describe('questionAnsweringModule', () => {
     );
     expect(consoleUtilsMock.displayError).toHaveBeenCalledWith('File write error');
 
+    // Verify that ProgressIndicator.stop() was called even with error
     expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
   });
 });

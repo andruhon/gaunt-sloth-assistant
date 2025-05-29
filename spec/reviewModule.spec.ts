@@ -109,7 +109,8 @@ describe('reviewModule', () => {
     expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
       mockSlothContext.config.llm,
       'test-preamble',
-      'test-diff'
+      'test-diff',
+      mockSlothContext.config
     );
 
     // Verify that writeFileSync was called
@@ -119,15 +120,14 @@ describe('reviewModule', () => {
     );
 
     // Verify that display was called
-    expect(consoleUtilsMock.display).toHaveBeenCalledWith(expect.stringContaining('writing'));
-    expect(consoleUtilsMock.display).toHaveBeenCalledWith('LLM Review Response');
+    expect(consoleUtilsMock.display).toHaveBeenCalledWith('\nLLM Review Response');
 
     // Verify that displaySuccess was called
     expect(consoleUtilsMock.displaySuccess).toHaveBeenCalledWith(
       expect.stringContaining('test-review-file-path.md')
     );
 
-    // Verify that progress indicator was stopped
+    // Verify that ProgressIndicator.stop() was called
     expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
   });
 
@@ -150,7 +150,7 @@ describe('reviewModule', () => {
       expect.stringContaining('Failed to write review to file')
     );
 
-    // Verify that progress indicator was stopped
+    // Verify that ProgressIndicator.stop() was called even with error
     expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
   });
 });
