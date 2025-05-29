@@ -75,8 +75,6 @@ export async function get(
     const summary = issue.fields.summary;
     const description = issue.fields.description;
 
-    console.log(JSON.stringify(issue, null, 2));
-
     return `Jira Issue: ${issueId}\nSummary: ${summary}\n\nDescription:\n${description}`;
   } catch (error) {
     displayError(
