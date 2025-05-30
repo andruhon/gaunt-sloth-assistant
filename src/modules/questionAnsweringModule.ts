@@ -1,4 +1,4 @@
-import { slothContext } from '#src/config.js';
+import type { SlothConfig } from '#src/config.js';
 import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
@@ -14,21 +14,15 @@ import { invoke } from '#src/llmUtils.js';
 export async function askQuestion(
   source: string,
   preamble: string,
-  content: string
+  content: string,
+  config: SlothConfig
 ): Promise<void> {
-  const progressIndicator = slothContext.config.streamOutput
-    ? undefined
-    : new ProgressIndicator('Thinking.');
-  const outputContent = await invoke(
-    slothContext.config.llm,
-    preamble,
-    content,
-    slothContext.config
-  );
+  const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Thinking.');
+  const outputContent = await invoke(config.llm, preamble, content, config);
   progressIndicator?.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);
-  if (!slothContext.config.streamOutput) {
+  if (!config.streamOutput) {
     display('\n' + outputContent);
   }
   try {

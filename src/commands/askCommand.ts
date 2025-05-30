@@ -42,6 +42,6 @@ export function askCommand(program: Command): void {
       }
 
       const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
-      await askQuestion('ASK', preamble.join('\n'), content.join('\n'));
+      await askQuestion('ASK', preamble.join('\n'), content.join('\n'), slothContext.config);
     });
 }

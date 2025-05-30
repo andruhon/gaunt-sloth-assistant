@@ -59,7 +59,9 @@ interface BaseSlothConfig {
 
 /**
  * @deprecated
- * this object has blurred responsibility lines and bad name.
+ * This object has blurred responsibility lines and bad name.
+ * Use direct config objects with prop drilling instead.
+ * This interface will be removed in a future version.
  */
 export interface SlothContext {
   config: SlothConfig;
@@ -97,8 +99,10 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
 
 /**
  * @deprecated
- * this object has blurred responsibility lines and bad name.
- * TODO this should be reworked to something more robust
+ * This object has blurred responsibility lines and bad name.
+ * Use direct config objects with prop drilling instead.
+ * This object will be removed in a future version.
+ * Kept temporarily for backward compatibility.
  */
 export const slothContext = {
   config: DEFAULT_CONFIG,

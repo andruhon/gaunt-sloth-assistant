@@ -22,6 +22,7 @@ if (program.getOptionValue('verbose')) {
   setVerbose(true);
 }
 
+// Initialize commands with config object through prop drilling
 initCommand(program);
 reviewCommand(program, slothContext);
 askCommand(program);

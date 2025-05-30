@@ -116,7 +116,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
         content.push(options.message);
       }
       const { review } = await import('#src/modules/reviewModule.js');
-      await review('REVIEW', systemMessage.join('\n'), content.join('\n'));
+      await review('REVIEW', systemMessage.join('\n'), content.join('\n'), context.config);
     });
 
   program
@@ -176,7 +176,7 @@ export function reviewCommand(program: Command, context: SlothContext): void {
       const { review } = await import('#src/modules/reviewModule.js');
       // TODO consider including requirements id
       // TODO sanitize prId
-      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'));
+      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'), context.config);
     });
 
   async function getRequirementsFromProvider(
