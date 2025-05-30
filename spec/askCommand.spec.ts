@@ -28,18 +28,34 @@ vi.mock('#src/systemUtils.js', () => ({
 }));
 vi.mock('#src/config.js', () => ({
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
-  USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
+  PROJECT_GUIDELINES: '.gsloth.guidelines.md',
+  PROJECT_REVIEW_INSTRUCTIONS: '.gsloth.review.md',
+  // For backward compatibility with tests
   slothContext: {
     config: {
+      projectGuidelines: '.gsloth.guidelines.md',
+      projectReviewInstructions: '.gsloth.review.md',
       llm: {
         invoke: vi.fn(),
       },
     },
-    currentDir: '/mock/current/dir',
-    installDir: '/mock/install/dir',
-    session: { configurable: { thread_id: 'test-thread-id' } },
   },
-  initConfig: vi.fn(),
+  initConfig: vi.fn().mockResolvedValue({
+    llm: {
+      invoke: vi.fn(),
+    },
+    projectGuidelines: '.gsloth.guidelines.md',
+    projectReviewInstructions: '.gsloth.review.md',
+    contentProvider: 'file',
+    requirementsProvider: 'file',
+    streamOutput: true,
+    commands: {
+      pr: {
+        contentProvider: 'github',
+        requirementsProvider: 'github',
+      },
+    },
+  }),
 }));
 vi.mock('#src/utils.js', () => utilsMock);
 

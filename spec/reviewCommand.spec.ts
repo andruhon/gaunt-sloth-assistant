@@ -1,6 +1,5 @@
 import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SlothContext } from '#src/config.js';
 import { SlothConfig } from '#src/config.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
@@ -31,13 +30,30 @@ const utilsMock = {
 vi.mock('#src/prompt.js', () => prompt);
 vi.mock('#src/config.js', () => ({
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
-  USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
+  PROJECT_GUIDELINES: '.gsloth.guidelines.md',
+  PROJECT_REVIEW_INSTRUCTIONS: '.gsloth.review.md',
+  // For backward compatibility with tests
   slothContext: {
-    config: {},
-    currentDir: '/mock/current/dir',
-    installDir: '/mock/install/dir',
+    config: {
+      projectGuidelines: '.gsloth.guidelines.md',
+      projectReviewInstructions: '.gsloth.review.md',
+    },
   },
-  initConfig: vi.fn(),
+  initConfig: vi.fn().mockResolvedValue({
+    llm: { invoke: vi.fn() } as unknown as BaseChatModel,
+    projectGuidelines: '.gsloth.guidelines.md',
+    projectReviewInstructions: '.gsloth.review.md',
+    contentProvider: 'file',
+    requirementsProvider: 'file',
+    streamOutput: true,
+    commands: {
+      pr: {
+        contentProvider: 'github',
+        requirementsProvider: 'github',
+      },
+      review: {},
+    },
+  }),
 }));
 vi.mock('#src/utils.js', () => utilsMock);
 
@@ -60,7 +76,7 @@ describe('reviewCommand', () => {
     const program = new Command();
 
     // Create a proper mock context with a valid config for the test
-    const mockContext: SlothContext = {
+    const mockContext = {
       config: {
         contentProvider: 'file',
         requirementsProvider: 'file',
@@ -97,7 +113,7 @@ describe('reviewCommand', () => {
     const program = new Command();
 
     // Create a proper mock context with a valid config for the test
-    const mockContext: SlothContext = {
+    const mockContext = {
       config: {
         contentProvider: 'file',
         requirementsProvider: 'file',
@@ -162,7 +178,7 @@ describe('reviewCommand', () => {
   it('Should call review with predefined requirements provider', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    const context: SlothContext = {
+    const context: { config: SlothConfig } = {
       config: {
         requirementsProvider: 'jira-legacy',
         requirementsProviderConfig: {
@@ -226,8 +242,9 @@ describe('reviewCommand', () => {
       writeErr: (str: string) => (testOutput.text += str),
     });
 
-    const context: SlothContext = {
+    const context = {
       config: {
+        llm: { invoke: vi.fn() } as unknown as BaseChatModel,
         requirementsProvider: 'jira-legacy',
         requirementsProviderConfig: {
           'jira-legacy': {
@@ -239,17 +256,13 @@ describe('reviewCommand', () => {
         commands: {
           pr: {
             contentProvider: 'github',
+            requirementsProvider: 'jira-legacy',
           },
         },
-        pr: {
-          requirementsProvider: 'jira-legacy',
-        },
-      } as Partial<SlothConfig> as SlothConfig,
-      session: {
-        configurable: {
-          thread_id: 'test-thread',
-        },
-      },
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
+      } as SlothConfig,
     };
 
     await reviewCommand(program, context);
@@ -264,7 +277,7 @@ describe('reviewCommand', () => {
   it('Should call review with predefined content provider', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    const context: SlothContext = {
+    const context: { config: SlothConfig } = {
       config: {
         contentProvider: 'github',
         requirementsProvider: 'text',
@@ -305,7 +318,7 @@ describe('reviewCommand', () => {
   it('Should call pr command', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    const context: SlothContext = {
+    const context: { config: SlothConfig } = {
       config: {
         contentProvider: 'text',
         requirementsProvider: 'text',

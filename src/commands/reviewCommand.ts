@@ -1,6 +1,5 @@
 import { Command, Option } from 'commander';
-import type { SlothContext } from '#src/config.js';
-import { slothContext } from '#src/config.js';
+import type { SlothConfig } from '#src/config.js';
 import { readBackstory, readGuidelines, readReviewInstructions } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
@@ -45,7 +44,8 @@ interface PrCommandOptions {
   requirementsProvider?: RequirementsProviderType;
 }
 
-export function reviewCommand(program: Command, context: SlothContext): void {
+// Context parameter expected to have a config property containing a SlothConfig object
+export function reviewCommand(program: Command, context: { config: SlothConfig }): void {
   program
     .command('review')
     .description('Review provided diff or other content')
@@ -75,11 +75,11 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
-      await initConfig();
+      await initConfig(); // Initialize config but we use context.config directly
       const systemMessage = [
         readBackstory(),
-        readGuidelines(slothContext.config.projectGuidelines),
-        readReviewInstructions(slothContext.config.projectReviewInstructions),
+        readGuidelines(context.config.projectGuidelines),
+        readReviewInstructions(context.config.projectReviewInstructions),
       ];
       const content: string[] = [];
       const requirementsId = options.requirements;
@@ -143,12 +143,12 @@ export function reviewCommand(program: Command, context: SlothContext): void {
     )
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
-      await initConfig();
+      await initConfig(); // Initialize config but we use context.config directly
 
       const systemMessage = [
         readBackstory(),
-        readGuidelines(slothContext.config.projectGuidelines),
-        readReviewInstructions(slothContext.config.projectReviewInstructions),
+        readGuidelines(context.config.projectGuidelines),
+        readReviewInstructions(context.config.projectReviewInstructions),
       ];
       const content: string[] = [];
       const requirementsProvider =
