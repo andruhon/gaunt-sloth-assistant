@@ -14,7 +14,7 @@ const prompt = {
 
 // Use a direct mock for the review function instead of a nested implementation
 vi.mock('#src/modules/reviewModule.js', () => ({
-  review: review
+  review: review,
 }));
 
 const utilsMock = {
@@ -58,7 +58,7 @@ describe('reviewCommand', () => {
   it('Should call review with file contents', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    
+
     // Create a proper mock context with a valid config for the test
     const mockContext: SlothContext = {
       config: {
@@ -80,7 +80,7 @@ describe('reviewCommand', () => {
         llm: {} as BaseChatModel,
       } as SlothConfig,
     };
-    
+
     await reviewCommand(program, mockContext);
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
 
@@ -95,7 +95,7 @@ describe('reviewCommand', () => {
   it('Should call review with multiple file contents', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    
+
     // Create a proper mock context with a valid config for the test
     const mockContext: SlothContext = {
       config: {
@@ -117,7 +117,7 @@ describe('reviewCommand', () => {
         llm: {} as BaseChatModel,
       } as SlothConfig,
     };
-    
+
     await reviewCommand(program, mockContext);
 
     utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue(
