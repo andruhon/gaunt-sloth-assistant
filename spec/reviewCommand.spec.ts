@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SlothContext } from '#src/config.js';
 import { SlothConfig } from '#src/config.js';
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 // Define mocks at top level
 const review = vi.fn();
@@ -11,7 +12,10 @@ const prompt = {
   readReviewInstructions: vi.fn(),
 };
 
-const codeReviewMock = { review };
+// Use a direct mock for the review function instead of a nested implementation
+vi.mock('#src/modules/reviewModule.js', () => ({
+  review: review
+}));
 
 const utilsMock = {
   readFileFromCurrentDir: vi.fn(),
@@ -25,7 +29,6 @@ const utilsMock = {
 
 // Set up static mocks
 vi.mock('#src/prompt.js', () => prompt);
-vi.mock('#src/modules/reviewModule.js', () => codeReviewMock);
 vi.mock('#src/config.js', () => ({
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
@@ -55,20 +58,67 @@ describe('reviewCommand', () => {
   it('Should call review with file contents', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    await reviewCommand(program, {} as SlothContext);
+    
+    // Create a proper mock context with a valid config for the test
+    const mockContext: SlothContext = {
+      config: {
+        contentProvider: 'file',
+        requirementsProvider: 'file',
+        commands: {
+          pr: {
+            contentProvider: 'github',
+            requirementsProvider: 'file',
+          },
+          review: {
+            requirementsProvider: 'file',
+            contentProvider: 'file',
+          },
+        },
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: false,
+        llm: {} as BaseChatModel,
+      } as SlothConfig,
+    };
+    
+    await reviewCommand(program, mockContext);
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
 
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'test.file:\n```\nFILE TO REVIEW\n```'
+      'test.file:\n```\nFILE TO REVIEW\n```',
+      mockContext.config
     );
   });
 
   it('Should call review with multiple file contents', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    await reviewCommand(program, {} as SlothContext);
+    
+    // Create a proper mock context with a valid config for the test
+    const mockContext: SlothContext = {
+      config: {
+        contentProvider: 'file',
+        requirementsProvider: 'file',
+        commands: {
+          pr: {
+            contentProvider: 'github',
+            requirementsProvider: 'file',
+          },
+          review: {
+            requirementsProvider: 'file',
+            contentProvider: 'file',
+          },
+        },
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: false,
+        llm: {} as BaseChatModel,
+      } as SlothConfig,
+    };
+    
+    await reviewCommand(program, mockContext);
 
     utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue(
       'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
@@ -79,7 +129,8 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
+      'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```',
+      mockContext.config
     );
   });
 
@@ -125,17 +176,18 @@ describe('reviewCommand', () => {
         commands: {
           pr: {
             contentProvider: 'github',
+            requirementsProvider: 'jira-legacy',
+          },
+          review: {
+            requirementsProvider: 'jira-legacy',
+            contentProvider: 'text',
           },
         },
-        pr: {
-          requirementsProvider: 'jira-legacy',
-        },
-      } as Partial<SlothConfig> as SlothConfig,
-      session: {
-        configurable: {
-          thread_id: 'test-thread',
-        },
-      },
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: false,
+        llm: {} as BaseChatModel,
+      } as SlothConfig,
     };
 
     // Mock the jira provider
@@ -150,7 +202,8 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'JIRA Requirements\ncontent-id'
+      'JIRA Requirements\ncontent-id',
+      expect.any(Object)
     );
   });
 
@@ -218,17 +271,18 @@ describe('reviewCommand', () => {
         commands: {
           pr: {
             contentProvider: 'github',
+            requirementsProvider: 'text',
+          },
+          review: {
+            requirementsProvider: 'text',
+            contentProvider: 'github',
           },
         },
-        pr: {
-          requirementsProvider: 'text',
-        },
-      } as Partial<SlothConfig> as SlothConfig,
-      session: {
-        configurable: {
-          thread_id: 'test-thread',
-        },
-      },
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: false,
+        llm: {} as BaseChatModel,
+      } as SlothConfig,
     };
 
     // Mock the gh provider
@@ -243,7 +297,8 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'PR Diff Content'
+      'PR Diff Content',
+      expect.any(Object)
     );
   });
 
@@ -257,17 +312,18 @@ describe('reviewCommand', () => {
         commands: {
           pr: {
             contentProvider: 'github',
+            requirementsProvider: 'text',
+          },
+          review: {
+            requirementsProvider: 'text',
+            contentProvider: 'text',
           },
         },
-        pr: {
-          requirementsProvider: 'text',
-        },
-      } as Partial<SlothConfig> as SlothConfig,
-      session: {
-        configurable: {
-          thread_id: 'test-thread',
-        },
-      },
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: false,
+        llm: {} as BaseChatModel,
+      } as SlothConfig,
     };
 
     // Mock the gh provider
@@ -282,7 +338,8 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'PR-123',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'PR Diff Content'
+      'PR Diff Content',
+      expect.any(Object)
     );
   });
 });

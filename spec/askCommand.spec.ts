@@ -74,7 +74,8 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test message'
+      'test message',
+      expect.any(Object)
     );
   });
 
@@ -86,7 +87,8 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test.file:\n```\nFILE CONTENT\n```\ntest message'
+      'test.file:\n```\nFILE CONTENT\n```\ntest message',
+      expect.any(Object)
     );
   });
 
@@ -104,7 +106,8 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```\ntest message'
+      'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```\ntest message',
+      expect.any(Object)
     );
   });
 
@@ -138,7 +141,8 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test.file:\n```\nFILE CONTENT\n```'
+      'test.file:\n```\nFILE CONTENT\n```',
+      expect.any(Object)
     );
   });
 
@@ -153,7 +157,8 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'STDIN CONTENT'
+      'STDIN CONTENT',
+      expect.any(Object)
     );
   });
 
