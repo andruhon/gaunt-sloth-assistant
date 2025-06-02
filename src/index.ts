@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { askCommand } from '#src/commands/askCommand.js';
 import { initCommand } from '#src/commands/initCommand.js';
 import { reviewCommand } from '#src/commands/reviewCommand.js';
+import { prCommand } from '#src/commands/prCommand.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
 import { setVerbose } from '#src/llmUtils.js';
@@ -24,6 +25,7 @@ if (program.getOptionValue('verbose')) {
 // Initialize all commands - they will handle their own config loading
 initCommand(program);
 reviewCommand(program);
+prCommand(program);
 askCommand(program);
 // TODO add general interactive chat command
 

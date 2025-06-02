@@ -1,35 +1,15 @@
 import { Command, Option } from 'commander';
-import type { SlothConfig } from '#src/config.js';
 import { readBackstory, readGuidelines, readReviewInstructions } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
-import { displayError } from '#src/consoleUtils.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
-
-/**
- * Requirements providers. Expected to be in `.providers/` dir.
- * Aliases are mapped to actual providers in this file
- */
-const REQUIREMENTS_PROVIDERS = {
-  'jira-legacy': 'jiraIssueLegacyProvider.js',
-  jira: 'jiraIssueProvider.js',
-  github: 'ghIssueProvider.js',
-  text: 'text.js',
-  file: 'file.js',
-} as const;
-
-type RequirementsProviderType = keyof typeof REQUIREMENTS_PROVIDERS;
-
-/**
- * Content providers. Expected to be in `.providers/` dir.
- * Aliases are mapped to actual providers in this file
- */
-const CONTENT_PROVIDERS = {
-  github: 'ghPrDiffProvider.js',
-  text: 'text.js',
-  file: 'file.js',
-} as const;
-
-type ContentProviderType = keyof typeof CONTENT_PROVIDERS;
+import {
+  REQUIREMENTS_PROVIDERS,
+  CONTENT_PROVIDERS,
+  type RequirementsProviderType,
+  type ContentProviderType,
+  getRequirementsFromProvider,
+  getContentFromProvider,
+} from './commandUtils.js';
 
 interface ReviewCommandOptions {
   file?: string[];
@@ -37,11 +17,6 @@ interface ReviewCommandOptions {
   requirementsProvider?: RequirementsProviderType;
   contentProvider?: ContentProviderType;
   message?: string;
-}
-
-interface PrCommandOptions {
-  file?: string[];
-  requirementsProvider?: RequirementsProviderType;
 }
 
 export function reviewCommand(program: Command): void {
@@ -119,115 +94,4 @@ export function reviewCommand(program: Command): void {
       const { review } = await import('#src/modules/reviewModule.js');
       await review('REVIEW', systemMessage.join('\n'), content.join('\n'), config);
     });
-
-  program
-    .command('pr')
-    .description(
-      'Review provided Pull Request in current directory. ' +
-        'This command is similar to `review`, but default content provider is `github`. ' +
-        '(assuming that GitHub CLI is installed and authenticated for current project'
-    )
-    .argument('<prId>', 'Pull request ID to review.')
-    .argument(
-      '[requirementsId]',
-      'Optional requirements ID argument to retrieve requirements with requirements provider'
-    )
-    .addOption(
-      new Option(
-        '-p, --requirements-provider <requirementsProvider>',
-        'Requirements provider for this review.'
-      ).choices(Object.keys(REQUIREMENTS_PROVIDERS))
-    )
-    .option(
-      '-f, --file [files...]',
-      'Input files. Content of these files will be added BEFORE the diff, but after requirements'
-    )
-    .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
-      const { initConfig } = await import('#src/config.js');
-      const config = await initConfig(); // Initialize and get config
-
-      const systemMessage = [
-        readBackstory(),
-        readGuidelines(config.projectGuidelines),
-        readReviewInstructions(config.projectReviewInstructions),
-      ];
-      const content: string[] = [];
-      const requirementsProvider =
-        options.requirementsProvider ??
-        (config?.commands?.pr?.requirementsProvider as RequirementsProviderType | undefined) ??
-        (config?.requirementsProvider as RequirementsProviderType | undefined);
-
-      // Handle requirements
-      const requirements = await getRequirementsFromProvider(
-        requirementsProvider,
-        requirementsId,
-        config
-      );
-      if (requirements) {
-        content.push(requirements);
-      }
-
-      if (options.file) {
-        content.push(readMultipleFilesFromCurrentDir(options.file));
-      }
-
-      // Get PR diff using the 'github' provider
-      const providerPath = `#src/providers/${CONTENT_PROVIDERS['github']}`;
-      const { get } = await import(providerPath);
-      content.push(await get(null, prId));
-
-      const { review } = await import('#src/modules/reviewModule.js');
-      // TODO consider including requirements id
-      // TODO sanitize prId
-      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'), config);
-    });
-
-  async function getRequirementsFromProvider(
-    requirementsProvider: RequirementsProviderType | undefined,
-    requirementsId: string | undefined,
-    config: SlothConfig
-  ): Promise<string> {
-    return getFromProvider(
-      requirementsProvider,
-      requirementsId,
-      (config?.requirementsProviderConfig ?? {})[requirementsProvider as string],
-      REQUIREMENTS_PROVIDERS
-    );
-  }
-
-  async function getContentFromProvider(
-    contentProvider: ContentProviderType | undefined,
-    contentId: string | undefined,
-    config: SlothConfig
-  ): Promise<string> {
-    return getFromProvider(
-      contentProvider,
-      contentId,
-      (config?.contentProviderConfig ?? {})[contentProvider as string],
-      CONTENT_PROVIDERS
-    );
-  }
-
-  async function getFromProvider(
-    provider: RequirementsProviderType | ContentProviderType | undefined,
-    id: string | undefined,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config: any,
-    legitPredefinedProviders: typeof REQUIREMENTS_PROVIDERS | typeof CONTENT_PROVIDERS
-  ): Promise<string> {
-    if (typeof provider === 'string') {
-      // Use one of the predefined providers
-      if (legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]) {
-        const providerPath = `#src/providers/${legitPredefinedProviders[provider as keyof typeof legitPredefinedProviders]}`;
-        const { get } = await import(providerPath);
-        return await get(config, id);
-      } else {
-        displayError(`Unknown provider: ${provider}. Continuing without it.`);
-      }
-    } else if (typeof provider === 'function') {
-      // Type assertion to handle function call
-      return await (provider as (id: string | undefined) => Promise<string>)(id);
-    }
-    return '';
-  }
 }
