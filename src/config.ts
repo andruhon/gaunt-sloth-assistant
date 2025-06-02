@@ -5,6 +5,13 @@ import { error, exit } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
 import type { Connection } from '@langchain/mcp-adapters';
+import {
+  USER_PROJECT_CONFIG_JS,
+  USER_PROJECT_CONFIG_JSON,
+  USER_PROJECT_CONFIG_MJS,
+  PROJECT_GUIDELINES,
+  PROJECT_REVIEW_INSTRUCTIONS,
+} from '#src/constants.js';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -61,13 +68,6 @@ export interface LLMConfig extends Record<string, unknown> {
   type: string;
   model: string;
 }
-
-export const USER_PROJECT_CONFIG_JS = '.gsloth.config.js';
-export const USER_PROJECT_CONFIG_JSON = '.gsloth.config.json';
-export const USER_PROJECT_CONFIG_MJS = '.gsloth.config.mjs';
-export const GSLOTH_BACKSTORY = '.gsloth.backstory.md';
-export const PROJECT_GUIDELINES = '.gsloth.guidelines.md';
-export const PROJECT_REVIEW_INSTRUCTIONS = '.gsloth.review.md';
 
 export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];

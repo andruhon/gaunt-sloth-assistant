@@ -45,9 +45,6 @@ vi.mock('#src/systemUtils.js', () => ({
   getStringFromStdin: vi.fn().mockReturnValue(''),
 }));
 const configMock = {
-  GSLOTH_BACKSTORY: '.gsloth.backstory.md',
-  PROJECT_GUIDELINES: '.gsloth.guidelines.md',
-  PROJECT_REVIEW_INSTRUCTIONS: '.gsloth.review.md',
   initConfig: vi.fn(),
   createDefaultConfig: vi.fn(),
 };

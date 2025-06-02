@@ -5,7 +5,7 @@ import {
 } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
 import { exit } from '#src/systemUtils.js';
-import { GSLOTH_BACKSTORY } from '#src/config.js';
+import { GSLOTH_BACKSTORY } from '#src/constants.js';
 import { getGslothConfigReadPath } from '#src/filePathUtils.js';
 
 export function readBackstory(): string {

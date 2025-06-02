@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SlothConfig } from '#src/config.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
-// Define mocks at top level
+// Define mocks at the top level
 const review = vi.fn();
 const prompt = {
   readBackstory: vi.fn(),
@@ -29,16 +29,6 @@ const utilsMock = {
 // Set up static mocks
 vi.mock('#src/prompt.js', () => prompt);
 vi.mock('#src/config.js', () => ({
-  GSLOTH_BACKSTORY: '.gsloth.backstory.md',
-  PROJECT_GUIDELINES: '.gsloth.guidelines.md',
-  PROJECT_REVIEW_INSTRUCTIONS: '.gsloth.review.md',
-  // For backward compatibility with tests
-  slothContext: {
-    config: {
-      projectGuidelines: '.gsloth.guidelines.md',
-      projectReviewInstructions: '.gsloth.review.md',
-    },
-  },
   initConfig: vi.fn().mockResolvedValue({
     llm: { invoke: vi.fn() } as unknown as BaseChatModel,
     projectGuidelines: '.gsloth.guidelines.md',
