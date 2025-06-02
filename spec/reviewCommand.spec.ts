@@ -66,35 +66,33 @@ describe('reviewCommand', () => {
     const program = new Command();
 
     // Create a proper mock context with a valid config for the test
-    const mockContext = {
-      config: {
-        contentProvider: 'file',
-        requirementsProvider: 'file',
-        commands: {
-          pr: {
-            contentProvider: 'github',
-            requirementsProvider: 'file',
-          },
-          review: {
-            requirementsProvider: 'file',
-            contentProvider: 'file',
-          },
+    const mockConfig = {
+      contentProvider: 'file',
+      requirementsProvider: 'file',
+      commands: {
+        pr: {
+          contentProvider: 'github',
+          requirementsProvider: 'file',
         },
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: false,
-        llm: {} as BaseChatModel,
-      } as SlothConfig,
-    };
+        review: {
+          requirementsProvider: 'file',
+          contentProvider: 'file',
+        },
+      },
+      projectGuidelines: '.gsloth.guidelines.md',
+      projectReviewInstructions: '.gsloth.review.md',
+      streamOutput: false,
+      llm: {} as BaseChatModel,
+    } as SlothConfig;
 
-    await reviewCommand(program, mockContext);
+    await reviewCommand(program, mockConfig);
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
 
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'test.file:\n```\nFILE TO REVIEW\n```',
-      mockContext.config
+      mockConfig
     );
   });
 
@@ -103,28 +101,26 @@ describe('reviewCommand', () => {
     const program = new Command();
 
     // Create a proper mock context with a valid config for the test
-    const mockContext = {
-      config: {
-        contentProvider: 'file',
-        requirementsProvider: 'file',
-        commands: {
-          pr: {
-            contentProvider: 'github',
-            requirementsProvider: 'file',
-          },
-          review: {
-            requirementsProvider: 'file',
-            contentProvider: 'file',
-          },
+    const mockConfig = {
+      contentProvider: 'file',
+      requirementsProvider: 'file',
+      commands: {
+        pr: {
+          contentProvider: 'github',
+          requirementsProvider: 'file',
         },
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: false,
-        llm: {} as BaseChatModel,
-      } as SlothConfig,
-    };
+        review: {
+          requirementsProvider: 'file',
+          contentProvider: 'file',
+        },
+      },
+      projectGuidelines: '.gsloth.guidelines.md',
+      projectReviewInstructions: '.gsloth.review.md',
+      streamOutput: false,
+      llm: {} as BaseChatModel,
+    } as SlothConfig;
 
-    await reviewCommand(program, mockContext);
+    await reviewCommand(program, mockConfig);
 
     utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue(
       'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
@@ -136,7 +132,7 @@ describe('reviewCommand', () => {
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```',
-      mockContext.config
+      mockConfig
     );
   });
 
@@ -150,7 +146,7 @@ describe('reviewCommand', () => {
       writeErr: (str: string) => (testOutput.text += str),
     });
 
-    await reviewCommand(program, {} as SlothContext);
+    await reviewCommand(program, {} as SlothConfig);
 
     const commandUnderTest = program.commands.find((c) => c.name() === 'review');
     expect(commandUnderTest).toBeDefined();
@@ -168,33 +164,31 @@ describe('reviewCommand', () => {
   it('Should call review with predefined requirements provider', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    const context: { config: SlothConfig } = {
-      config: {
-        requirementsProvider: 'jira-legacy',
-        requirementsProviderConfig: {
-          'jira-legacy': {
-            username: 'test-user',
-            token: 'test-token',
-            baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/',
-          },
+    const config: SlothConfig = {
+      requirementsProvider: 'jira-legacy',
+      requirementsProviderConfig: {
+        'jira-legacy': {
+          username: 'test-user',
+          token: 'test-token',
+          baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/',
         },
-        contentProvider: 'text',
-        commands: {
-          pr: {
-            contentProvider: 'github',
-            requirementsProvider: 'jira-legacy',
-          },
-          review: {
-            requirementsProvider: 'jira-legacy',
-            contentProvider: 'text',
-          },
+      },
+      contentProvider: 'text',
+      commands: {
+        pr: {
+          contentProvider: 'github',
+          requirementsProvider: 'jira-legacy',
         },
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: false,
-        llm: {} as BaseChatModel,
-      } as SlothConfig,
-    };
+        review: {
+          requirementsProvider: 'jira-legacy',
+          contentProvider: 'text',
+        },
+      },
+      projectGuidelines: '.gsloth.guidelines.md',
+      projectReviewInstructions: '.gsloth.review.md',
+      streamOutput: false,
+      llm: {} as BaseChatModel,
+    } as SlothConfig;
 
     // Mock the jira provider
     const jiraProvider = vi.fn().mockResolvedValue('JIRA Requirements');
@@ -202,14 +196,14 @@ describe('reviewCommand', () => {
       get: jiraProvider,
     }));
 
-    await reviewCommand(program, context);
+    await reviewCommand(program, config);
     await program.parseAsync(['na', 'na', 'review', 'content-id', '-r', 'JIRA-123']);
 
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'JIRA Requirements\ncontent-id',
-      expect.any(Object)
+      config
     );
   });
 
@@ -232,30 +226,28 @@ describe('reviewCommand', () => {
       writeErr: (str: string) => (testOutput.text += str),
     });
 
-    const context = {
-      config: {
-        llm: { invoke: vi.fn() } as unknown as BaseChatModel,
-        requirementsProvider: 'jira-legacy',
-        requirementsProviderConfig: {
-          'jira-legacy': {
-            username: 'test-user',
-            baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/',
-          },
+    const config = {
+      llm: { invoke: vi.fn() } as unknown as BaseChatModel,
+      requirementsProvider: 'jira-legacy',
+      requirementsProviderConfig: {
+        'jira-legacy': {
+          username: 'test-user',
+          baseUrl: 'https://test-jira.atlassian.net/rest/api/2/issue/',
         },
-        contentProvider: 'text',
-        commands: {
-          pr: {
-            contentProvider: 'github',
-            requirementsProvider: 'jira-legacy',
-          },
+      },
+      contentProvider: 'text',
+      commands: {
+        pr: {
+          contentProvider: 'github',
+          requirementsProvider: 'jira-legacy',
         },
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: true,
-      } as SlothConfig,
-    };
+      },
+      projectGuidelines: '.gsloth.guidelines.md',
+      projectReviewInstructions: '.gsloth.review.md',
+      streamOutput: true,
+    } as SlothConfig;
 
-    await reviewCommand(program, context);
+    await reviewCommand(program, config);
 
     await expect(program.parseAsync(['na', 'na', 'pr', 'content-id', 'JIRA-123'])).rejects.toThrow(
       'Missing JIRA Legacy API token. ' +
@@ -267,26 +259,24 @@ describe('reviewCommand', () => {
   it('Should call review with predefined content provider', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    const context: { config: SlothConfig } = {
-      config: {
-        contentProvider: 'github',
-        requirementsProvider: 'text',
-        commands: {
-          pr: {
-            contentProvider: 'github',
-            requirementsProvider: 'text',
-          },
-          review: {
-            requirementsProvider: 'text',
-            contentProvider: 'github',
-          },
+    const config: SlothConfig = {
+      contentProvider: 'github',
+      requirementsProvider: 'text',
+      commands: {
+        pr: {
+          contentProvider: 'github',
+          requirementsProvider: 'text',
         },
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: false,
-        llm: {} as BaseChatModel,
-      } as SlothConfig,
-    };
+        review: {
+          requirementsProvider: 'text',
+          contentProvider: 'github',
+        },
+      },
+      projectGuidelines: '.gsloth.guidelines.md',
+      projectReviewInstructions: '.gsloth.review.md',
+      streamOutput: false,
+      llm: {} as BaseChatModel,
+    } as SlothConfig;
 
     // Mock the gh provider
     const ghProvider = vi.fn().mockResolvedValue('PR Diff Content');
@@ -294,40 +284,38 @@ describe('reviewCommand', () => {
       get: ghProvider,
     }));
 
-    await reviewCommand(program, context);
+    await reviewCommand(program, config);
     await program.parseAsync(['na', 'na', 'review', '123']);
 
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'PR Diff Content',
-      expect.any(Object)
+      config
     );
   });
 
   it('Should call pr command', async () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
-    const context: { config: SlothConfig } = {
-      config: {
-        contentProvider: 'text',
-        requirementsProvider: 'text',
-        commands: {
-          pr: {
-            contentProvider: 'github',
-            requirementsProvider: 'text',
-          },
-          review: {
-            requirementsProvider: 'text',
-            contentProvider: 'text',
-          },
+    const config: SlothConfig = {
+      contentProvider: 'text',
+      requirementsProvider: 'text',
+      commands: {
+        pr: {
+          contentProvider: 'github',
+          requirementsProvider: 'text',
         },
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: false,
-        llm: {} as BaseChatModel,
-      } as SlothConfig,
-    };
+        review: {
+          requirementsProvider: 'text',
+          contentProvider: 'text',
+        },
+      },
+      projectGuidelines: '.gsloth.guidelines.md',
+      projectReviewInstructions: '.gsloth.review.md',
+      streamOutput: false,
+      llm: {} as BaseChatModel,
+    } as SlothConfig;
 
     // Mock the gh provider
     const ghProvider = vi.fn().mockResolvedValue('PR Diff Content');
@@ -335,14 +323,14 @@ describe('reviewCommand', () => {
       get: ghProvider,
     }));
 
-    await reviewCommand(program, context);
+    await reviewCommand(program, config);
     await program.parseAsync(['na', 'na', 'pr', '123']);
 
     expect(review).toHaveBeenCalledWith(
       'PR-123',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
       'PR Diff Content',
-      expect.any(Object)
+      config
     );
   });
 });

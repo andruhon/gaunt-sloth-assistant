@@ -27,7 +27,7 @@ const config = await initConfig();
 
 // Initialize commands with config object through prop drilling
 initCommand(program);
-reviewCommand(program, { config });
+reviewCommand(program, config);
 askCommand(program);
 // TODO add general interactive chat command
 

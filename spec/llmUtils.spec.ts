@@ -9,7 +9,6 @@ describe('reviewModule', () => {
   });
 
   it('should invoke LLM (internal)', async () => {
-    // Setup mock for slothContext
     let aiMessageChunk = new AIMessageChunk({
       content: 'First LLM message',
       name: 'AIMessageChunk',

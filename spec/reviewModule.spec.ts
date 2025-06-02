@@ -82,9 +82,6 @@ const mockConfig = {
 // Mock config module
 vi.mock('#src/config.js', () => ({
   SlothConfig: {},
-  slothContext: {
-    config: mockConfig,
-  },
 }));
 
 describe('reviewModule', () => {
