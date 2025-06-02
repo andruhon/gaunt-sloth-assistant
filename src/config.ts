@@ -112,6 +112,7 @@ export async function initConfig(): Promise<SlothConfig> {
         error(`${jsonConfigPath} is not in valid format. Should at least define llm.type`);
         exit(1);
         // noinspection ExceptionCaughtLocallyJS
+        // This throw is unreachable due to exit(1) above, but satisfies TS type analysis and prevents tests from exiting
         throw new Error('Unexpected error occurred.');
       }
     } catch (e) {
@@ -171,6 +172,7 @@ async function tryMjsConfig(): Promise<SlothConfig> {
     );
     exit(1);
   }
+  // This throw is unreachable due to exit(1) above, but satisfies TS type analysis and prevents tests from exiting
   throw new Error('Unexpected error occurred.');
 }
 
@@ -212,6 +214,7 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<SlothCo
     }
     exit(1);
   }
+  // This throw is unreachable due to exit(1) above, but satisfies TS type analysis and prevents tests from exiting
   throw new Error('Unexpected error occurred.');
 }
 
