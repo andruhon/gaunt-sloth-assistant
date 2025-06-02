@@ -77,6 +77,11 @@ describe('config', async () => {
         return '';
       });
 
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
       // Mock the vertexai config module to process the config
       vi.doMock('#src/configs/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
@@ -108,11 +113,10 @@ describe('config', async () => {
     });
 
     it('Should try JS config when JSON config does not exist', async () => {
-      const mockConfigModule = {
-        configure: vi.fn(),
-      };
       const mockConfig = { llm: { type: 'anthropic' } };
-      mockConfigModule.configure.mockResolvedValue(mockConfig);
+      const mockConfigModule = {
+        configure: vi.fn().mockResolvedValue(mockConfig),
+      };
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -120,9 +124,16 @@ describe('config', async () => {
         return path && path.includes('.gsloth.config.js');
       });
 
-      // Mock the import function
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the import function - ensure it resolves successfully for JS config
       utilsMock.importExternalFile.mockImplementation((path: string) => {
-        if (path.includes('.gsloth.config.js')) return Promise.resolve(mockConfigModule);
+        if (path.includes('.gsloth.config.js')) {
+          return Promise.resolve(mockConfigModule);
+        }
         return Promise.reject(new Error('Not found'));
       });
 
@@ -163,6 +174,11 @@ describe('config', async () => {
         if (path && path.includes('.gsloth.config.json')) return false;
         if (path && path.includes('.gsloth.config.js')) return false;
         return path && path.includes('.gsloth.config.mjs');
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
       });
 
       // Mock the import function
