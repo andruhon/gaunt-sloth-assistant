@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaunt Sloth AI Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #fff;
+            margin-top: 48px;
+            padding: 32px 24px 24px 24px;
+            border-radius: 16px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .logo {
+            max-width: 140px;
+            margin-bottom: 24px;
+        }
+        h1 {
+            margin-bottom: 8px;
+            font-size: 2.4rem;
+            color: #2d3748;
+        }
+        p {
+            color: #444;
+            font-size: 1.15rem;
+            margin-bottom: 18px;
+        }
+        a.github-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        a.github-link:hover {
+            text-decoration: underline;
+        }
+        .features {
+            text-align: left;
+            margin: 24px auto 0 auto;
+            padding-left: 0;
+            max-width: 500px;
+        }
+        .features li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="gaunt-sloth-logo.png" alt="Gaunt Sloth Logo" class="logo">
+        <h1>Gaunt Sloth AI Assistant</h1>
+        <p>
+            Gaunt Sloth Assistant is a lightweight <strong>command line AI assistant</strong> for software developers, designed to enhance code review quality while reducing cognitive load and time investment on <strong>code reviews</strong> and pull request diff analysis.<br>
+            <a class="github-link" href="https://github.com/andruhon/gaunt-sloth-assistant" target="_blank" rel="noopener">View on GitHub</a>
+        </p>
+        <ul class="features">
+            <li>Reviews code and suggests bug fixes</li>
+            <li>Explains provided code</li>
+            <li>Reviews diffs and pull requests</li>
+            <li>Fetches requirements from GitHub issues or Jira</li>
+            <li>Answers questions about code</li>
+            <li>Writes code and saves responses in markdown</li>
+            <li>Provider flexibility: choose between Vertex AI, Anthropic, Groq</li>
+            <li>Open-source transparency, no vendor lock-in</li>
+            <li>Command-line integration and extensibility</li>
+            <li>Specialized for code review and PR analysis</li>
+            <li>Supports Model Context Protocol (MCP)</li>
+            <li>Cost effective and efficient</li>
+        </ul>
+    </div>
+</body>
+</html>
