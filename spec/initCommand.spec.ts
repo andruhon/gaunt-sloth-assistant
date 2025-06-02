@@ -10,16 +10,6 @@ vi.mock('#src/config.js', () => ({
   availableDefaultConfigs: ['vertexai', 'anthropic', 'groq'],
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
-  slothContext: {
-    installDir: '/mock/install/dir',
-    currentDir: '/mock/current/dir',
-    config: {},
-    session: {
-      configurable: {
-        thread_id: 'test-thread',
-      },
-    },
-  },
 }));
 
 describe('initCommand', () => {

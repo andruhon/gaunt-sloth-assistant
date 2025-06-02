@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
-import type { SlothContext } from '#src/config.js';
-import { SlothConfig } from '#src/config.js';
+import type { SlothConfig } from '#src/config.js';
 
 // Mock fs module
 const fsMock = {
@@ -62,19 +61,27 @@ const llmUtilsMock = {
 };
 vi.mock('#src/llmUtils.js', () => llmUtilsMock);
 
-// Create a mock slothContext
-const mockSlothContext = {
-  config: {
-    llm: new FakeListChatModel({
-      responses: ['LLM Review Response'],
-    }),
-  } as Partial<SlothConfig>,
-  stdin: '',
-} as SlothContext;
+// Create a complete mock config for prop drilling
+const mockConfig = {
+  llm: new FakeListChatModel({
+    responses: ['LLM Review Response'],
+  }),
+  contentProvider: 'file',
+  requirementsProvider: 'file',
+  projectGuidelines: '.gsloth.guidelines.md',
+  projectReviewInstructions: '.gsloth.review.md',
+  streamOutput: false,
+  commands: {
+    pr: {
+      contentProvider: 'github',
+      requirementsProvider: 'github',
+    },
+  },
+} as SlothConfig;
 
 // Mock config module
 vi.mock('#src/config.js', () => ({
-  slothContext: mockSlothContext,
+  SlothConfig: {},
 }));
 
 describe('reviewModule', () => {
@@ -85,7 +92,7 @@ describe('reviewModule', () => {
     utilsMock.generateStandardFileName.mockReturnValue('gth_2025-05-17_21-00-00_REVIEW.md');
     // Setup both the top-level resolve and the default.resolve functions
     const resolveMock = (path: string, name: string) => {
-      if (name.includes('gth_')) return 'test-review-file-path.md';
+      if (name && name.includes('gth_')) return 'test-review-file-path.md';
       return '';
     };
     pathMock.resolve.mockImplementation(resolveMock);
@@ -98,19 +105,19 @@ describe('reviewModule', () => {
     llmUtilsMock.invoke.mockResolvedValue('LLM Review Response');
   });
 
-  it('should invoke LLM and write review to file', async () => {
+  it('should invoke LLM and write review to file using prop drilling', async () => {
     // Import the module after setting up mocks
     const { review } = await import('#src/modules/reviewModule.js');
 
-    // Call review function
-    await review('test-source', 'test-preamble', 'test-diff');
+    // Call review function with config (prop drilling)
+    await review('test-source', 'test-preamble', 'test-diff', mockConfig);
 
     // Verify that invoke was called with correct parameters
     expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      mockSlothContext.config.llm,
+      mockConfig.llm,
       'test-preamble',
       'test-diff',
-      mockSlothContext.config
+      mockConfig
     );
 
     // Verify that writeFileSync was called
@@ -131,7 +138,7 @@ describe('reviewModule', () => {
     expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
   });
 
-  it('should handle file write errors', async () => {
+  it('should handle file write errors with prop drilling', async () => {
     // Mock file write to throw an error
     const error = new Error('File write error');
     fsMock.writeFileSync.mockImplementation(() => {
@@ -141,8 +148,8 @@ describe('reviewModule', () => {
     // Import the module after setting up mocks
     const { review } = await import('#src/modules/reviewModule.js');
 
-    // Call the function and wait for it to complete
-    await review('test-source', 'test-preamble', 'test-diff');
+    // Call the function with config (prop drilling) and wait for it to complete
+    await review('test-source', 'test-preamble', 'test-diff', mockConfig);
 
     // Verify error message was displayed
     expect(consoleUtilsMock.displayDebug).toHaveBeenCalled();
@@ -152,5 +159,43 @@ describe('reviewModule', () => {
 
     // Verify that ProgressIndicator.stop() was called even with error
     expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
+  });
+
+  // Specific test to verify that prop drilling works with different config objects
+  it('should work with different config objects via prop drilling', async () => {
+    // Create a different config object to prove prop drilling works
+    const differentConfig = {
+      ...mockConfig,
+      streamOutput: true, // Different from default mockConfig
+      llm: new FakeListChatModel({
+        responses: ['Different LLM Response'],
+      }),
+    } as SlothConfig;
+
+    // Set a different response for this specific test
+    llmUtilsMock.invoke.mockResolvedValue('Different LLM Response');
+
+    // Import the module after setting up mocks
+    const { review } = await import('#src/modules/reviewModule.js');
+
+    // Call review with the different config to prove prop drilling works
+    await review('test-source', 'test-preamble', 'test-diff', differentConfig);
+
+    // Verify the different config was used
+    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
+      differentConfig.llm,
+      'test-preamble',
+      'test-diff',
+      differentConfig
+    );
+
+    // Verify the output matches what we expect
+    expect(fsMock.writeFileSync).toHaveBeenCalledWith(
+      'test-review-file-path.md',
+      'Different LLM Response'
+    );
+
+    // Since streamOutput is true, display should not be called
+    expect(consoleUtilsMock.display).not.toHaveBeenCalled();
   });
 });
