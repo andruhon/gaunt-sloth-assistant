@@ -42,6 +42,12 @@ const systemUtilsMock = {
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
+const filePathUtilsMock = {
+  getGslothConfigReadPath: vi.fn().mockImplementation((path: string) => `/mock/read/${path}`),
+  getGslothConfigWritePath: vi.fn().mockImplementation((path: string) => `/mock/write/${path}`),
+};
+vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
+
 describe('config', async () => {
   beforeEach(async () => {
     // Reset mocks
@@ -64,10 +70,10 @@ describe('config', async () => {
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
-        return path.includes('.gsloth.config.json');
+        return path && path.includes('.gsloth.config.json');
       });
       fsMock.readFileSync.mockImplementation((path: string) => {
-        if (path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
         return '';
       });
 
@@ -110,8 +116,8 @@ describe('config', async () => {
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
-        if (path.includes('.gsloth.config.json')) return false;
-        return path.includes('.gsloth.config.js');
+        if (path && path.includes('.gsloth.config.json')) return false;
+        return path && path.includes('.gsloth.config.js');
       });
 
       // Mock the import function
@@ -154,9 +160,9 @@ describe('config', async () => {
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
-        if (path.includes('.gsloth.config.json')) return false;
-        if (path.includes('.gsloth.config.js')) return false;
-        return path.includes('.gsloth.config.mjs');
+        if (path && path.includes('.gsloth.config.json')) return false;
+        if (path && path.includes('.gsloth.config.js')) return false;
+        return path && path.includes('.gsloth.config.mjs');
       });
 
       // Mock the import function
@@ -403,6 +409,117 @@ describe('config', async () => {
         'LLM type not specified in config.'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('createProjectConfig', () => {
+    it('Should create project config for valid config type', async () => {
+      const configType = 'vertexai';
+      const mockInit = vi.fn();
+
+      // Mock the vertexai config module
+      vi.doMock('#src/configs/vertexai.js', () => ({
+        init: mockInit,
+      }));
+
+      // Ensure the filePathUtils mock is properly set for different files
+      filePathUtilsMock.getGslothConfigWritePath.mockImplementation(
+        (filename: string) => `/mock/write/${filename}`
+      );
+
+      const { createProjectConfig } = await import('#src/config.js');
+
+      await createProjectConfig(configType);
+
+      // Verify displayInfo was called
+      expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith('Setting up your project\n');
+      expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith(
+        'Creating project config for vertexai'
+      );
+
+      // Verify displayWarning was called
+      expect(consoleUtilsMock.displayWarning).toHaveBeenCalledWith(
+        'Make sure you add as much detail as possible to your .gsloth.guidelines.md.\n'
+      );
+
+      // Verify init was called with correct parameters
+      expect(mockInit).toHaveBeenCalledWith('/mock/write/.gsloth.config.json');
+
+      // Verify writeFileIfNotExistsWithMessages was called for guidelines and review instructions
+      expect(utilsMock.writeFileIfNotExistsWithMessages).toHaveBeenCalledTimes(2);
+      expect(utilsMock.writeFileIfNotExistsWithMessages).toHaveBeenCalledWith(
+        '/mock/write/.gsloth.guidelines.md',
+        expect.stringContaining('# Development Guidelines')
+      );
+      expect(utilsMock.writeFileIfNotExistsWithMessages).toHaveBeenCalledWith(
+        '/mock/write/.gsloth.review.md',
+        expect.stringContaining('# Code Review Guidelines')
+      );
+    });
+
+    it('Should handle invalid config type', async () => {
+      const configType = 'invalid-config';
+
+      const { createProjectConfig } = await import('#src/config.js');
+
+      try {
+        await createProjectConfig(configType);
+        // Should not reach here
+        expect(true).toBe(false);
+      } catch {
+        // Expected to throw
+      }
+
+      expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq'
+      );
+      expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
+
+    it('Should create project config for anthropic', async () => {
+      const configType = 'anthropic';
+      const mockInit = vi.fn();
+
+      // Mock the anthropic config module
+      vi.doMock('#src/configs/anthropic.js', () => ({
+        init: mockInit,
+      }));
+
+      // Ensure the filePathUtils mock is properly set for different files
+      filePathUtilsMock.getGslothConfigWritePath.mockImplementation(
+        (filename: string) => `/mock/write/${filename}`
+      );
+
+      const { createProjectConfig } = await import('#src/config.js');
+
+      await createProjectConfig(configType);
+
+      expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith(
+        'Creating project config for anthropic'
+      );
+      expect(mockInit).toHaveBeenCalledWith('/mock/write/.gsloth.config.json');
+    });
+
+    it('Should create project config for groq', async () => {
+      const configType = 'groq';
+      const mockInit = vi.fn();
+
+      // Mock the groq config module
+      vi.doMock('#src/configs/groq.js', () => ({
+        init: mockInit,
+      }));
+
+      // Ensure the filePathUtils mock is properly set for different files
+      filePathUtilsMock.getGslothConfigWritePath.mockImplementation(
+        (filename: string) => `/mock/write/${filename}`
+      );
+
+      const { createProjectConfig } = await import('#src/config.js');
+
+      await createProjectConfig(configType);
+
+      expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith('Creating project config for groq');
+      expect(mockInit).toHaveBeenCalledWith('/mock/write/.gsloth.config.json');
     });
   });
 });

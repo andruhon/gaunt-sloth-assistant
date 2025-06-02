@@ -230,8 +230,7 @@ export async function createProjectConfig(configType: string): Promise<void> {
 
   displayInfo(`Creating project config for ${configType}`);
   const vendorConfig = await import(`./configs/${configType}.js`);
-  const defaultConfig = getDefaultConfig();
-  vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON), { config: defaultConfig });
+  vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON));
 }
 
 export function writeProjectReviewPreamble(): void {
