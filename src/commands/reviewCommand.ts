@@ -44,7 +44,7 @@ interface PrCommandOptions {
   requirementsProvider?: RequirementsProviderType;
 }
 
-export function reviewCommand(program: Command, config: SlothConfig): void {
+export function reviewCommand(program: Command): void {
   program
     .command('review')
     .description('Review provided diff or other content')
@@ -74,7 +74,7 @@ export function reviewCommand(program: Command, config: SlothConfig): void {
     .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
-      await initConfig(); // Initialize config but we use config directly
+      const config = await initConfig(); // Initialize and get config
       const systemMessage = [
         readBackstory(),
         readGuidelines(config.projectGuidelines),
@@ -92,12 +92,16 @@ export function reviewCommand(program: Command, config: SlothConfig): void {
         (config?.contentProvider as ContentProviderType | undefined);
 
       // TODO consider calling these in parallel
-      const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
+      const requirements = await getRequirementsFromProvider(
+        requirementsProvider,
+        requirementsId,
+        config
+      );
       if (requirements) {
         content.push(requirements);
       }
 
-      const providedContent = await getContentFromProvider(contentProvider, contentId);
+      const providedContent = await getContentFromProvider(contentProvider, contentId, config);
       if (providedContent) {
         content.push(providedContent);
       }
@@ -140,7 +144,7 @@ export function reviewCommand(program: Command, config: SlothConfig): void {
     )
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
-      await initConfig(); // Initialize config but we use config directly
+      const config = await initConfig(); // Initialize and get config
 
       const systemMessage = [
         readBackstory(),
@@ -154,7 +158,11 @@ export function reviewCommand(program: Command, config: SlothConfig): void {
         (config?.requirementsProvider as RequirementsProviderType | undefined);
 
       // Handle requirements
-      const requirements = await getRequirementsFromProvider(requirementsProvider, requirementsId);
+      const requirements = await getRequirementsFromProvider(
+        requirementsProvider,
+        requirementsId,
+        config
+      );
       if (requirements) {
         content.push(requirements);
       }
@@ -176,7 +184,8 @@ export function reviewCommand(program: Command, config: SlothConfig): void {
 
   async function getRequirementsFromProvider(
     requirementsProvider: RequirementsProviderType | undefined,
-    requirementsId: string | undefined
+    requirementsId: string | undefined,
+    config: SlothConfig
   ): Promise<string> {
     return getFromProvider(
       requirementsProvider,
@@ -188,7 +197,8 @@ export function reviewCommand(program: Command, config: SlothConfig): void {
 
   async function getContentFromProvider(
     contentProvider: ContentProviderType | undefined,
-    contentId: string | undefined
+    contentId: string | undefined,
+    config: SlothConfig
   ): Promise<string> {
     return getFromProvider(
       contentProvider,

@@ -207,7 +207,7 @@ describe('config', async () => {
       try {
         await initConfig();
       } catch {
-        // the mock exit does not actually exit, so we reach to unexpected error
+        // the mock exit does not exit, so we reach to unexpected error
       }
 
       // It is easier to debug if messages checked first
