@@ -88,7 +88,7 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
 };
 
 // Creating a default config instance
-export const createDefaultConfig = (): SlothConfig => {
+export const getDefaultConfig = (): SlothConfig => {
   // We need to cast here because DEFAULT_CONFIG is a Partial<SlothConfig>
   return { ...DEFAULT_CONFIG } as SlothConfig;
 };
@@ -100,7 +100,7 @@ export const createDefaultConfig = (): SlothConfig => {
 export async function initConfig(): Promise<SlothConfig> {
   const jsonConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JSON);
 
-  // Try loading JSON config file first
+  // Try loading the JSON config file first
   if (existsSync(jsonConfigPath)) {
     try {
       // TODO makes sense to employ ZOD to validate config
@@ -111,7 +111,8 @@ export async function initConfig(): Promise<SlothConfig> {
       } else {
         error(`${jsonConfigPath} is not in valid format. Should at least define llm.type`);
         exit(1);
-        return createDefaultConfig(); // This line will never be reached due to exit
+        // noinspection ExceptionCaughtLocallyJS
+        throw new Error('Unexpected error occurred.');
       }
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
@@ -160,7 +161,6 @@ async function tryMjsConfig(): Promise<SlothConfig> {
       displayError(`Failed to read config from ${USER_PROJECT_CONFIG_MJS}.`);
       displayError(`No valid configuration found. Please create a valid configuration file.`);
       exit(1);
-      return createDefaultConfig(); // This line will never be reached due to exit
     }
   } else {
     // No config files found
@@ -170,8 +170,8 @@ async function tryMjsConfig(): Promise<SlothConfig> {
         'in your project directory.'
     );
     exit(1);
-    return createDefaultConfig(); // This line will never be reached due to exit
   }
+  throw new Error('Unexpected error occurred.');
 }
 
 /**
@@ -212,7 +212,7 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<SlothCo
     }
     exit(1);
   }
-  return createDefaultConfig(); // This line will never be reached due to the exit calls
+  throw new Error('Unexpected error occurred.');
 }
 
 export async function createProjectConfig(configType: string): Promise<void> {
@@ -224,9 +224,13 @@ export async function createProjectConfig(configType: string): Promise<void> {
     exit(1);
   }
 
+  displayInfo(`Setting up your project\n`);
+  writeProjectReviewPreamble();
+  displayWarning(`Make sure you add as much detail as possible to your ${PROJECT_GUIDELINES}.\n`);
+
   displayInfo(`Creating project config for ${configType}`);
   const vendorConfig = await import(`./configs/${configType}.js`);
-  const defaultConfig = createDefaultConfig();
+  const defaultConfig = getDefaultConfig();
   vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON), { config: defaultConfig });
 }
 

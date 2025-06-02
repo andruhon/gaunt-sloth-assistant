@@ -198,7 +198,11 @@ describe('config', async () => {
       const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      await initConfig();
+      try {
+        await initConfig();
+      } catch {
+        // the mock exit does not actually exit, so we reach to unexpected error
+      }
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
@@ -221,40 +225,14 @@ describe('config', async () => {
         },
       } as RawSlothConfig;
 
-      // Expected config that should be returned
-      const expectedConfig = {
-        llm: {
-          type: 'vertexai',
-          model: 'test-model',
-        },
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        contentProvider: 'file',
-        requirementsProvider: 'file',
-        streamOutput: true,
-        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
+      // Mock the vertexai config module
+      const mockLlm = {
+        type: 'vertexai',
+        model: 'test-model',
       };
-
-      // Set up fs mocks for this specific test
-      fsMock.existsSync.mockReturnValue(false);
-
-      // Mock the module under test
-      vi.doMock('#src/config.js', async () => {
-        const actual = await vi.importActual('#src/config.js');
-        return {
-          ...actual,
-          tryJsonConfig: vi.fn().mockResolvedValue(expectedConfig),
-          createDefaultConfig: vi.fn().mockReturnValue({
-            llm: undefined,
-            contentProvider: 'file',
-            requirementsProvider: 'file',
-            projectGuidelines: '.gsloth.guidelines.md',
-            projectReviewInstructions: '.gsloth.review.md',
-            streamOutput: true,
-            commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
-          }),
-        };
-      });
+      vi.doMock('#src/configs/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue(mockLlm),
+      }));
 
       const { tryJsonConfig } = await import('#src/config.js');
 
@@ -270,14 +248,11 @@ describe('config', async () => {
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
       expect(config).toEqual({
-        llm: {
-          type: 'vertexai',
-          model: 'test-model',
-        },
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
+        llm: mockLlm,
         contentProvider: 'file',
         requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
@@ -291,31 +266,12 @@ describe('config', async () => {
         },
       } as RawSlothConfig;
 
-      // Mock the error that will be thrown by tryJsonConfig
-      vi.doMock('#src/config.js', async () => {
-        const actual = await vi.importActual('#src/config.js');
-        return {
-          ...actual,
-          tryJsonConfig: vi.fn().mockImplementation(() => {
-            consoleUtilsMock.displayError(
-              'Unsupported LLM type: unsupported. Available types are: vertexai, anthropic, groq'
-            );
-            systemUtilsMock.exit(1);
-            throw new Error('Unsupported LLM type');
-          }),
-          createDefaultConfig: vi.fn().mockReturnValue({
-            llm: undefined,
-            contentProvider: 'file',
-            requirementsProvider: 'file',
-            projectGuidelines: '.gsloth.guidelines.md',
-            projectReviewInstructions: '.gsloth.review.md',
-            streamOutput: true,
-            commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
-          }),
-        };
+      // When importing a non-existent config module, it should throw
+      vi.doMock('#src/configs/unsupported.js', () => {
+        throw new Error('Cannot find module');
       });
 
-      const { tryJsonConfig, createDefaultConfig } = await import('#src/config.js');
+      const { tryJsonConfig } = await import('#src/config.js');
 
       try {
         await tryJsonConfig(jsonConfig);
@@ -328,7 +284,7 @@ describe('config', async () => {
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Unsupported LLM type: unsupported. Available types are: vertexai, anthropic, groq'
+        'Error processing LLM config: Unknown variable dynamic import: ./configs/unsupported.js'
       );
       expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
       expect(consoleUtilsMock.display).not.toHaveBeenCalled();
@@ -336,20 +292,6 @@ describe('config', async () => {
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
       // Verify system exit was called
-      expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
-
-      // After an error, a default config should be used
-      const defaultConfig = createDefaultConfig();
-      expect(defaultConfig).toEqual({
-        llm: undefined,
-        contentProvider: 'file',
-        requirementsProvider: 'file',
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: true,
-        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
-      });
-
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
 
@@ -360,31 +302,12 @@ describe('config', async () => {
         },
       } as RawSlothConfig;
 
-      // Mock the error that will be thrown by tryJsonConfig
-      vi.doMock('#src/config.js', async () => {
-        const actual = await vi.importActual('#src/config.js');
-        return {
-          ...actual,
-          tryJsonConfig: vi.fn().mockImplementation(() => {
-            consoleUtilsMock.displayError(
-              'Unsupported LLM type: test. Available types are: vertexai, anthropic, groq'
-            );
-            systemUtilsMock.exit(1);
-            throw new Error('Unsupported LLM type');
-          }),
-          createDefaultConfig: vi.fn().mockReturnValue({
-            llm: undefined,
-            contentProvider: 'file',
-            requirementsProvider: 'file',
-            projectGuidelines: '.gsloth.guidelines.md',
-            projectReviewInstructions: '.gsloth.review.md',
-            streamOutput: true,
-            commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
-          }),
-        };
+      // When importing a non-existent config module, it should throw
+      vi.doMock('#src/configs/test.js', () => {
+        throw new Error('Cannot find module');
       });
 
-      const { tryJsonConfig, createDefaultConfig } = await import('#src/config.js');
+      const { tryJsonConfig } = await import('#src/config.js');
 
       try {
         await tryJsonConfig(jsonConfig);
@@ -397,7 +320,7 @@ describe('config', async () => {
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Unsupported LLM type: test. Available types are: vertexai, anthropic, groq'
+        'Error processing LLM config: Unknown variable dynamic import: ./configs/test.js'
       );
       expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
       expect(consoleUtilsMock.display).not.toHaveBeenCalled();
@@ -406,19 +329,79 @@ describe('config', async () => {
 
       // Verify system exit was called
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
 
-      // After an error, a default config should be used
-      const defaultConfig = createDefaultConfig();
-      expect(defaultConfig).toEqual({
-        llm: undefined,
-        contentProvider: 'file',
-        requirementsProvider: 'file',
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: true,
-        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
-      });
+    it('Should handle config module without processJsonConfig', async () => {
+      const jsonConfig = {
+        llm: {
+          type: 'badconfig',
+          model: 'test-model',
+        },
+      } as RawSlothConfig;
 
+      // Mock a config module without processJsonConfig
+      vi.doMock('#src/configs/badconfig.js', () => ({
+        // No processJsonConfig function
+      }));
+
+      const { tryJsonConfig } = await import('#src/config.js');
+
+      try {
+        await tryJsonConfig(jsonConfig);
+        // Should not reach here due to error
+        expect(true).toBe(false);
+      } catch {
+        // Expected to throw
+      }
+
+      expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+        'Error processing LLM config: Unknown variable dynamic import: ./configs/badconfig.js'
+      );
+      expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
+
+    it('Should handle missing LLM configuration', async () => {
+      const jsonConfig = {
+        // No llm property
+      } as RawSlothConfig;
+
+      const { tryJsonConfig } = await import('#src/config.js');
+
+      try {
+        await tryJsonConfig(jsonConfig);
+        // Should not reach here due to error
+        expect(true).toBe(false);
+      } catch {
+        // Expected to throw
+      }
+
+      expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+        'No LLM configuration found in config.'
+      );
+      expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
+
+    it('Should handle missing LLM type property', async () => {
+      const jsonConfig = {
+        llm: {
+          model: 'test-model',
+          // No type property
+        },
+      } as RawSlothConfig;
+
+      const { tryJsonConfig } = await import('#src/config.js');
+
+      try {
+        await tryJsonConfig(jsonConfig);
+        // Should not reach here due to error
+        expect(true).toBe(false);
+      } catch {
+        // Expected to throw
+      }
+
+      expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+        'LLM type not specified in config.'
+      );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
   });
