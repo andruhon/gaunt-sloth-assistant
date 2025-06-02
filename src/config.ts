@@ -99,8 +99,6 @@ export const createDefaultConfig = (): SlothConfig => {
  */
 export async function initConfig(): Promise<SlothConfig> {
   const jsonConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JSON);
-  const _jsConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
-  const _mjsConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
 
   // Try loading JSON config file first
   if (existsSync(jsonConfigPath)) {
@@ -274,11 +272,4 @@ Important! You are likely to be dealing with git diff below, please don't confus
 
   writeFileIfNotExistsWithMessages(guidelinesPath, guidelinesTemplate);
   writeFileIfNotExistsWithMessages(reviewPath, reviewTemplate);
-}
-
-/**
- * For testing purposes only
- */
-export function reset(): SlothConfig {
-  return { ...DEFAULT_CONFIG } as SlothConfig;
 }

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { RawSlothConfig } from '#src/config.js';
 
 // Define mocks at top level
 const consoleUtilsMock = {
@@ -84,7 +83,7 @@ describe('predefined AI provider configurations', () => {
     });
 
     const { initConfig } = await import('#src/config.js');
-    
+
     // Call the function
     const config = await initConfig();
 
@@ -142,7 +141,7 @@ describe('predefined AI provider configurations', () => {
     });
 
     const { initConfig } = await import('#src/config.js');
-    
+
     // Call the function
     const config = await initConfig();
 
@@ -200,7 +199,7 @@ describe('predefined AI provider configurations', () => {
     });
 
     const { initConfig } = await import('#src/config.js');
-    
+
     // Call the function
     const config = await initConfig();
 

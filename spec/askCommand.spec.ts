@@ -44,18 +44,26 @@ vi.mock('#src/modules/questionAnsweringModule.js', () => questionAnsweringModule
 vi.mock('#src/systemUtils.js', () => ({
   getStringFromStdin: vi.fn().mockReturnValue(''),
 }));
-vi.mock('#src/config.js', () => ({
+const configMock = {
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   PROJECT_GUIDELINES: '.gsloth.guidelines.md',
   PROJECT_REVIEW_INSTRUCTIONS: '.gsloth.review.md',
-  initConfig: vi.fn().mockResolvedValue(mockConfig),
-  createDefaultConfig: vi.fn().mockReturnValue(mockConfig),
-}));
+  initConfig: vi.fn(),
+  createDefaultConfig: vi.fn(),
+};
+
+vi.mock('#src/config.js', () => configMock);
 vi.mock('#src/utils.js', () => utilsMock);
 
 describe('askCommand', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetModules();
+
+    // Set up config mock
+    configMock.initConfig.mockResolvedValue(mockConfig);
+    configMock.createDefaultConfig.mockReturnValue(mockConfig);
 
     // Mock the util functions
     utilsMock.readMultipleFilesFromCurrentDir.mockImplementation((files: string[]) => {
@@ -79,33 +87,33 @@ describe('askCommand', () => {
   it('Should call askQuestion with message', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    await askCommand(program);
+    askCommand(program);
     await program.parseAsync(['na', 'na', 'ask', 'test message']);
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test message',
-      expect.any(Object)
+      mockConfig
     );
   });
 
   it('Should call askQuestion with message and file content', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    await askCommand(program);
+    askCommand(program);
     await program.parseAsync(['na', 'na', 'ask', 'test message', '-f', 'test.file']);
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test.file:\n```\nFILE CONTENT\n```\ntest message',
-      expect.any(Object)
+      mockConfig
     );
   });
 
   it('Should call askQuestion with message and multiple file contents', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    await askCommand(program);
+    askCommand(program);
     utilsMock.readMultipleFilesFromCurrentDir.mockImplementation((files: string[]) => {
       if (files.includes('test.file') && files.includes('test2.file')) {
         return 'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```';
@@ -117,14 +125,14 @@ describe('askCommand', () => {
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```\ntest message',
-      expect.any(Object)
+      mockConfig
     );
   });
 
   it('Should display help correctly', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    await askCommand(program);
+    askCommand(program);
     expect(program.commands[0].name()).toEqual('ask');
     expect(program.commands[0].description()).toEqual('Ask a question');
   });
@@ -132,13 +140,13 @@ describe('askCommand', () => {
   it('Should call askQuestion with file content only (no message)', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    await askCommand(program);
+    askCommand(program);
     await program.parseAsync(['na', 'na', 'ask', '-f', 'test.file']);
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test.file:\n```\nFILE CONTENT\n```',
-      expect.any(Object)
+      mockConfig
     );
   });
 
@@ -148,13 +156,13 @@ describe('askCommand', () => {
 
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    await askCommand(program);
+    askCommand(program);
     await program.parseAsync(['na', 'na', 'ask']);
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'STDIN CONTENT',
-      expect.any(Object)
+      mockConfig
     );
   });
 
@@ -164,7 +172,7 @@ describe('askCommand', () => {
 
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    await askCommand(program);
+    askCommand(program);
 
     await expect(program.parseAsync(['na', 'na', 'ask'])).rejects.toThrow(
       'At least one of the following is required: file, stdin, or message'

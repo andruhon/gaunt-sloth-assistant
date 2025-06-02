@@ -46,6 +46,8 @@ describe('config', async () => {
   beforeEach(async () => {
     // Reset mocks
     vi.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetModules();
     // Reset and set up systemUtils mocks
     systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
     systemUtilsMock.getInstallDir.mockReturnValue('/mock/install/dir');
@@ -59,17 +61,6 @@ describe('config', async () => {
           type: 'vertexai',
         },
       } as RawSlothConfig;
-      
-      // Expected config that should be returned
-      const expectedConfig = {
-        llm: { type: 'vertexai' },
-        contentProvider: 'file',
-        requirementsProvider: 'file',
-        projectGuidelines: '.gsloth.guidelines.md',
-        projectReviewInstructions: '.gsloth.review.md',
-        streamOutput: true,
-        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
-      };
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -80,19 +71,10 @@ describe('config', async () => {
         return '';
       });
 
-      // Mock tryJsonConfig to return the expected config
-      const mockTryJsonConfig = vi.fn().mockResolvedValue(expectedConfig);
-      
-      // Mock the module under test
-      vi.doMock('#src/config.js', async () => {
-        const actual = await vi.importActual('#src/config.js');
-        return {
-          ...actual,
-          tryJsonConfig: mockTryJsonConfig,
-          reset: vi.fn(),
-          initConfig: async () => expectedConfig,
-        };
-      });
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/configs/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+      }));
 
       // Import the module under test
       const { initConfig } = await import('#src/config.js');
@@ -138,14 +120,8 @@ describe('config', async () => {
         return Promise.reject(new Error('Not found'));
       });
 
-      // Mock the anthropic config module
-      vi.mock('#src/configs/anthropic.js', () => ({
-        processJsonConfig: () => mockConfig,
-      }));
-
       // Import the module under test
-      const { initConfig, reset } = await import('#src/config.js');
-      reset();
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
       const config = await initConfig();
@@ -189,14 +165,8 @@ describe('config', async () => {
         return Promise.reject(new Error('Not found'));
       });
 
-      // Mock the groq config module
-      vi.mock('#src/configs/groq.js', () => ({
-        processJsonConfig: (v: any) => mockConfig,
-      }));
-
       // Import the module under test
-      const { initConfig, reset } = await import('#src/config.js');
-      reset();
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
       const config = await initConfig();
@@ -225,11 +195,10 @@ describe('config', async () => {
       fsMock.existsSync.mockReturnValue(false);
 
       // Import the module under test
-      const { initConfig, reset } = await import('#src/config.js');
-      reset();
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      await initConfig();
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
@@ -251,7 +220,7 @@ describe('config', async () => {
           model: 'test-model',
         },
       } as RawSlothConfig;
-      
+
       // Expected config that should be returned
       const expectedConfig = {
         llm: {
@@ -274,7 +243,6 @@ describe('config', async () => {
         const actual = await vi.importActual('#src/config.js');
         return {
           ...actual,
-          reset: vi.fn(),
           tryJsonConfig: vi.fn().mockResolvedValue(expectedConfig),
           createDefaultConfig: vi.fn().mockReturnValue({
             llm: undefined,
@@ -323,18 +291,15 @@ describe('config', async () => {
         },
       } as RawSlothConfig;
 
-      const { tryJsonConfig, reset, createDefaultConfig } = await import('#src/config.js');
-      reset();
-
-      // Function under test
       // Mock the error that will be thrown by tryJsonConfig
       vi.doMock('#src/config.js', async () => {
         const actual = await vi.importActual('#src/config.js');
         return {
           ...actual,
-          reset: vi.fn(),
           tryJsonConfig: vi.fn().mockImplementation(() => {
-            consoleUtilsMock.displayError('Unsupported LLM type: unsupported. Available types are: vertexai, anthropic, groq');
+            consoleUtilsMock.displayError(
+              'Unsupported LLM type: unsupported. Available types are: vertexai, anthropic, groq'
+            );
             systemUtilsMock.exit(1);
             throw new Error('Unsupported LLM type');
           }),
@@ -356,7 +321,7 @@ describe('config', async () => {
         await tryJsonConfig(jsonConfig);
         // Should not reach here due to error
         expect(true).toBe(false);
-      } catch (e) {
+      } catch {
         // Expected to throw
       }
 
@@ -372,7 +337,7 @@ describe('config', async () => {
 
       // Verify system exit was called
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
-      
+
       // After an error, a default config should be used
       const defaultConfig = createDefaultConfig();
       expect(defaultConfig).toEqual({
@@ -395,18 +360,15 @@ describe('config', async () => {
         },
       } as RawSlothConfig;
 
-      const { tryJsonConfig, reset, createDefaultConfig } = await import('#src/config.js');
-      reset();
-
-      // Function under test
       // Mock the error that will be thrown by tryJsonConfig
       vi.doMock('#src/config.js', async () => {
         const actual = await vi.importActual('#src/config.js');
         return {
           ...actual,
-          reset: vi.fn(),
           tryJsonConfig: vi.fn().mockImplementation(() => {
-            consoleUtilsMock.displayError('Unsupported LLM type: test. Available types are: vertexai, anthropic, groq');
+            consoleUtilsMock.displayError(
+              'Unsupported LLM type: test. Available types are: vertexai, anthropic, groq'
+            );
             systemUtilsMock.exit(1);
             throw new Error('Unsupported LLM type');
           }),
@@ -428,7 +390,7 @@ describe('config', async () => {
         await tryJsonConfig(jsonConfig);
         // Should not reach here due to error
         expect(true).toBe(false);
-      } catch (e) {
+      } catch {
         // Expected to throw
       }
 
@@ -444,7 +406,7 @@ describe('config', async () => {
 
       // Verify system exit was called
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
-      
+
       // After an error, a default config should be used
       const defaultConfig = createDefaultConfig();
       expect(defaultConfig).toEqual({
