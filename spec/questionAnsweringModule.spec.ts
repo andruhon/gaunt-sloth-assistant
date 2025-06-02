@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import type { SlothConfig } from '#src/config.js';
+import { BaseMessage } from '@langchain/core/messages';
 
 // Mock fs module
 const fsMock = {
@@ -53,7 +54,7 @@ vi.mock('#src/utils.js', () => utilsMock);
 // Create a complete mock config for prop drilling
 const mockConfig = {
   llm: new FakeStreamingChatModel({
-    responses: ['LLM Response'],
+    responses: ['LLM Response' as unknown as BaseMessage],
   }),
   contentProvider: 'file',
   requirementsProvider: 'file',
@@ -99,9 +100,8 @@ describe('questionAnsweringModule', () => {
     // Reset the mock LLM for this test
     const testConfig = { ...mockConfig };
     testConfig.llm = new FakeStreamingChatModel({
-      responses: ['LLM Response'],
+      responses: ['LLM Response' as unknown as BaseMessage],
     });
-    // @ts-expect-error - bindTools is not in the type definition but is used in the implementation
     testConfig.llm.bindTools = vi.fn();
 
     // Import the module after setting up mocks
@@ -134,7 +134,7 @@ describe('questionAnsweringModule', () => {
   it('Should handle file write errors with prop drilling', async () => {
     const testConfig = { ...mockConfig };
     testConfig.llm = new FakeStreamingChatModel({
-      responses: ['LLM Response'],
+      responses: ['LLM Response' as unknown as BaseMessage],
     });
 
     // Mock file write to throw an error
@@ -166,7 +166,7 @@ describe('questionAnsweringModule', () => {
       ...mockConfig,
       streamOutput: true, // Different from default mockConfig
       llm: new FakeStreamingChatModel({
-        responses: ['Different LLM Response'],
+        responses: ['Different LLM Response' as unknown as BaseMessage],
       }),
     } as SlothConfig;
 
