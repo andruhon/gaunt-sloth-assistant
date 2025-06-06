@@ -1,5 +1,10 @@
 import { Command, Option } from 'commander';
-import { readBackstory, readGuidelines, readReviewInstructions } from '#src/prompt.js';
+import {
+  readBackstory,
+  readGuidelines,
+  readReviewInstructions,
+  readSystemPrompt,
+} from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import {
   REQUIREMENTS_PROVIDERS,
@@ -40,11 +45,15 @@ export function prCommand(program: Command): void {
       const { initConfig } = await import('#src/config.js');
       const config = await initConfig(); // Initialize and get config
 
+      const systemPrompt = readSystemPrompt();
       const systemMessage = [
         readBackstory(),
         readGuidelines(config.projectGuidelines),
         readReviewInstructions(config.projectReviewInstructions),
       ];
+      if (systemPrompt) {
+        systemMessage.push(systemPrompt);
+      }
       const content: string[] = [];
       const requirementsProvider =
         options.requirementsProvider ??
@@ -73,6 +82,6 @@ export function prCommand(program: Command): void {
       const { review } = await import('#src/modules/reviewModule.js');
       // TODO consider including requirements id
       // TODO sanitize prId
-      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'), config);
+      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'), config, 'pr');
     });
 }

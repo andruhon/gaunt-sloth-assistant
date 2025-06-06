@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { readBackstory, readGuidelines } from '#src/prompt.js';
+import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import { initConfig } from '#src/config.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
@@ -23,7 +23,11 @@ export function askCommand(program: Command): void {
     )
     .action(async (message: string, options: AskCommandOptions) => {
       const config = await initConfig();
+      const systemPrompt = readSystemPrompt();
       const preamble = [readBackstory(), readGuidelines(config.projectGuidelines)];
+      if (systemPrompt) {
+        preamble.push(systemPrompt);
+      }
       const content = [];
       if (options.file) {
         content.push(readMultipleFilesFromCurrentDir(options.file));

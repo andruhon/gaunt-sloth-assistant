@@ -9,10 +9,11 @@ export async function review(
   source: string,
   preamble: string,
   diff: string,
-  config: SlothConfig
+  config: SlothConfig,
+  command: 'pr' | 'review' = 'review'
 ): Promise<void> {
   const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Reviewing.');
-  const outputContent = await invoke(config.llm, preamble, diff, config);
+  const outputContent = await invoke(config.llm, preamble, diff, config, command);
   progressIndicator?.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);

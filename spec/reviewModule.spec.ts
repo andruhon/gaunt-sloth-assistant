@@ -117,7 +117,8 @@ describe('reviewModule', () => {
       mockConfig.llm,
       'test-preamble',
       'test-diff',
-      mockConfig
+      mockConfig,
+      'review'
     );
 
     // Verify that writeFileSync was called
@@ -186,7 +187,8 @@ describe('reviewModule', () => {
       differentConfig.llm,
       'test-preamble',
       'test-diff',
-      differentConfig
+      differentConfig,
+      'review'
     );
 
     // Verify the output matches what we expect

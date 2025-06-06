@@ -1,5 +1,10 @@
 import { Command, Option } from 'commander';
-import { readBackstory, readGuidelines, readReviewInstructions } from '#src/prompt.js';
+import {
+  readBackstory,
+  readGuidelines,
+  readReviewInstructions,
+  readSystemPrompt,
+} from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
 import {
@@ -50,11 +55,15 @@ export function reviewCommand(program: Command): void {
     .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
       const config = await initConfig(); // Initialize and get config
+      const systemPrompt = readSystemPrompt();
       const systemMessage = [
         readBackstory(),
         readGuidelines(config.projectGuidelines),
         readReviewInstructions(config.projectReviewInstructions),
       ];
+      if (systemPrompt) {
+        systemMessage.push(systemPrompt);
+      }
       const content: string[] = [];
       const requirementsId = options.requirements;
       const requirementsProvider =

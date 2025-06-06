@@ -5,8 +5,9 @@ import {
 } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
 import { exit } from '#src/systemUtils.js';
-import { GSLOTH_BACKSTORY } from '#src/constants.js';
+import { GSLOTH_BACKSTORY, PROJECT_SYSTEM_PROMPT } from '#src/constants.js';
 import { getGslothConfigReadPath } from '#src/filePathUtils.js';
+import { existsSync } from 'node:fs';
 
 export function readBackstory(): string {
   return readFileFromCurrentOrInstallDir(GSLOTH_BACKSTORY, true);
@@ -26,6 +27,14 @@ export function readGuidelines(guidelinesFilename: string): string {
 
 export function readReviewInstructions(reviewInstructions: string): string {
   return readConfigPromptFile(reviewInstructions);
+}
+
+export function readSystemPrompt(): string {
+  const filePath = getGslothConfigReadPath(PROJECT_SYSTEM_PROMPT);
+  if (existsSync(filePath)) {
+    return readFileFromCurrentDir(filePath);
+  }
+  return '';
 }
 
 function readConfigPromptFile(guidelinesFilename: string): string {

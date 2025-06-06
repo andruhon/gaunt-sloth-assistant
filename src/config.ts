@@ -20,14 +20,20 @@ export interface SlothConfig extends BaseSlothConfig {
   projectGuidelines: string;
   projectReviewInstructions: string;
   streamOutput: boolean;
+  filesystem: string[] | 'all' | 'none';
   commands: {
     pr: {
       contentProvider: string;
       requirementsProvider?: string;
+      filesystem?: string[] | 'all' | 'none';
     };
     review?: {
       requirementsProvider?: string;
       contentProvider?: string;
+      filesystem?: string[] | 'all' | 'none';
+    };
+    ask?: {
+      filesystem?: string[] | 'all' | 'none';
     };
   };
 }
@@ -49,14 +55,20 @@ interface BaseSlothConfig {
   projectGuidelines?: string;
   projectReviewInstructions?: string;
   streamOutput?: boolean;
+  filesystem?: string[] | 'all' | 'none';
   commands?: {
     pr: {
       contentProvider: string;
       requirementsProvider?: string;
+      filesystem?: string[] | 'all' | 'none';
     };
     review?: {
       requirementsProvider?: string;
       contentProvider?: string;
+      filesystem?: string[] | 'all' | 'none';
+    };
+    ask?: {
+      filesystem?: string[] | 'all' | 'none';
     };
   };
   requirementsProviderConfig?: Record<string, unknown>;
@@ -79,6 +91,15 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   streamOutput: true,
+  filesystem: [
+    'read_file',
+    'read_multiple_files',
+    'list_directory',
+    'directory_tree',
+    'search_files',
+    'get_file_info',
+    'list_allowed_directories',
+  ],
   commands: {
     pr: {
       contentProvider: 'github', // gh pr diff NN

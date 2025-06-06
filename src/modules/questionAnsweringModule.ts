@@ -18,7 +18,7 @@ export async function askQuestion(
   config: SlothConfig
 ): Promise<void> {
   const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Thinking.');
-  const outputContent = await invoke(config.llm, preamble, content, config);
+  const outputContent = await invoke(config.llm, preamble, content, config, 'ask');
   progressIndicator?.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);

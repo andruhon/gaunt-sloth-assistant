@@ -8,6 +8,7 @@ const prompt = {
   readBackstory: vi.fn(),
   readGuidelines: vi.fn(),
   readReviewInstructions: vi.fn(),
+  readSystemPrompt: vi.fn(),
 };
 
 // Use a direct mock for the review function instead of a nested implementation
@@ -67,6 +68,7 @@ describe('prCommand', () => {
     prompt.readBackstory.mockReturnValue('INTERNAL BACKSTORY');
     prompt.readGuidelines.mockReturnValue('PROJECT GUIDELINES');
     prompt.readReviewInstructions.mockReturnValue('REVIEW INSTRUCTIONS');
+    prompt.readSystemPrompt.mockReturnValue('');
   });
 
   it('Should call pr command', async () => {
@@ -109,7 +111,8 @@ describe('prCommand', () => {
         contentProvider: 'text',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-      })
+      }),
+      'pr'
     );
   });
 
@@ -154,7 +157,8 @@ describe('prCommand', () => {
       expect.objectContaining({
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
-      })
+      }),
+      'pr'
     );
   });
 

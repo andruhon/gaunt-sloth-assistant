@@ -108,6 +108,15 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
+        filesystem: [
+          'read_file',
+          'read_multiple_files',
+          'list_directory',
+          'directory_tree',
+          'search_files',
+          'get_file_info',
+          'list_allowed_directories',
+        ],
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
@@ -158,6 +167,15 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
+        filesystem: [
+          'read_file',
+          'read_multiple_files',
+          'list_directory',
+          'directory_tree',
+          'search_files',
+          'get_file_info',
+          'list_allowed_directories',
+        ],
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
@@ -208,6 +226,15 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
+        filesystem: [
+          'read_file',
+          'read_multiple_files',
+          'list_directory',
+          'directory_tree',
+          'search_files',
+          'get_file_info',
+          'list_allowed_directories',
+        ],
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });
@@ -276,6 +303,15 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
+        filesystem: [
+          'read_file',
+          'read_multiple_files',
+          'list_directory',
+          'directory_tree',
+          'search_files',
+          'get_file_info',
+          'list_allowed_directories',
+        ],
         commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
       });
     });

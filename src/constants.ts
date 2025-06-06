@@ -4,3 +4,4 @@ export const USER_PROJECT_CONFIG_MJS = '.gsloth.config.mjs';
 export const GSLOTH_BACKSTORY = '.gsloth.backstory.md';
 export const PROJECT_GUIDELINES = '.gsloth.guidelines.md';
 export const PROJECT_REVIEW_INSTRUCTIONS = '.gsloth.review.md';
+export const PROJECT_SYSTEM_PROMPT = '.gsloth.system.md';

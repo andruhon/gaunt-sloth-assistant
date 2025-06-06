@@ -6,6 +6,7 @@ const askQuestion = vi.fn();
 const prompt = {
   readBackstory: vi.fn(),
   readGuidelines: vi.fn(),
+  readSystemPrompt: vi.fn(),
 };
 
 const questionAnsweringModule = { askQuestion };
@@ -73,6 +74,7 @@ describe('askCommand', () => {
     // Mock the prompt functions
     prompt.readBackstory.mockReturnValue('INTERNAL PREAMBLE');
     prompt.readGuidelines.mockReturnValue('PROJECT GUIDELINES');
+    prompt.readSystemPrompt.mockReturnValue('');
 
     const progressIndicator = {
       start: vi.fn(),

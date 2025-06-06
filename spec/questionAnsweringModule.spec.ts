@@ -115,7 +115,8 @@ describe('questionAnsweringModule', () => {
       testConfig.llm,
       'test-preamble',
       'test-content',
-      testConfig
+      testConfig,
+      'ask'
     );
 
     // Verify that writeFileSync was called
@@ -184,7 +185,8 @@ describe('questionAnsweringModule', () => {
       differentConfig.llm,
       'test-preamble',
       'test-content',
-      differentConfig
+      differentConfig,
+      'ask'
     );
 
     // Verify the output matches what we expect
