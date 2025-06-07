@@ -3,6 +3,7 @@ import { askCommand } from '#src/commands/askCommand.js';
 import { initCommand } from '#src/commands/initCommand.js';
 import { reviewCommand } from '#src/commands/reviewCommand.js';
 import { prCommand } from '#src/commands/prCommand.js';
+import { chatCommand } from '#src/commands/chatCommand.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
 import { setVerbose } from '#src/llmUtils.js';
@@ -27,6 +28,13 @@ initCommand(program);
 reviewCommand(program);
 prCommand(program);
 askCommand(program);
+chatCommand(program);
 // TODO add general interactive chat command
 
-await readStdin(program);
+// Parse the command line arguments
+program.parse(argv);
+
+// Only read from stdin if no command was provided
+if (!program.args.length) {
+  await readStdin(program);
+}
