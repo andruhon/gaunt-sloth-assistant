@@ -10,4 +10,11 @@ describe('Ask Command Integration Tests', () => {
     // Check for expected content in the response
     expect(checkOutputForExpectedContent(output, 'JavaScript')).toBe(true);
   });
+
+  it('should use file read tool', () => {
+    const output = runCommandInTestDir('npx gth ask "read file test-data/filewithgoodcode.js"');
+
+    // Check for expected content in the response
+    expect(checkOutputForExpectedContent(output, 'prime')).toBe(true);
+  });
 });

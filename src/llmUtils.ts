@@ -4,10 +4,11 @@ import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
-import { display, displayError, displayInfo } from '#src/consoleUtils.js';
+import { display, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { getCurrentDir, stdout } from '#src/systemUtils.js';
 import type { StructuredToolInterface } from '@langchain/core/tools';
+import { ProgressIndicator } from '#src/utils.js';
 
 const llmGlobalSettings = {
   verbose: false,
@@ -20,6 +21,12 @@ export async function invoke(
   config: SlothConfig,
   command?: 'ask' | 'pr' | 'review'
 ): Promise<string> {
+  try {
+    if (config.streamOutput && config.llm._llmType() === 'anthropic') {
+      displayWarning('To avoid known bug with Anthropic forcing streamOutput to false');
+      config.streamOutput = false;
+    }
+  } catch {}
   if (llmGlobalSettings.verbose) {
     llm.verbose = true;
   }
@@ -52,20 +59,37 @@ export async function invoke(
   try {
     const messages: Message[] = [new SystemMessage(systemMessage), new HumanMessage(prompt)];
     display(`Connecting to LLM...`);
-    const stream = await agent.stream({ messages }, { streamMode: 'messages' });
-
     const output = { aiMessage: '' };
-    for await (const [chunk, _metadata] of stream) {
-      if (isAIMessage(chunk)) {
-        if (config.streamOutput) {
-          stdout.write(chunk.content as string, 'utf-8');
+    if (!config.streamOutput) {
+      const progress = new ProgressIndicator('Thinking.');
+      try {
+        const response = await agent.invoke({ messages });
+        output.aiMessage = response.messages[response.messages.length - 1].content as string;
+        const toolNames = response.messages
+          .filter((msg: any) => msg.tool_calls && msg.tool_calls.length > 0)
+          .flatMap((msg: any) => msg.tool_calls.map((tc: any) => tc.name));
+        if (toolNames.length > 0) {
+          displayInfo(`\nUsed tools: ${toolNames.join(', ')}`);
         }
-        output.aiMessage += chunk.content;
-        let toolCalls = chunk.tool_calls;
-        if (toolCalls && toolCalls.length > 0) {
-          const suffix = toolCalls.length > 1 ? 's' : '';
-          const toolCallsString = toolCalls.map((t) => t?.name).join(', ');
-          displayInfo(`Using tool${suffix} ${toolCallsString}`);
+      } catch (e) {
+        displayWarning(`Something went wrong ${(e as Error).message}`);
+      } finally {
+        progress.stop();
+      }
+      display(output.aiMessage);
+    } else {
+      const stream = await agent.stream({ messages }, { streamMode: 'messages' });
+
+      for await (const [chunk, _metadata] of stream) {
+        if (isAIMessage(chunk)) {
+          stdout.write(chunk.content as string, 'utf-8');
+          output.aiMessage += chunk.content;
+          let toolCalls = chunk.tool_calls;
+          if (toolCalls && toolCalls.length > 0) {
+            const suffix = toolCalls.length > 1 ? 's' : '';
+            const toolCallsString = toolCalls.map((t) => t?.name).join(', ');
+            displayInfo(`Using tool${suffix} ${toolCallsString}`);
+          }
         }
       }
     }
@@ -80,7 +104,6 @@ export async function invoke(
     throw error;
   } finally {
     if (client) {
-      console.log('closing');
       await client.close();
     }
   }
