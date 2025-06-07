@@ -19,7 +19,7 @@ export async function invoke(
   systemMessage: string,
   prompt: string,
   config: SlothConfig,
-  command?: 'ask' | 'pr' | 'review'
+  command?: 'ask' | 'pr' | 'review' | 'chat'
 ): Promise<string> {
   try {
     if (config.streamOutput && config.llm._llmType() === 'anthropic') {

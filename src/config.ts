@@ -35,6 +35,9 @@ export interface SlothConfig extends BaseSlothConfig {
     ask?: {
       filesystem?: string[] | 'all' | 'none';
     };
+    chat?: {
+      filesystem?: string[] | 'all' | 'none';
+    };
   };
 }
 
@@ -68,6 +71,9 @@ interface BaseSlothConfig {
       filesystem?: string[] | 'all' | 'none';
     };
     ask?: {
+      filesystem?: string[] | 'all' | 'none';
+    };
+    chat?: {
       filesystem?: string[] | 'all' | 'none';
     };
   };
@@ -104,6 +110,9 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
     pr: {
       contentProvider: 'github', // gh pr diff NN
       requirementsProvider: 'github', // gh issue view NN
+    },
+    chat: {
+      filesystem: 'none', // Chat doesn't need filesystem access by default
     },
   },
 };
