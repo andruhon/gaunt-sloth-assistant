@@ -55,6 +55,11 @@ Open terminal (command line) in your project directory.
 
 Type command: `gsloth pr [desired pull request number]`, for example:
 
+Please note that for higher quality code reviews sloth now has read access and may read files in the current project,
+this means that the branch of reviewed PR should be checked out, otherwise Sloth might get confused.
+If you are typically review PRs without checking them out and looking at diff only is enough, 
+consider setting pr.filesystem to 'none' in your config.
+
 ```shell
 gsloth pr 42
 ``` 
@@ -156,6 +161,10 @@ Make sure you either define `GROQ_API_KEY` environment variable or edit your con
 
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md). 
+
+## Contributing
+Contributors are needed! Feel free to create a PR.
+If you are not sure where to start, look for issues with a "good first issue" label.
 
 ## Building from repo
 See [DEVELOPMENT.md](./docs/DEVELOPMENT.md)
