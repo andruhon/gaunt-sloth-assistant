@@ -39,7 +39,7 @@ export async function invoke(
   const tools = filterTools(allTools, effectiveConfig.filesystem || 'none');
 
   if (allTools.length > 0) {
-    displayInfo(`Loaded ${allTools.length} MCP tools (${tools.length} available after filtering).`);
+    displayInfo(`Loaded ${tools.length} tools.`);
   }
 
   // Create the React agent
