@@ -1,12 +1,12 @@
 import type { Message } from '#src/modules/types.js';
-import { HumanMessage, isAIMessageChunk, SystemMessage } from '@langchain/core/messages';
+import { HumanMessage, isAIMessage, SystemMessage } from '@langchain/core/messages';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { SlothConfig } from '#src/config.js';
+import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { display, displayError, displayInfo } from '#src/consoleUtils.js';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
-import { stdout, getCurrentDir } from '#src/systemUtils.js';
-import type { Connection } from '@langchain/mcp-adapters';
+import { getCurrentDir, stdout } from '#src/systemUtils.js';
 import type { StructuredToolInterface } from '@langchain/core/tools';
 
 const llmGlobalSettings = {
@@ -56,7 +56,7 @@ export async function invoke(
 
     const output = { aiMessage: '' };
     for await (const [chunk, _metadata] of stream) {
-      if (isAIMessageChunk(chunk)) {
+      if (isAIMessage(chunk)) {
         if (config.streamOutput) {
           stdout.write(chunk.content as string, 'utf-8');
         }

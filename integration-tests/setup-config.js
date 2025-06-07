@@ -1,0 +1,37 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const configName = process.argv[2];
+
+if (!configName) {
+  console.error('Please provide a config name: groq, anthropic, or vertexai');
+  process.exit(1);
+}
+
+const validConfigs = ['groq', 'anthropic', 'vertexai'];
+if (!validConfigs.includes(configName)) {
+  console.error(`Invalid config name. Must be one of: ${validConfigs.join(', ')}`);
+  process.exit(1);
+}
+
+const sourceFile = path.join(__dirname, 'configs', `${configName}.gsloth.config.json`);
+const targetFile = path.join(__dirname, '.gsloth.config.json');
+
+// Remove existing config if it exists
+if (fs.existsSync(targetFile)) {
+  fs.unlinkSync(targetFile);
+  console.log('Removed existing .gsloth.config.json');
+}
+
+// Copy the selected config
+try {
+  fs.copyFileSync(sourceFile, targetFile);
+  console.log(`Copied ${configName}.gsloth.config.json to .gsloth.config.json`);
+} catch (error) {
+  console.error(`Error copying config file: ${error.message}`);
+  process.exit(1);
+}

@@ -2,6 +2,7 @@
 /dist/
 /gth_*
 /integration-tests/gth_*
+/integration-tests/.gsloth.config.json
 .junie
 .idea
 .claude
