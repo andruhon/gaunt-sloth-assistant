@@ -11,6 +11,7 @@ import {
   CONTENT_PROVIDERS,
   type RequirementsProviderType,
   getRequirementsFromProvider,
+  type ContentProviderType,
 } from './commandUtils.js';
 
 interface PrCommandOptions {
@@ -60,6 +61,11 @@ export function prCommand(program: Command): void {
         (config?.commands?.pr?.requirementsProvider as RequirementsProviderType | undefined) ??
         (config?.requirementsProvider as RequirementsProviderType | undefined);
 
+      const contentProvider =
+        (config?.commands?.pr?.contentProvider as ContentProviderType | undefined) ??
+        (config?.contentProvider as ContentProviderType | undefined) ??
+        'github';
+
       // Handle requirements
       const requirements = await getRequirementsFromProvider(
         requirementsProvider,
@@ -74,8 +80,8 @@ export function prCommand(program: Command): void {
         content.push(readMultipleFilesFromCurrentDir(options.file));
       }
 
-      // Get PR diff using the 'github' provider
-      const providerPath = `#src/providers/${CONTENT_PROVIDERS['github']}`;
+      // Get PR diff using the provider
+      const providerPath = `#src/providers/${CONTENT_PROVIDERS[contentProvider]}`;
       const { get } = await import(providerPath);
       content.push(await get(null, prId));
 

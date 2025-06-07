@@ -21,21 +21,6 @@ export interface SlothConfig extends BaseSlothConfig {
   projectReviewInstructions: string;
   streamOutput: boolean;
   filesystem: string[] | 'all' | 'none';
-  commands: {
-    pr: {
-      contentProvider: string;
-      requirementsProvider?: string;
-      filesystem?: string[] | 'all' | 'none';
-    };
-    review?: {
-      requirementsProvider?: string;
-      contentProvider?: string;
-      filesystem?: string[] | 'all' | 'none';
-    };
-    ask?: {
-      filesystem?: string[] | 'all' | 'none';
-    };
-  };
 }
 
 /**
@@ -57,8 +42,8 @@ interface BaseSlothConfig {
   streamOutput?: boolean;
   filesystem?: string[] | 'all' | 'none';
   commands?: {
-    pr: {
-      contentProvider: string;
+    pr?: {
+      contentProvider?: string;
       requirementsProvider?: string;
       filesystem?: string[] | 'all' | 'none';
     };
@@ -108,12 +93,6 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   },
 };
 
-// Creating a default config instance
-export const getDefaultConfig = (): SlothConfig => {
-  // We need to cast here because DEFAULT_CONFIG is a Partial<SlothConfig>
-  return { ...DEFAULT_CONFIG } as SlothConfig;
-};
-
 /**
  * Initialize configuration by loading from available config files
  * @returns The loaded SlothConfig
@@ -157,7 +136,7 @@ async function tryJsConfig(): Promise<SlothConfig> {
     try {
       const i = await importExternalFile(jsConfigPath);
       const customConfig = await i.configure(jsConfigPath);
-      return { ...DEFAULT_CONFIG, ...customConfig } as SlothConfig;
+      return mergeConfig(customConfig) as SlothConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
       displayError(`Failed to read config from ${USER_PROJECT_CONFIG_JS}, will try other formats.`);
@@ -177,7 +156,7 @@ async function tryMjsConfig(): Promise<SlothConfig> {
     try {
       const i = await importExternalFile(mjsConfigPath);
       const customConfig = await i.configure(mjsConfigPath);
-      return { ...DEFAULT_CONFIG, ...customConfig } as SlothConfig;
+      return mergeConfig(customConfig) as SlothConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
       displayError(`Failed to read config from ${USER_PROJECT_CONFIG_MJS}.`);
@@ -218,7 +197,7 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<SlothCo
       const configModule = await import(`./configs/${llmType}.js`);
       if (configModule.processJsonConfig) {
         const llm = (await configModule.processJsonConfig(llmConfig)) as BaseChatModel;
-        return { ...DEFAULT_CONFIG, ...jsonConfig, llm } as SlothConfig;
+        return mergeRawConfig(jsonConfig, llm);
       } else {
         displayWarning(`Config module for ${llmType} does not have processJsonConfig function.`);
         exit(1);
@@ -299,4 +278,23 @@ Important! You are likely to be dealing with git diff below, please don't confus
 
   writeFileIfNotExistsWithMessages(guidelinesPath, guidelinesTemplate);
   writeFileIfNotExistsWithMessages(reviewPath, reviewTemplate);
+}
+
+/**
+ * Merge config with default config
+ */
+function mergeConfig(partialConfig: Partial<SlothConfig>): SlothConfig {
+  const config = partialConfig as SlothConfig;
+  return {
+    ...DEFAULT_CONFIG,
+    ...config,
+    commands: { ...DEFAULT_CONFIG.commands, ...(config?.commands ?? {}) },
+  };
+}
+
+/**
+ * Merge raw with default config
+ */
+function mergeRawConfig(config: RawSlothConfig, llm: BaseChatModel): SlothConfig {
+  return mergeConfig({ ...config, llm });
 }
