@@ -1,5 +1,5 @@
 import { displayWarning } from '#src/consoleUtils.js';
-import { execAsync } from '#src/utils.js';
+import { execAsync, ProgressIndicator } from '#src/utils.js';
 import type { ProviderConfig } from './types.js';
 
 /**
@@ -19,7 +19,9 @@ export async function get(
 
   try {
     // Use the GitHub CLI to fetch PR diff
+    const progress = new ProgressIndicator(`Fetching GitHub PR #${prId} diff`);
     const prDiffContent = await execAsync(`gh pr diff ${prId}`);
+    progress.stop();
 
     if (!prDiffContent) {
       displayWarning(`No diff content found for GitHub PR #${prId}`);

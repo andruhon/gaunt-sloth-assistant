@@ -1,5 +1,5 @@
 import { displayWarning } from '#src/consoleUtils.js';
-import { execAsync } from '#src/utils.js';
+import { execAsync, ProgressIndicator } from '#src/utils.js';
 import type { ProviderConfig } from './types.js';
 
 /**
@@ -19,7 +19,9 @@ export async function get(
 
   try {
     // Use the GitHub CLI to fetch issue details
+    const progress = new ProgressIndicator(`Fetching GitHub issue #${issueId}`);
     const issueContent = await execAsync(`gh issue view ${issueId}`);
+    progress.stop();
 
     if (!issueContent) {
       displayWarning(`No content found for GitHub issue #${issueId}`);
