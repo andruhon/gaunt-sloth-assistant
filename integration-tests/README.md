@@ -7,21 +7,21 @@ This directory contains integration tests for the Gaunt Sloth Assistant CLI tool
 The tests are organized as follows:
 
 - **Test Files**:
-  - `askCommand.it.ts`: Tests for the ask command
-  - `reviewCommand.it.ts`: Tests for the review command
-  - `prCommand.it.ts`: Tests for the PR command
+    - `askCommand.it.ts`: Tests for the ask command
+    - `reviewCommand.it.ts`: Tests for the review command
+    - `prCommand.it.ts`: Tests for the PR command
 
 - **Support Files**:
-  - `support/commandRunner.ts`: Helper function to run commands in the test directory
-  - `support/outputChecker.ts`: Helper function to check command output
+    - `support/commandRunner.ts`: Helper function to run commands in the test directory
+    - `support/outputChecker.ts`: Helper function to check command output
 
 - **Configuration**:
-  - `.gsloth.config.json`: Claude-based configuration for testing
-  - `.gsloth.guidelines.md`: Guidelines for the AI to follow during testing
+    - `.gsloth.config.json`: Claude-based configuration for testing
+    - `.gsloth.guidelines.md`: Guidelines for the AI to follow during testing
 
 - **Test Data**:
-  - `test-data/filewithgoodcode.js`: Sample good code for review tests
-  - `test-data/filewithbadcode.js`: Sample bad code with intentional issues for review tests
+    - `test-data/filewithgoodcode.js`: Sample good code for review tests
+    - `test-data/filewithbadcode.js`: Sample bad code with intentional issues for review tests
 
 ## Running the Tests
 
@@ -32,7 +32,14 @@ To run the integration tests:
    export ANTHROPIC_API_KEY=your-api-key
    ```
 
-2. Navigate to the project root directory and run:
+2. Build and install globally
+
+  ```
+  npm run build
+  npm install ./ -g
+  ```
+
+3. Navigate to the project root directory and run:
    ```
    npm run it
    ```
