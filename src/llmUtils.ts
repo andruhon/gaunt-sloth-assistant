@@ -1,5 +1,5 @@
 import type { Message } from '#src/modules/types.js';
-import { HumanMessage, isAIMessage, SystemMessage } from '@langchain/core/messages';
+import { AIMessage, HumanMessage, isAIMessage, SystemMessage } from '@langchain/core/messages';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
@@ -9,6 +9,7 @@ import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { getCurrentDir, stdout } from '#src/systemUtils.js';
 import type { StructuredToolInterface } from '@langchain/core/tools';
 import { ProgressIndicator } from '#src/utils.js';
+import type { ToolCall } from '@langchain/core/messages/tool';
 
 const llmGlobalSettings = {
   verbose: false,
@@ -66,8 +67,8 @@ export async function invoke(
         const response = await agent.invoke({ messages });
         output.aiMessage = response.messages[response.messages.length - 1].content as string;
         const toolNames = response.messages
-          .filter((msg: any) => msg.tool_calls && msg.tool_calls.length > 0)
-          .flatMap((msg: any) => msg.tool_calls.map((tc: any) => tc.name));
+          .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
+          .flatMap((msg: AIMessage) => msg.tool_calls?.map((tc: ToolCall) => tc.name));
         if (toolNames.length > 0) {
           displayInfo(`\nUsed tools: ${toolNames.join(', ')}`);
         }

@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { askCommand } from '#src/commands/askCommand.js';
+import { codeCommand } from '#src/commands/codeCommand.js';
 import { initCommand } from '#src/commands/initCommand.js';
 import { reviewCommand } from '#src/commands/reviewCommand.js';
 import { prCommand } from '#src/commands/prCommand.js';
@@ -27,6 +28,7 @@ initCommand(program);
 reviewCommand(program);
 prCommand(program);
 askCommand(program);
+codeCommand(program);
 // TODO add general interactive chat command
 
 await readStdin(program);
