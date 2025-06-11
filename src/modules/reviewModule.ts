@@ -4,13 +4,14 @@ import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
 import { invoke } from '#src/llmUtils.js';
 import { getGslothFilePath } from '#src/filePathUtils.js';
+import type { CommandType } from '#src/types/command.js';
 
 export async function review(
   source: string,
   preamble: string,
   diff: string,
   config: SlothConfig,
-  command: 'pr' | 'review' = 'review'
+  command: Extract<CommandType, 'pr' | 'review'> = 'review'
 ): Promise<void> {
   const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Reviewing.');
   const outputContent = await invoke(config.llm, preamble, diff, config, command);

@@ -15,12 +15,14 @@ const llmGlobalSettings = {
   verbose: false,
 };
 
+import type { CommandType } from './types/command.js';
+
 export async function invoke(
   llm: BaseChatModel,
   systemMessage: string,
   prompt: string,
   config: SlothConfig,
-  command?: 'ask' | 'pr' | 'review'
+  command?: CommandType
 ): Promise<string> {
   try {
     if (config.streamOutput && config.llm._llmType() === 'anthropic') {

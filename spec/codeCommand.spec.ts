@@ -2,14 +2,13 @@ import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Define mocks at top level
-const askQuestion = vi.fn();
 const prompt = {
   readBackstory: vi.fn(),
   readGuidelines: vi.fn(),
   readSystemPrompt: vi.fn(),
 };
 
-const questionAnsweringModule = { askQuestion };
+const requestProcessorMock = { processRequest: vi.fn() };
 
 const utilsMock = {
   readFileFromCurrentDir: vi.fn(),
@@ -44,7 +43,7 @@ const mockConfig = {
 
 // Set up static mocks
 vi.mock('#src/prompt.js', () => prompt);
-vi.mock('#src/modules/questionAnsweringModule.js', () => questionAnsweringModule);
+vi.mock('#src/modules/requestProcessor.js', () => requestProcessorMock);
 vi.mock('#src/systemUtils.js', () => ({
   getStringFromStdin: vi.fn().mockReturnValue(''),
 }));
@@ -86,33 +85,35 @@ describe('codeCommand', () => {
     utilsMock.ProgressIndicator.mockImplementation(() => progressIndicator);
   });
 
-  it('Should call askQuestion with message', async () => {
+  it('Should call processRequest with message', async () => {
     const { codeCommand } = await import('#src/commands/codeCommand.js');
     const program = new Command();
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code', 'test message']);
-    expect(askQuestion).toHaveBeenCalledWith(
+    expect(requestProcessorMock.processRequest).toHaveBeenCalledWith(
       'CODE',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test message',
-      mockConfig
+      mockConfig,
+      'code'
     );
   });
 
-  it('Should call askQuestion with message and file content', async () => {
+  it('Should call processRequest with message and file content', async () => {
     const { codeCommand } = await import('#src/commands/codeCommand.js');
     const program = new Command();
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code', 'test message', '-f', 'test.file']);
-    expect(askQuestion).toHaveBeenCalledWith(
+    expect(requestProcessorMock.processRequest).toHaveBeenCalledWith(
       'CODE',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test.file:\n```\nFILE CONTENT\n```\ntest message',
-      mockConfig
+      mockConfig,
+      'code'
     );
   });
 
-  it('Should call askQuestion with message and multiple file contents', async () => {
+  it('Should call processRequest with message and multiple file contents', async () => {
     const { codeCommand } = await import('#src/commands/codeCommand.js');
     const program = new Command();
     codeCommand(program);
@@ -123,11 +124,12 @@ describe('codeCommand', () => {
       return '';
     });
     await program.parseAsync(['na', 'na', 'code', 'test message', '-f', 'test.file', 'test2.file']);
-    expect(askQuestion).toHaveBeenCalledWith(
+    expect(requestProcessorMock.processRequest).toHaveBeenCalledWith(
       'CODE',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```\ntest message',
-      mockConfig
+      mockConfig,
+      'code'
     );
   });
 
@@ -141,20 +143,21 @@ describe('codeCommand', () => {
     );
   });
 
-  it('Should call askQuestion with file content only (no message)', async () => {
+  it('Should call processRequest with file content only (no message)', async () => {
     const { codeCommand } = await import('#src/commands/codeCommand.js');
     const program = new Command();
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code', '-f', 'test.file']);
-    expect(askQuestion).toHaveBeenCalledWith(
+    expect(requestProcessorMock.processRequest).toHaveBeenCalledWith(
       'CODE',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'test.file:\n```\nFILE CONTENT\n```',
-      mockConfig
+      mockConfig,
+      'code'
     );
   });
 
-  it('Should call askQuestion with stdin content only (no message)', async () => {
+  it('Should call processRequest with stdin content only (no message)', async () => {
     const { getStringFromStdin } = await import('#src/systemUtils.js');
     vi.mocked(getStringFromStdin).mockReturnValue('STDIN CONTENT');
 
@@ -162,11 +165,12 @@ describe('codeCommand', () => {
     const program = new Command();
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code']);
-    expect(askQuestion).toHaveBeenCalledWith(
+    expect(requestProcessorMock.processRequest).toHaveBeenCalledWith(
       'CODE',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
       'STDIN CONTENT',
-      mockConfig
+      mockConfig,
+      'code'
     );
   });
 

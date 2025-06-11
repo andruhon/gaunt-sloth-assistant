@@ -45,7 +45,7 @@ export function askCommand(program: Command): void {
         throw new Error('At least one of the following is required: file, stdin, or message');
       }
 
-      const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
-      await askQuestion('ASK', preamble.join('\n'), content.join('\n'), config);
+      const { processRequest } = await import('#src/modules/requestProcessor.js');
+      await processRequest('ASK', preamble.join('\n'), content.join('\n'), config, 'ask');
     });
 }
