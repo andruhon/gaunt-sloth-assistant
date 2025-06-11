@@ -171,5 +171,3 @@ See [DEVELOPMENT.md](./docs/DEVELOPMENT.md)
 
 ## License
 License is [MIT](https://opensource.org/license/mit). See [LICENSE](LICENSE)
-
-gsloth chat "your message here"
