@@ -23,6 +23,10 @@ describe('reviewModule', () => {
     // Create a mock config
     const mockConfig = {
       streamOutput: false,
+      filesystem: 'none',
+      commands: {
+        code: { filesystem: 'all' },
+      },
     } as SlothConfig;
 
     // Test the function

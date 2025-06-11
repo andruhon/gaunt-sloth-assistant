@@ -11,6 +11,18 @@ const prompt = {
   readSystemPrompt: vi.fn(),
 };
 
+// Mock systemUtils to control environment variables
+const systemUtilsMock = {
+  env: {},
+  getCurrentDir: vi.fn(),
+  getInstallDir: vi.fn(),
+  exit: vi.fn(),
+  stdin: {},
+  stdout: {},
+  argv: [],
+};
+vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+
 // Use a direct mock for the review function instead of a nested implementation
 vi.mock('#src/modules/reviewModule.js', () => ({
   review: review,
@@ -180,9 +192,13 @@ describe('prCommand', () => {
           requirementsProvider: 'jira-legacy',
         },
         review: {},
+        code: { filesystem: 'all' },
       },
     };
     configMock.initConfig.mockResolvedValue(errorConfig);
+
+    // Ensure environment variables are empty to trigger the error
+    systemUtilsMock.env = { JIRA_LEGACY_API_TOKEN: undefined, JIRA_USERNAME: 'test-user' };
 
     const testOutput = { text: '' };
 

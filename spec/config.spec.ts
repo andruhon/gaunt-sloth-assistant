@@ -117,7 +117,10 @@ describe('config', async () => {
           'get_file_info',
           'list_allowed_directories',
         ],
-        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
+        commands: {
+          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          code: { filesystem: 'all' },
+        },
       });
     });
 
@@ -176,7 +179,10 @@ describe('config', async () => {
           'get_file_info',
           'list_allowed_directories',
         ],
-        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
+        commands: {
+          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          code: { filesystem: 'all' },
+        },
       });
     });
 
@@ -235,7 +241,10 @@ describe('config', async () => {
           'get_file_info',
           'list_allowed_directories',
         ],
-        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
+        commands: {
+          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          code: { filesystem: 'all' },
+        },
       });
     });
 
@@ -312,7 +321,10 @@ describe('config', async () => {
           'get_file_info',
           'list_allowed_directories',
         ],
-        commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
+        commands: {
+          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          code: { filesystem: 'all' },
+        },
       });
     });
 
