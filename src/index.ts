@@ -7,7 +7,6 @@ import { chatCommand } from '#src/commands/chatCommand.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
 import { setVerbose } from '#src/llmUtils.js';
-import { display } from '#src/consoleUtils.js';
 
 const program = new Command();
 

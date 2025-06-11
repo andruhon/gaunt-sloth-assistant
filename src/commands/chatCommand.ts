@@ -5,11 +5,7 @@ import { Command } from 'commander';
 import { v4 as uuidv4 } from 'uuid';
 import chalk from 'chalk';
 import { MemorySaver } from '@langchain/langgraph';
-import {
-  HumanMessage,
-  SystemMessage,
-  type BaseMessage,
-} from '@langchain/core/messages';
+import { HumanMessage, SystemMessage, type BaseMessage } from '@langchain/core/messages';
 import {
   createInterface,
   error,
@@ -26,8 +22,9 @@ export function chatCommand(program: Command) {
     .argument('[message]', 'Initial message to start the chat')
     .action(async (message: string) => {
       try {
-        const config = await initConfig();
-        const memory = new MemorySaver();
+        // Force streaming Off for chat, it does not play nicely with the input interface
+        const config = { ...(await initConfig()), streamOutput: false };
+        const checkpointSaver = new MemorySaver();
         const rl = createInterface({ input, output });
         let isFirstMessage = true;
         let shouldExit = false;
@@ -42,15 +39,9 @@ export function chatCommand(program: Command) {
 
           const runConfig = {
             configurable: { thread_id },
-            checkpointer: memory,
           } as RunnableConfig;
 
-          await invoke(
-            'chat',
-            messages,
-            config,
-            runConfig
-          );
+          await invoke('chat', messages, config, runConfig, checkpointSaver);
 
           isFirstMessage = false;
         };
@@ -63,9 +54,6 @@ export function chatCommand(program: Command) {
               return;
             }
             if (isFirstMessage && !userInput.trim()) {
-              display(
-                "Hello! I'm Gaunt Sloth, your AI assistant. How can I help you today?"
-              );
               rl.close();
               return;
             }
@@ -80,10 +68,12 @@ export function chatCommand(program: Command) {
 
         if (message) {
           await processMessage(message);
+        } else {
+          display("Hello! I'm Gaunt Sloth, your AI assistant. How can I help you today?");
         }
         if (!shouldExit) askQuestion();
       } catch (err) {
-        error('Error in chat command:', err);
+        error(`Error in chat command: ${err}`);
         exit(1);
       }
     });

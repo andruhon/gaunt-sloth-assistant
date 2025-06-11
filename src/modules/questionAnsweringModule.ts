@@ -29,7 +29,7 @@ export async function askQuestion(
   }
   try {
     writeFileSync(filePath, outputContent);
-    displaySuccess(`This report can be found in ${filePath}`);
+    displaySuccess(`\nThis report can be found in ${filePath}`);
   } catch (error) {
     displayError(`Failed to write answer to file: ${filePath}`);
     displayError(error instanceof Error ? error.message : String(error));

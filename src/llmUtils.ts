@@ -1,6 +1,5 @@
 import type { Message } from '#src/modules/types.js';
-import { HumanMessage, isAIMessage, SystemMessage } from '@langchain/core/messages';
-import { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { AIMessage, isAIMessage } from '@langchain/core/messages';
 import { SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
@@ -10,6 +9,8 @@ import { getCurrentDir, stdout } from '#src/systemUtils.js';
 import type { StructuredToolInterface } from '@langchain/core/tools';
 import { ProgressIndicator } from '#src/utils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
+import { ToolCall } from '@langchain/core/messages/tool';
+import { BaseCheckpointSaver } from '@langchain/langgraph';
 
 const llmGlobalSettings = {
   verbose: false,
@@ -20,6 +21,7 @@ export async function invoke(
   messages: Message[],
   config: SlothConfig,
   runConfig?: RunnableConfig,
+  checkpointSaver?: BaseCheckpointSaver | undefined
 ): Promise<string> {
   try {
     if (config.streamOutput && config.llm._llmType() === 'anthropic') {
@@ -53,7 +55,7 @@ export async function invoke(
   const agent = createReactAgent({
     llm: config.llm,
     tools,
-    checkpointer: runConfig?.configurable?.checkpointer,
+    checkpointSaver,
   });
 
   // Run the agent
@@ -65,9 +67,10 @@ export async function invoke(
       try {
         const response = await agent.invoke({ messages }, runConfig);
         output.aiMessage = response.messages[response.messages.length - 1].content as string;
-        const toolNames = response.messages
-          .filter((msg: any) => msg.tool_calls && msg.tool_calls.length > 0)
-          .flatMap((msg: any) => msg.tool_calls.map((tc: any) => tc.name));
+        const toolNames =
+          response.messages
+            .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
+            .flatMap((msg: AIMessage) => msg.tool_calls?.map((tc: ToolCall) => tc.name)) ?? [];
         if (toolNames.length > 0) {
           displayInfo(`\nUsed tools: ${toolNames.join(', ')}`);
         }
@@ -78,10 +81,7 @@ export async function invoke(
       }
       display(output.aiMessage);
     } else {
-      const stream = await agent.stream(
-        { messages },
-        { ...runConfig, streamMode: 'messages' }
-      );
+      const stream = await agent.stream({ messages }, { ...runConfig, streamMode: 'messages' });
 
       for await (const [chunk, _metadata] of stream) {
         if (isAIMessage(chunk)) {

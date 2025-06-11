@@ -86,8 +86,8 @@ export function readStdin(program: Command): Promise<void> {
 }
 
 // Console-related functions
-export const log = (...data: any[]): void => console.log(...data);
-export const error = (...data: any[]): void => console.error(...data);
-export const warn = (...data: any[]): void => console.warn(...data);
-export const info = (...data: any[]): void => console.info(...data);
-export const debug = (...data: any[]): void => console.debug(...data);
+export const log = (message: string): void => console.log(message);
+export const error = (message: string): void => console.error(message);
+export const warn = (message: string): void => console.warn(message);
+export const info = (message: string): void => console.info(message);
+export const debug = (message: string): void => console.debug(message);

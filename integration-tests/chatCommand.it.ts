@@ -26,4 +26,4 @@ describe('Chat Command Integration Tests', () => {
     expect(checkOutputForExpectedContent(output, 'gth_')).toBe(true);
     expect(checkOutputForExpectedContent(output, '_CHAT.md')).toBe(true);
   });
-}); 
+});

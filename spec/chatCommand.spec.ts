@@ -1,67 +1,59 @@
 import { Command } from 'commander';
-import { beforeEach, describe, expect, it, vi, beforeAll } from 'vitest';
-import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
-import { initConfig } from '#src/config.js';
-import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
-import { getGslothFilePath } from '#src/filePathUtils.js';
-import { generateStandardFileName } from '#src/utils.js';
-import { appendFileSync, existsSync } from 'node:fs';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { display } from '#src/consoleUtils.js';
 import { invoke } from '#src/llmUtils.js';
-import { stdin as input, stdout as output } from 'node:process';
-import { createInterface } from 'node:readline';
 import type { Interface as ReadlineInterface } from 'node:readline';
+import { createInterface } from 'node:readline';
 
 // Mock modules
 vi.mock('#src/prompt.js', () => ({
   readBackstory: vi.fn().mockReturnValue('Mock backstory'),
   readGuidelines: vi.fn().mockReturnValue('Mock guidelines'),
-  readSystemPrompt: vi.fn().mockReturnValue('Mock system prompt')
+  readSystemPrompt: vi.fn().mockReturnValue('Mock system prompt'),
 }));
 
 vi.mock('#src/config.js', () => ({
   initConfig: vi.fn().mockResolvedValue({
     projectGuidelines: 'Mock guidelines',
-    llm: 'Mock LLM'
-  })
+    llm: 'Mock LLM',
+  }),
 }));
 
 vi.mock('#src/consoleUtils.js', () => ({
   display: vi.fn(),
   displayError: vi.fn(),
-  displaySuccess: vi.fn()
+  displaySuccess: vi.fn(),
 }));
 
 vi.mock('#src/filePathUtils.js', () => ({
-  getGslothFilePath: vi.fn().mockReturnValue('mock/chat/file.txt')
+  getGslothFilePath: vi.fn().mockReturnValue('mock/chat/file.txt'),
 }));
 
 vi.mock('#src/utils.js', () => ({
-  generateStandardFileName: vi.fn().mockReturnValue('mock-chat-file.txt')
+  generateStandardFileName: vi.fn().mockReturnValue('mock-chat-file.txt'),
 }));
 
 vi.mock('node:fs', () => ({
   appendFileSync: vi.fn(),
-  existsSync: vi.fn().mockReturnValue(true)
+  existsSync: vi.fn().mockReturnValue(true),
 }));
 
 vi.mock('#src/llmUtils.js', () => ({
-  invoke: vi.fn().mockResolvedValue('Mock response')
+  invoke: vi.fn().mockResolvedValue('Mock response'),
 }));
 
 vi.mock('node:readline', () => ({
-  createInterface: vi.fn()
+  createInterface: vi.fn(),
 }));
 
 describe('chatCommand', () => {
   let program: Command;
-  let llmUtilsMock: { invoke: ReturnType<typeof vi.fn> };
   let chatCommand: typeof import('#src/commands/chatCommand.js').chatCommand;
 
   beforeEach(async () => {
     vi.resetModules();
     ({ chatCommand } = await import('#src/commands/chatCommand.js'));
     program = new Command();
-    llmUtilsMock = { invoke: vi.fn().mockResolvedValue('Mock response') };
     vi.mocked(invoke).mockReset();
     vi.clearAllMocks();
   });
@@ -72,7 +64,9 @@ describe('chatCommand', () => {
 
   it('Should display help correctly', () => {
     chatCommand(program);
-    expect(program.commands[0].description()).toBe('Start an interactive chat session with Gaunt Sloth');
+    expect(program.commands[0].description()).toBe(
+      'Start an interactive chat session with Gaunt Sloth'
+    );
   });
 
   it('Should process initial message if provided', async () => {
@@ -104,7 +98,7 @@ describe('chatCommand', () => {
       listeners: vi.fn(),
       rawListeners: vi.fn(),
       eventNames: vi.fn(),
-      listenerCount: vi.fn()
+      listenerCount: vi.fn(),
     } as unknown as ReadlineInterface;
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
@@ -156,7 +150,7 @@ describe('chatCommand', () => {
       listeners: vi.fn(),
       rawListeners: vi.fn(),
       eventNames: vi.fn(),
-      listenerCount: vi.fn()
+      listenerCount: vi.fn(),
     } as unknown as ReadlineInterface;
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
@@ -204,7 +198,7 @@ describe('chatCommand', () => {
       listeners: vi.fn(),
       rawListeners: vi.fn(),
       eventNames: vi.fn(),
-      listenerCount: vi.fn()
+      listenerCount: vi.fn(),
     } as unknown as ReadlineInterface;
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
@@ -214,7 +208,9 @@ describe('chatCommand', () => {
     await program.parseAsync(['na', 'na', 'chat']);
 
     expect(mockReadline.question).toHaveBeenCalledWith('> ', expect.any(Function));
-    expect(vi.mocked(display)).toHaveBeenCalledWith("Hello! I'm Gaunt Sloth, your AI assistant. How can I help you today?");
+    expect(vi.mocked(display)).toHaveBeenCalledWith(
+      "Hello! I'm Gaunt Sloth, your AI assistant. How can I help you today?"
+    );
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
   });
@@ -234,4 +230,4 @@ describe('chatCommand', () => {
       'chat'
     );
   });
-}); 
+});
