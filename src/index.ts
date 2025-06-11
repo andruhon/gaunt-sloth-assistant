@@ -7,6 +7,7 @@ import { chatCommand } from '#src/commands/chatCommand.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
 import { setVerbose } from '#src/llmUtils.js';
+import { display } from '#src/consoleUtils.js';
 
 const program = new Command();
 
@@ -30,6 +31,12 @@ prCommand(program);
 askCommand(program);
 chatCommand(program);
 // TODO add general interactive chat command
+
+// Debug: List all registered commands
+display('Registered commands:');
+program.commands.forEach(cmd => {
+  display(`- ${cmd.name()}: ${cmd.description()}`);
+});
 
 // Parse the command line arguments
 program.parse(argv);
