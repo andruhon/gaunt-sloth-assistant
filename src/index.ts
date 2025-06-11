@@ -30,18 +30,5 @@ reviewCommand(program);
 prCommand(program);
 askCommand(program);
 chatCommand(program);
-// TODO add general interactive chat command
 
-// Debug: List all registered commands
-display('Registered commands:');
-program.commands.forEach(cmd => {
-  display(`- ${cmd.name()}: ${cmd.description()}`);
-});
-
-// Parse the command line arguments
-program.parse(argv);
-
-// Only read from stdin if no command was provided
-if (!program.args.length) {
-  await readStdin(program);
-}
+await readStdin(program);

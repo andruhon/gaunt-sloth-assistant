@@ -4,6 +4,7 @@ import { getGslothFilePath } from '#src/filePathUtils.js';
 import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
 import { invoke } from '#src/llmUtils.js';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 /**
  * Ask a question and get an answer from the LLM
@@ -18,7 +19,8 @@ export async function askQuestion(
   config: SlothConfig
 ): Promise<void> {
   const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Thinking.');
-  const outputContent = await invoke(config.llm, preamble, content, config, 'ask');
+  const messages = [new SystemMessage(preamble), new HumanMessage(content)];
+  const outputContent = await invoke('ask', messages, config);
   progressIndicator?.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);
