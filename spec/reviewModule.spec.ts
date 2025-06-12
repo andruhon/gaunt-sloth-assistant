@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
 import type { SlothConfig } from '#src/config.js';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 // Mock fs module
 const fsMock = {
@@ -77,6 +78,7 @@ const mockConfig = {
       requirementsProvider: 'github',
     },
   },
+  filesystem: 'none',
 } as SlothConfig;
 
 // Mock config module
@@ -114,11 +116,9 @@ describe('reviewModule', () => {
 
     // Verify that invoke was called with correct parameters
     expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      mockConfig.llm,
-      'test-preamble',
-      'test-diff',
-      mockConfig,
-      'review'
+      'review',
+      [new SystemMessage('test-preamble'), new HumanMessage('test-diff')],
+      mockConfig
     );
 
     // Verify that writeFileSync was called
@@ -184,11 +184,9 @@ describe('reviewModule', () => {
 
     // Verify the different config was used
     expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      differentConfig.llm,
-      'test-preamble',
-      'test-diff',
-      differentConfig,
-      'review'
+      'review',
+      [new SystemMessage('test-preamble'), new HumanMessage('test-diff')],
+      differentConfig
     );
 
     // Verify the output matches what we expect
