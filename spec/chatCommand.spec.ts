@@ -4,6 +4,9 @@ import { display } from '#src/consoleUtils.js';
 import { invoke } from '#src/llmUtils.js';
 import type { Interface as ReadlineInterface } from 'node:readline';
 import { createInterface } from 'node:readline';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { MemorySaver } from '@langchain/langgraph';
+import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 
 // Mock modules
 vi.mock('#src/prompt.js', () => ({
@@ -107,11 +110,11 @@ describe('chatCommand', () => {
     await program.parseAsync(['na', 'na', 'chat', 'test message']);
 
     expect(vi.mocked(invoke)).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(String),
-      expect.stringContaining('test message'),
+      'chat',
+      [new SystemMessage('You are a helpful AI assistant.'), new HumanMessage('test message')],
       expect.any(Object),
-      'chat'
+      expect.any(Object),
+      expect.any(MemorySaver)
     );
   });
 
@@ -158,7 +161,7 @@ describe('chatCommand', () => {
     chatCommand(program);
     await program.parseAsync(['na', 'na', 'chat']);
 
-    expect(mockReadline.question).toHaveBeenCalledWith('> ', expect.any(Function));
+    expect(mockReadline.question).toHaveBeenCalledWith('  > ', expect.any(Function));
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
   });
@@ -207,7 +210,7 @@ describe('chatCommand', () => {
     chatCommand(program);
     await program.parseAsync(['na', 'na', 'chat']);
 
-    expect(mockReadline.question).toHaveBeenCalledWith('> ', expect.any(Function));
+    expect(mockReadline.question).toHaveBeenCalledWith('  > ', expect.any(Function));
     expect(vi.mocked(display)).toHaveBeenCalledWith(
       "Hello! I'm Gaunt Sloth, your AI assistant. How can I help you today?"
     );
@@ -216,18 +219,49 @@ describe('chatCommand', () => {
   });
 
   it('Should maintain conversation context between messages', async () => {
+    const mockConfig = {
+      projectGuidelines: 'Mock guidelines',
+      llm: new FakeStreamingChatModel({}),
+      streamOutput: false,
+      contentProvider: 'file',
+      requirementsProvider: 'file',
+      projectReviewInstructions: '.gsloth.review.md',
+      filesystem: 'none' as const,
+    };
+    const { initConfig } = await import('#src/config.js');
+    vi.mocked(initConfig).mockResolvedValue(mockConfig);
+
+    let messageHandler: (_message: string) => Promise<void> = async () => {};
+    const mockReadline = {
+      question: vi.fn().mockImplementation((prompt, callback) => {
+        messageHandler = callback;
+      }),
+      close: vi.fn(),
+    };
+    vi.mocked(createInterface).mockReturnValue(mockReadline as any);
+
     chatCommand(program);
-    await program.parseAsync(['na', 'na', 'chat', 'first message']);
-    await program.parseAsync(['na', 'na', 'chat', 'second message']);
+    await program.parseAsync(['na', 'na', 'chat']); // Start chat session
+
+    await messageHandler('first message');
+    await messageHandler('second message');
 
     expect(vi.mocked(invoke)).toHaveBeenCalledTimes(2);
     expect(vi.mocked(invoke)).toHaveBeenNthCalledWith(
-      2,
-      expect.any(String),
-      expect.any(String),
-      expect.stringContaining('first message'),
+      1,
+      'chat',
+      [new SystemMessage('You are a helpful AI assistant.'), new HumanMessage('first message')],
       expect.any(Object),
-      'chat'
+      expect.any(Object),
+      expect.any(MemorySaver)
+    );
+    expect(vi.mocked(invoke)).toHaveBeenNthCalledWith(
+      2,
+      'chat',
+      [new HumanMessage('second message')],
+      expect.any(Object),
+      expect.any(Object),
+      expect.any(MemorySaver)
     );
   });
 });
