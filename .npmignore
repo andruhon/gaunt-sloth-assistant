@@ -4,4 +4,6 @@ integration-tests/
 .idea/
 .github/
 .junie/
+.claude/
+CLAUDE.md
 /gth_*
