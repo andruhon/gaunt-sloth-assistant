@@ -1,6 +1,5 @@
 import type { Message } from '#src/modules/types.js';
-import { HumanMessage, isAIMessage, SystemMessage } from '@langchain/core/messages';
-import { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { AIMessage, isAIMessage } from '@langchain/core/messages';
 import { SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
@@ -9,17 +8,20 @@ import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { getCurrentDir, stdout } from '#src/systemUtils.js';
 import type { StructuredToolInterface } from '@langchain/core/tools';
 import { ProgressIndicator } from '#src/utils.js';
+import { type RunnableConfig } from '@langchain/core/runnables';
+import { ToolCall } from '@langchain/core/messages/tool';
+import { BaseCheckpointSaver } from '@langchain/langgraph';
 
 const llmGlobalSettings = {
   verbose: false,
 };
 
 export async function invoke(
-  llm: BaseChatModel,
-  systemMessage: string,
-  prompt: string,
+  command: 'ask' | 'pr' | 'review' | 'chat' | undefined,
+  messages: Message[],
   config: SlothConfig,
-  command?: 'ask' | 'pr' | 'review'
+  runConfig?: RunnableConfig,
+  checkpointSaver?: BaseCheckpointSaver | undefined
 ): Promise<string> {
   try {
     if (config.streamOutput && config.llm._llmType() === 'anthropic') {
@@ -28,7 +30,7 @@ export async function invoke(
     }
   } catch {}
   if (llmGlobalSettings.verbose) {
-    llm.verbose = true;
+    config.llm.verbose = true;
   }
 
   // Merge command-specific filesystem config if provided
@@ -51,23 +53,24 @@ export async function invoke(
 
   // Create the React agent
   const agent = createReactAgent({
-    llm,
+    llm: config.llm,
     tools,
+    checkpointSaver,
   });
 
   // Run the agent
   try {
-    const messages: Message[] = [new SystemMessage(systemMessage), new HumanMessage(prompt)];
     display(`Connecting to LLM...`);
     const output = { aiMessage: '' };
     if (!config.streamOutput) {
       const progress = new ProgressIndicator('Thinking.');
       try {
-        const response = await agent.invoke({ messages });
+        const response = await agent.invoke({ messages }, runConfig);
         output.aiMessage = response.messages[response.messages.length - 1].content as string;
-        const toolNames = response.messages
-          .filter((msg: any) => msg.tool_calls && msg.tool_calls.length > 0)
-          .flatMap((msg: any) => msg.tool_calls.map((tc: any) => tc.name));
+        const toolNames =
+          response.messages
+            .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
+            .flatMap((msg: AIMessage) => msg.tool_calls?.map((tc: ToolCall) => tc.name)) ?? [];
         if (toolNames.length > 0) {
           displayInfo(`\nUsed tools: ${toolNames.join(', ')}`);
         }
@@ -78,7 +81,7 @@ export async function invoke(
       }
       display(output.aiMessage);
     } else {
-      const stream = await agent.stream({ messages }, { streamMode: 'messages' });
+      const stream = await agent.stream({ messages }, { ...runConfig, streamMode: 'messages' });
 
       for await (const [chunk, _metadata] of stream) {
         if (isAIMessage(chunk)) {

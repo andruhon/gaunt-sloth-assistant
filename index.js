@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --no-deprecation --no-warnings
 
 // This is a minimalistic entry point that sets the installDir in systemUtils
 // and delegates to the compiled TypeScript code in dist/index.js

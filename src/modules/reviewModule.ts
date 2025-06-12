@@ -4,6 +4,7 @@ import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
 import { invoke } from '#src/llmUtils.js';
 import { getGslothFilePath } from '#src/filePathUtils.js';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 export async function review(
   source: string,
@@ -13,7 +14,8 @@ export async function review(
   command: 'pr' | 'review' = 'review'
 ): Promise<void> {
   const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Reviewing.');
-  const outputContent = await invoke(config.llm, preamble, diff, config, command);
+  const messages = [new SystemMessage(preamble), new HumanMessage(diff)];
+  const outputContent = await invoke(command, messages, config);
   progressIndicator?.stop();
   const filename = generateStandardFileName(source);
   const filePath = getGslothFilePath(filename);
@@ -22,7 +24,7 @@ export async function review(
   }
   try {
     writeFileSync(filePath, outputContent);
-    displaySuccess(`This report can be found in ${filePath}`);
+    displaySuccess(`\nThis report can be found in ${filePath}`);
   } catch (error) {
     displayDebug(error instanceof Error ? error : String(error));
     displayError(`Failed to write review to file: ${filePath}`);

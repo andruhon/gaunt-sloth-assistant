@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'url';
 import { Command } from 'commander';
 import { ProgressIndicator } from '#src/utils.js';
+import { createInterface, type Interface as ReadLineInterface } from 'node:readline';
 
 /**
  * This file contains all system functions and objects that are globally available
@@ -41,6 +42,8 @@ export const stdin = process.stdin;
 export const stdout = process.stdout;
 export const argv = process.argv;
 export const env = process.env;
+export { createInterface };
+export type { ReadLineInterface };
 
 // noinspection JSUnusedGlobalSymbols
 /**

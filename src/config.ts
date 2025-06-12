@@ -55,6 +55,9 @@ interface BaseSlothConfig {
     ask?: {
       filesystem?: string[] | 'all' | 'none';
     };
+    chat?: {
+      filesystem?: string[] | 'all' | 'none';
+    };
   };
   requirementsProviderConfig?: Record<string, unknown>;
   contentProviderConfig?: Record<string, unknown>;
