@@ -8,6 +8,7 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import chalk from 'chalk';
+import { appendToFile } from '#src/utils.js';
 
 // Mock modules
 vi.mock('#src/prompt.js', () => ({
@@ -35,10 +36,10 @@ vi.mock('#src/filePathUtils.js', () => ({
 
 vi.mock('#src/utils.js', () => ({
   generateStandardFileName: vi.fn().mockReturnValue('mock-chat-file.txt'),
+  appendToFile: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
-  appendFileSync: vi.fn(),
   existsSync: vi.fn().mockReturnValue(true),
 }));
 
@@ -266,6 +267,36 @@ describe('chatCommand', () => {
       expect.any(Object),
       expect.any(Object),
       expect.any(MemorySaver)
+    );
+  });
+
+  it('Should save the conversation to a file', async () => {
+    const mockConfig = {
+      projectGuidelines: 'Mock guidelines',
+      llm: new FakeStreamingChatModel({}),
+      streamOutput: false,
+      contentProvider: 'file',
+      requirementsProvider: 'file',
+      projectReviewInstructions: '.gsloth.review.md',
+      filesystem: 'none' as const,
+    };
+    const { initConfig } = await import('#src/config.js');
+    vi.mocked(initConfig).mockResolvedValue(mockConfig);
+    vi.mocked(invoke).mockResolvedValue('Mock response');
+    let messageHandler: (_message: string) => Promise<void> = async () => {};
+    const mockReadline = {
+      question: vi.fn().mockImplementation((prompt, callback) => {
+        messageHandler = callback;
+      }),
+      close: vi.fn(),
+    };
+    vi.mocked(createInterface).mockReturnValue(mockReadline as any);
+    chatCommand(program);
+    await program.parseAsync(['na', 'na', 'chat']); // Start chat session
+    await messageHandler('first message');
+    expect(vi.mocked(appendToFile)).toHaveBeenCalledWith(
+      'mock/chat/file.txt',
+      '## User\n\nfirst message\n\n## Assistant\n\nMock response\n\n'
     );
   });
 });

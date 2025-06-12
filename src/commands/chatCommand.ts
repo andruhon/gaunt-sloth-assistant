@@ -14,6 +14,8 @@ import {
   stdout as output,
 } from '#src/systemUtils.js';
 import { RunnableConfig } from '@langchain/core/runnables';
+import { getGslothFilePath } from '#src/filePathUtils.js';
+import { generateStandardFileName, appendToFile } from '#src/utils.js';
 
 export function chatCommand(program: Command) {
   program
@@ -29,6 +31,9 @@ export function chatCommand(program: Command) {
         let isFirstMessage = true;
         let shouldExit = false;
         const thread_id = uuidv4();
+        const chatLogFileName = getGslothFilePath(generateStandardFileName('CHAT'));
+
+        display(chalk.gray(`Chat session will be logged to ${chatLogFileName}\n`));
 
         const processMessage = async (userInput: string) => {
           const messages: BaseMessage[] = [];
@@ -41,7 +46,10 @@ export function chatCommand(program: Command) {
             configurable: { thread_id },
           } as RunnableConfig;
 
-          await invoke('chat', messages, config, runConfig, checkpointSaver);
+          const aiResponse = await invoke('chat', messages, config, runConfig, checkpointSaver);
+
+          const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n${aiResponse}\n\n`;
+          appendToFile(chatLogFileName, logEntry);
 
           isFirstMessage = false;
         };

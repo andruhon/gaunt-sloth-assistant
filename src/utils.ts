@@ -1,5 +1,5 @@
 import { display, displayError, displaySuccess, displayWarning } from '#src/consoleUtils.js';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
 import { SlothConfig } from '#src/config.js';
 import { resolve, dirname } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -83,6 +83,18 @@ export function writeFileIfNotExistsWithMessages(filePath: string, content: stri
     displaySuccess(`Created ${filePath}`);
   } else {
     displayWarning(`${filePath} already exists`);
+  }
+}
+
+export function appendToFile(filePath: string, content: string): void {
+  try {
+    const parentDir = dirname(filePath);
+    if (!existsSync(parentDir)) {
+      mkdirSync(parentDir, { recursive: true });
+    }
+    appendFileSync(filePath, content);
+  } catch (e) {
+    displayError(`Failed to append to file ${filePath}: ${(e as Error).message}`);
   }
 }
 
