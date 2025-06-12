@@ -62,6 +62,7 @@ export function chatCommand(program: Command) {
               return;
             }
             await processMessage(userInput);
+            display(chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n"));
             if (!shouldExit) askQuestion();
           });
         };
@@ -69,7 +70,8 @@ export function chatCommand(program: Command) {
         if (message) {
           await processMessage(message);
         } else {
-          display("Hello! I'm Gaunt Sloth, your AI assistant. How can I help you today?");
+          display("\nHello! I'm Gaunt Sloth, your AI assistant. How can I help you today?");
+          display(chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n"));
         }
         if (!shouldExit) askQuestion();
       } catch (err) {

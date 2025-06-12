@@ -7,6 +7,7 @@ import { createInterface } from 'node:readline';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
+import chalk from 'chalk';
 
 // Mock modules
 vi.mock('#src/prompt.js', () => ({
@@ -205,14 +206,17 @@ describe('chatCommand', () => {
     } as unknown as ReadlineInterface;
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
-    vi.mocked(display).mockImplementation(console.log);
+    vi.mocked(display).mockImplementation(vi.fn());
 
     chatCommand(program);
     await program.parseAsync(['na', 'na', 'chat']);
 
     expect(mockReadline.question).toHaveBeenCalledWith('  > ', expect.any(Function));
     expect(vi.mocked(display)).toHaveBeenCalledWith(
-      "Hello! I'm Gaunt Sloth, your AI assistant. How can I help you today?"
+      "\nHello! I'm Gaunt Sloth, your AI assistant. How can I help you today?"
+    );
+    expect(vi.mocked(display)).toHaveBeenCalledWith(
+      chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n")
     );
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
