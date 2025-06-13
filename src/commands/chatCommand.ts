@@ -78,7 +78,7 @@ export function chatCommand(program: Command) {
         if (message) {
           await processMessage(message);
         } else {
-          display("\nHello! I'm Gaunt Sloth, your AI assistant. How can I help you today?");
+          display('\nGaunt Sloth is ready to chat. Type your prompt.');
           display(chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n"));
         }
         if (!shouldExit) askQuestion();

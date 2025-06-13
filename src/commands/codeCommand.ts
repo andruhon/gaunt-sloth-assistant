@@ -84,7 +84,7 @@ export function codeCommand(program: Command): void {
         if (message) {
           await processMessage(message);
         } else {
-          display("\nHello! I'm Gaunt Sloth, your AI coding assistant. How can I help you today?");
+          display('\nGaunt Sloth is ready to code. Type your prompt.');
           display(chalk.gray("Type 'exit' or hit Ctrl+C to exit code session\n"));
         }
         if (!shouldExit) askQuestion();

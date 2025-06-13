@@ -16,7 +16,7 @@ describe('Code Command Integration Tests', () => {
     const output = runCommandInTestDir('npx gth code');
 
     // Check for expected content in the response
-    expect(checkOutputForExpectedContent(output, 'coding assistant')).toBe(true);
+    expect(checkOutputForExpectedContent(output, 'ready to code')).toBe(true);
     expect(checkOutputForExpectedContent(output, 'Type')).toBe(true);
   });
 

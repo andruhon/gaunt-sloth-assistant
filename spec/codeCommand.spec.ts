@@ -214,7 +214,7 @@ describe('codeCommand', () => {
 
     expect(mockReadline.question).toHaveBeenCalledWith('  > ', expect.any(Function));
     expect(vi.mocked(display)).toHaveBeenCalledWith(
-      "\nHello! I'm Gaunt Sloth, your AI coding assistant. How can I help you today?"
+      '\nGaunt Sloth is ready to code. Type your prompt.'
     );
     expect(vi.mocked(display)).toHaveBeenCalledWith(
       chalk.gray("Type 'exit' or hit Ctrl+C to exit code session\n")
