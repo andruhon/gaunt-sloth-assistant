@@ -55,7 +55,10 @@ describe('predefined AI provider configurations', () => {
       projectGuidelines: '.gsloth.guidelines.md',
       projectReviewInstructions: '.gsloth.review.md',
       streamOutput: true,
-      commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
+      commands: {
+        pr: { contentProvider: 'github', requirementsProvider: 'github' },
+        code: { filesystem: 'all' },
+      },
     };
 
     // Set up fs mocks for this specific test
@@ -113,7 +116,10 @@ describe('predefined AI provider configurations', () => {
       projectGuidelines: '.gsloth.guidelines.md',
       projectReviewInstructions: '.gsloth.review.md',
       streamOutput: true,
-      commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
+      commands: {
+        pr: { contentProvider: 'github', requirementsProvider: 'github' },
+        code: { filesystem: 'all' },
+      },
     };
 
     // Set up fs mocks for this specific test
@@ -171,7 +177,10 @@ describe('predefined AI provider configurations', () => {
       projectGuidelines: '.gsloth.guidelines.md',
       projectReviewInstructions: '.gsloth.review.md',
       streamOutput: true,
-      commands: { pr: { contentProvider: 'github', requirementsProvider: 'github' } },
+      commands: {
+        pr: { contentProvider: 'github', requirementsProvider: 'github' },
+        code: { filesystem: 'all' },
+      },
     };
 
     // Set up fs mocks for this specific test

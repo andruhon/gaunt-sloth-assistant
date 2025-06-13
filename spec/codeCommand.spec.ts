@@ -31,11 +31,11 @@ vi.mock('#src/consoleUtils.js', () => ({
 }));
 
 vi.mock('#src/filePathUtils.js', () => ({
-  getGslothFilePath: vi.fn().mockReturnValue('mock/chat/file.txt'),
+  getGslothFilePath: vi.fn().mockReturnValue('mock/code/file.txt'),
 }));
 
 vi.mock('#src/utils.js', () => ({
-  generateStandardFileName: vi.fn().mockReturnValue('mock-chat-file.txt'),
+  generateStandardFileName: vi.fn().mockReturnValue('mock-code-file.txt'),
   appendToFile: vi.fn(),
 }));
 
@@ -51,26 +51,26 @@ vi.mock('node:readline', () => ({
   createInterface: vi.fn(),
 }));
 
-describe('chatCommand', () => {
+describe('codeCommand', () => {
   let program: Command;
-  let chatCommand: typeof import('#src/commands/chatCommand.js').chatCommand;
+  let codeCommand: typeof import('#src/commands/codeCommand.js').codeCommand;
 
   beforeEach(async () => {
     vi.resetModules();
-    ({ chatCommand } = await import('#src/commands/chatCommand.js'));
+    ({ codeCommand } = await import('#src/commands/codeCommand.js'));
     program = new Command();
     vi.mocked(invoke).mockReset();
     vi.clearAllMocks();
   });
 
   beforeAll(async () => {
-    ({ chatCommand } = await import('#src/commands/chatCommand.js'));
+    ({ codeCommand } = await import('#src/commands/codeCommand.js'));
   });
 
   it('Should display help correctly', () => {
-    chatCommand(program);
+    codeCommand(program);
     expect(program.commands[0].description()).toBe(
-      'Start an interactive chat session with Gaunt Sloth'
+      'Interactively write code with sloth (has full file system access within your project)'
     );
   });
 
@@ -108,11 +108,11 @@ describe('chatCommand', () => {
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
 
-    chatCommand(program);
-    await program.parseAsync(['na', 'na', 'chat', 'test message']);
+    codeCommand(program);
+    await program.parseAsync(['na', 'na', 'code', 'test message']);
 
     expect(vi.mocked(invoke)).toHaveBeenCalledWith(
-      'chat',
+      'code',
       [new SystemMessage('You are a helpful AI assistant.'), new HumanMessage('test message')],
       expect.any(Object),
       expect.any(Object),
@@ -160,8 +160,8 @@ describe('chatCommand', () => {
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
 
-    chatCommand(program);
-    await program.parseAsync(['na', 'na', 'chat']);
+    codeCommand(program);
+    await program.parseAsync(['na', 'na', 'code']);
 
     expect(mockReadline.question).toHaveBeenCalledWith('  > ', expect.any(Function));
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
@@ -209,15 +209,15 @@ describe('chatCommand', () => {
     vi.mocked(createInterface).mockReturnValue(mockReadline);
     vi.mocked(display).mockImplementation(vi.fn());
 
-    chatCommand(program);
-    await program.parseAsync(['na', 'na', 'chat']);
+    codeCommand(program);
+    await program.parseAsync(['na', 'na', 'code']);
 
     expect(mockReadline.question).toHaveBeenCalledWith('  > ', expect.any(Function));
     expect(vi.mocked(display)).toHaveBeenCalledWith(
-      '\nGaunt Sloth is ready to chat. Type your prompt.'
+      '\nGaunt Sloth is ready to code. Type your prompt.'
     );
     expect(vi.mocked(display)).toHaveBeenCalledWith(
-      chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n")
+      chalk.gray("Type 'exit' or hit Ctrl+C to exit code session\n")
     );
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
@@ -245,8 +245,8 @@ describe('chatCommand', () => {
     };
     vi.mocked(createInterface).mockReturnValue(mockReadline as any);
 
-    chatCommand(program);
-    await program.parseAsync(['na', 'na', 'chat']); // Start chat session
+    codeCommand(program);
+    await program.parseAsync(['na', 'na', 'code']); // Start code session
 
     await messageHandler('first message');
     await messageHandler('second message');
@@ -254,7 +254,7 @@ describe('chatCommand', () => {
     expect(vi.mocked(invoke)).toHaveBeenCalledTimes(2);
     expect(vi.mocked(invoke)).toHaveBeenNthCalledWith(
       1,
-      'chat',
+      'code',
       [new SystemMessage('You are a helpful AI assistant.'), new HumanMessage('first message')],
       expect.any(Object),
       expect.any(Object),
@@ -262,7 +262,7 @@ describe('chatCommand', () => {
     );
     expect(vi.mocked(invoke)).toHaveBeenNthCalledWith(
       2,
-      'chat',
+      'code',
       [new HumanMessage('second message')],
       expect.any(Object),
       expect.any(Object),
@@ -291,11 +291,11 @@ describe('chatCommand', () => {
       close: vi.fn(),
     };
     vi.mocked(createInterface).mockReturnValue(mockReadline as any);
-    chatCommand(program);
-    await program.parseAsync(['na', 'na', 'chat']); // Start chat session
+    codeCommand(program);
+    await program.parseAsync(['na', 'na', 'code']); // Start code session
     await messageHandler('first message');
     expect(vi.mocked(appendToFile)).toHaveBeenCalledWith(
-      'mock/chat/file.txt',
+      'mock/code/file.txt',
       '## User\n\nfirst message\n\n## Assistant\n\nMock response\n\n'
     );
   });

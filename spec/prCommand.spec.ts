@@ -186,6 +186,14 @@ describe('prCommand', () => {
 
     const testOutput = { text: '' };
 
+    // Mock systemUtils to ensure environment variables don't interfere with the test
+    vi.mock('#src/systemUtils.js', () => ({
+      env: {}, // Empty env object to ensure no environment variables are used
+      error: vi.fn(),
+      exit: vi.fn(),
+      getCurrentDir: vi.fn().mockReturnValue('/mock/dir'),
+    }));
+
     const { prCommand } = await import('#src/commands/prCommand.js');
     const program = new Command();
     program.configureOutput({

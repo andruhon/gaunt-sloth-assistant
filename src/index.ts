@@ -4,6 +4,7 @@ import { initCommand } from '#src/commands/initCommand.js';
 import { reviewCommand } from '#src/commands/reviewCommand.js';
 import { prCommand } from '#src/commands/prCommand.js';
 import { chatCommand } from '#src/commands/chatCommand.js';
+import { codeCommand } from '#src/commands/codeCommand.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
 import { setVerbose } from '#src/llmUtils.js';
@@ -29,5 +30,6 @@ reviewCommand(program);
 prCommand(program);
 askCommand(program);
 chatCommand(program);
+codeCommand(program);
 
 await readStdin(program);
