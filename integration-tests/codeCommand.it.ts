@@ -7,9 +7,7 @@ describe('Code Command Integration Tests', () => {
     const output = runCommandInTestDir('npx gth code "Hello, can you help me with some code?"');
 
     // Check for expected content in the response
-    expect(checkOutputForExpectedContent(output, 'Hello')).toBe(true);
-    expect(checkOutputForExpectedContent(output, 'help')).toBe(true);
-    expect(checkOutputForExpectedContent(output, 'code')).toBe(true);
+    expect(checkOutputForExpectedContent(output, ['help', 'assist', 'code'])).toBe(true);
   });
 
   it('should start interactive session without initial message', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { runCommandInTestDir } from './support/commandRunner';
-import { checkOutputForExpectedContent } from './support/outputChecker';
+import { extractReviewScore } from './support/reviewScoreExtractor';
 
 describe('PR Command Integration Tests', () => {
   // Test for PR review with approval
@@ -8,9 +8,10 @@ describe('PR Command Integration Tests', () => {
     // Use real PR data instead of mock files
     const output = runCommandInTestDir('npx gth pr 39 23');
 
-    // Check for approval in the response
-    expect(checkOutputForExpectedContent(output, '<REVIEW>APPROVE</REVIEW>')).toBe(true);
-    expect(checkOutputForExpectedContent(output, '<REVIEW>REQUEST_CHANGES</REVIEW>')).toBe(false);
+    // Check for approval in the response (score >= 5)
+    const score = extractReviewScore(output);
+    expect(score).not.toBeNull();
+    expect(score).toBeGreaterThanOrEqual(5);
   });
 
   // Test for PR review with rejection
@@ -18,7 +19,9 @@ describe('PR Command Integration Tests', () => {
     // Use real PR data instead of mock files
     const output = runCommandInTestDir('npx gth pr 1');
 
-    // Check for rejection in the response
-    expect(checkOutputForExpectedContent(output, '<REVIEW>REQUEST_CHANGES</REVIEW>')).toBe(true);
+    // Check for rejection in the response (score < 5)
+    const score = extractReviewScore(output);
+    expect(score).not.toBeNull();
+    expect(score).toBeLessThan(5);
   });
 });
