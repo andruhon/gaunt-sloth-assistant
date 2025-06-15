@@ -16,33 +16,39 @@ import {
 import { RunnableConfig } from '@langchain/core/runnables';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { generateStandardFileName, appendToFile } from '#src/utils.js';
-import { readBackstory, readGuidelines, readSystemPrompt, readChatPrompt } from '#src/prompt.js';
+import { readBackstory, readGuidelines, readSystemPrompt, readCodePrompt } from '#src/prompt.js';
 
-export function chatCommand(program: Command) {
+/**
+ * Adds the code command to the program
+ * @param program - The commander program
+ */
+export function codeCommand(program: Command): void {
   program
-    .command('chat')
-    .description('Start an interactive chat session with Gaunt Sloth')
-    .argument('[message]', 'Initial message to start the chat')
+    .command('code')
+    .description(
+      'Interactively write code with sloth (has full file system access within your project)'
+    )
+    .argument('[message]', 'Initial message to start the code session')
     .action(async (message: string) => {
       try {
-        // Force streaming Off for chat, it does not play nicely with the input interface
+        // Force streaming Off for code, it does not play nicely with the input interface
         const config = { ...(await initConfig()), streamOutput: false };
         const checkpointSaver = new MemorySaver();
         const rl = createInterface({ input, output });
         let isFirstMessage = true;
         let shouldExit = false;
         const thread_id = uuidv4();
-        const chatLogFileName = getGslothFilePath(generateStandardFileName('CHAT'));
+        const codeLogFileName = getGslothFilePath(generateStandardFileName('CODE'));
 
-        display(chalk.gray(`Chat session will be logged to ${chatLogFileName}\n`));
+        display(chalk.gray(`Code session will be logged to ${codeLogFileName}\n`));
 
         const processMessage = async (userInput: string) => {
           const messages: BaseMessage[] = [];
           if (isFirstMessage) {
             const systemPromptParts = [readBackstory(), readGuidelines(config.projectGuidelines)];
-            const chatPrompt = readChatPrompt();
-            if (chatPrompt) {
-              systemPromptParts.push(chatPrompt);
+            const codePrompt = readCodePrompt();
+            if (codePrompt) {
+              systemPromptParts.push(codePrompt);
             }
             const systemPrompt = readSystemPrompt();
             if (systemPrompt) {
@@ -56,10 +62,10 @@ export function chatCommand(program: Command) {
             configurable: { thread_id },
           } as RunnableConfig;
 
-          const aiResponse = await invoke('chat', messages, config, runConfig, checkpointSaver);
+          const aiResponse = await invoke('code', messages, config, runConfig, checkpointSaver);
 
           const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n${aiResponse}\n\n`;
-          appendToFile(chatLogFileName, logEntry);
+          appendToFile(codeLogFileName, logEntry);
 
           isFirstMessage = false;
         };
@@ -80,7 +86,7 @@ export function chatCommand(program: Command) {
               return;
             }
             await processMessage(userInput);
-            display(chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n"));
+            display(chalk.gray("Type 'exit' or hit Ctrl+C to exit code session\n"));
             if (!shouldExit) askQuestion();
           });
         };
@@ -88,12 +94,12 @@ export function chatCommand(program: Command) {
         if (message) {
           await processMessage(message);
         } else {
-          display('\nGaunt Sloth is ready to chat. Type your prompt.');
-          display(chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n"));
+          display('\nGaunt Sloth is ready to code. Type your prompt.');
+          display(chalk.gray("Type 'exit' or hit Ctrl+C to exit code session\n"));
         }
         if (!shouldExit) askQuestion();
       } catch (err) {
-        error(`Error in chat command: ${err}`);
+        error(`Error in code command: ${err}`);
         exit(1);
       }
     });

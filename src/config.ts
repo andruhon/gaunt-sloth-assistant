@@ -58,6 +58,9 @@ interface BaseSlothConfig {
     chat?: {
       filesystem?: string[] | 'all' | 'none';
     };
+    code?: {
+      filesystem?: string[] | 'all' | 'none';
+    };
   };
   requirementsProviderConfig?: Record<string, unknown>;
   contentProviderConfig?: Record<string, unknown>;
@@ -92,6 +95,9 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
     pr: {
       contentProvider: 'github', // gh pr diff NN
       requirementsProvider: 'github', // gh issue view NN
+    },
+    code: {
+      filesystem: 'all',
     },
   },
 };

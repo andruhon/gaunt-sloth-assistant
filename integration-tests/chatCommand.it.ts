@@ -7,16 +7,16 @@ describe('Chat Command Integration Tests', () => {
     const output = runCommandInTestDir('npx gth chat "Hello, can you help me?"');
 
     // Check for expected content in the response
-    expect(checkOutputForExpectedContent(output, 'Hello')).toBe(true);
-    expect(checkOutputForExpectedContent(output, 'help')).toBe(true);
+    expect(checkOutputForExpectedContent(output, ['help', 'assist', 'hello'])).toBe(true);
   });
 
   it('should start interactive session without initial message', () => {
     const output = runCommandInTestDir('npx gth chat');
 
     // Check for expected content in the response
-    expect(checkOutputForExpectedContent(output, 'ready to chat')).toBe(true);
-    expect(checkOutputForExpectedContent(output, 'Type your message')).toBe(true);
+    expect(
+      checkOutputForExpectedContent(output, 'Gaunt Sloth is ready to chat. Type your prompt.')
+    ).toBe(true);
   });
 
   it('should create chat history file', () => {

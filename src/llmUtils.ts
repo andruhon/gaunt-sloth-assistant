@@ -17,7 +17,7 @@ const llmGlobalSettings = {
 };
 
 export async function invoke(
-  command: 'ask' | 'pr' | 'review' | 'chat' | undefined,
+  command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined,
   messages: Message[],
   config: SlothConfig,
   runConfig?: RunnableConfig,
