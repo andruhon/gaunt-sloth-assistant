@@ -15,6 +15,7 @@ vi.mock('#src/prompt.js', () => ({
   readBackstory: vi.fn().mockReturnValue('Mock backstory'),
   readGuidelines: vi.fn().mockReturnValue('Mock guidelines'),
   readSystemPrompt: vi.fn().mockReturnValue('Mock system prompt'),
+  readChatPrompt: vi.fn().mockReturnValue('Mock chat prompt'),
 }));
 
 vi.mock('#src/config.js', () => ({
@@ -113,7 +114,10 @@ describe('chatCommand', () => {
 
     expect(vi.mocked(invoke)).toHaveBeenCalledWith(
       'chat',
-      [new SystemMessage('You are a helpful AI assistant.'), new HumanMessage('test message')],
+      [
+        new SystemMessage('Mock backstory\nMock guidelines\nMock chat prompt\nMock system prompt'),
+        new HumanMessage('test message'),
+      ],
       expect.any(Object),
       expect.any(Object),
       expect.any(MemorySaver)
@@ -255,7 +259,10 @@ describe('chatCommand', () => {
     expect(vi.mocked(invoke)).toHaveBeenNthCalledWith(
       1,
       'chat',
-      [new SystemMessage('You are a helpful AI assistant.'), new HumanMessage('first message')],
+      [
+        new SystemMessage('Mock backstory\nMock guidelines\nMock chat prompt\nMock system prompt'),
+        new HumanMessage('first message'),
+      ],
       expect.any(Object),
       expect.any(Object),
       expect.any(MemorySaver)

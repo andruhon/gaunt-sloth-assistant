@@ -5,7 +5,12 @@ import {
 } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
 import { exit } from '#src/systemUtils.js';
-import { GSLOTH_BACKSTORY, GSLOTH_SYSTEM_PROMPT } from '#src/constants.js';
+import {
+  GSLOTH_BACKSTORY,
+  GSLOTH_SYSTEM_PROMPT,
+  GSLOTH_CHAT_PROMPT,
+  GSLOTH_CODE_PROMPT,
+} from '#src/constants.js';
 import { getGslothConfigReadPath } from '#src/filePathUtils.js';
 
 export function readBackstory(): string {
@@ -30,6 +35,14 @@ export function readReviewInstructions(reviewInstructions: string): string {
 
 export function readSystemPrompt(): string {
   return readFileFromCurrentOrInstallDir(GSLOTH_SYSTEM_PROMPT, true);
+}
+
+export function readChatPrompt(): string {
+  return readFileFromCurrentOrInstallDir(GSLOTH_CHAT_PROMPT, true);
+}
+
+export function readCodePrompt(): string {
+  return readFileFromCurrentOrInstallDir(GSLOTH_CODE_PROMPT, true);
 }
 
 function readConfigPromptFile(guidelinesFilename: string): string {

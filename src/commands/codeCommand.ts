@@ -16,6 +16,7 @@ import {
 import { RunnableConfig } from '@langchain/core/runnables';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { generateStandardFileName, appendToFile } from '#src/utils.js';
+import { readBackstory, readGuidelines, readSystemPrompt, readCodePrompt } from '#src/prompt.js';
 
 /**
  * Adds the code command to the program
@@ -44,7 +45,16 @@ export function codeCommand(program: Command): void {
         const processMessage = async (userInput: string) => {
           const messages: BaseMessage[] = [];
           if (isFirstMessage) {
-            messages.push(new SystemMessage('You are a helpful AI assistant.'));
+            const systemPromptParts = [readBackstory(), readGuidelines(config.projectGuidelines)];
+            const codePrompt = readCodePrompt();
+            if (codePrompt) {
+              systemPromptParts.push(codePrompt);
+            }
+            const systemPrompt = readSystemPrompt();
+            if (systemPrompt) {
+              systemPromptParts.push(systemPrompt);
+            }
+            messages.push(new SystemMessage(systemPromptParts.join('\n')));
           }
           messages.push(new HumanMessage(userInput));
 

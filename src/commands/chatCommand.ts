@@ -16,6 +16,7 @@ import {
 import { RunnableConfig } from '@langchain/core/runnables';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { generateStandardFileName, appendToFile } from '#src/utils.js';
+import { readBackstory, readGuidelines, readSystemPrompt, readChatPrompt } from '#src/prompt.js';
 
 export function chatCommand(program: Command) {
   program
@@ -38,7 +39,16 @@ export function chatCommand(program: Command) {
         const processMessage = async (userInput: string) => {
           const messages: BaseMessage[] = [];
           if (isFirstMessage) {
-            messages.push(new SystemMessage('You are a helpful AI assistant.'));
+            const systemPromptParts = [readBackstory(), readGuidelines(config.projectGuidelines)];
+            const chatPrompt = readChatPrompt();
+            if (chatPrompt) {
+              systemPromptParts.push(chatPrompt);
+            }
+            const systemPrompt = readSystemPrompt();
+            if (systemPrompt) {
+              systemPromptParts.push(systemPrompt);
+            }
+            messages.push(new SystemMessage(systemPromptParts.join('\n')));
           }
           messages.push(new HumanMessage(userInput));
 
