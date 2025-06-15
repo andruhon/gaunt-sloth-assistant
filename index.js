@@ -1,4 +1,13 @@
-#!/usr/bin/env node --no-deprecation --no-warnings
+#!/usr/bin/env node
+
+// Suppress deprecation warnings programmatically
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'DeprecationWarning' || warning.name === 'ExperimentalWarning') {
+    return;
+  }
+  console.warn(warning);
+});
 
 // This is a minimalistic entry point that sets the installDir in systemUtils
 // and delegates to the compiled TypeScript code in dist/index.js
