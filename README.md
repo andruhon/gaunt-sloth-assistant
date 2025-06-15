@@ -41,79 +41,47 @@ Unlike proprietary solutions that restrict you to a single AI provider, Gaunt Sl
 - Anthropic;
 - Groq.
 
-## Primary Functions:
+## Commands Overview
 
 `gth` and `gsloth` commands are used interchangeably, both `gsloth pr 42` and `gth pr 42` do the same thing.
 
-### Review PR (Pull Request)
-To review PR by PR number:
+For detailed information about all commands, see [docs/COMMANDS.md](./docs/COMMANDS.md).
 
-First make sure the official [GitHub cli (gh)](https://cli.github.com/) is installed
-and authenticated to have access to your project.
+### Available Commands:
 
-Open terminal (command line) in your project directory.
+- **`init`** - Initialize Gaunt Sloth in your project with a specific AI provider
+- **`pr`** - ⚠️ This feature requires GitHub CLI to be installed. Review pull requests with optional requirement integration (GitHub issues or Jira).
+- **`review`** - Review any diff or content from various sources
+- **`ask`** - Ask questions about code or programming topics
+- **`chat`** - Start an interactive chat session
+- **`code`** - Write code interactively with full project context
 
-Type command: `gsloth pr [desired pull request number]`, for example:
+### Quick Examples:
 
-Please note that for higher quality code reviews sloth now has read access and may read files in the current project,
-this means that the branch of reviewed PR should be checked out, otherwise Sloth might get confused.
-If you are typically review PRs without checking them out and looking at diff only is enough, 
-consider setting pr.filesystem to 'none' in your config.
-
+**Initialize project:**
 ```shell
-gsloth pr 42
-``` 
-
-Review PR providing a markdown file with requirements and notes.
-```shell
-gsloth pr 42 -f PROJ-1234.md
+gsloth init anthropic
 ```
 
-### GitHub Issues Integration
-
-The command syntax is `gsloth pr <prId> [githubIssueId]`. For example, to review PR #42 and include GitHub issue #23 as requirements:
-
+**Review PR with requirements:**
 ```shell
-gsloth pr 42 37
+gsloth pr 42 23  # Review PR #42 with GitHub issue #23
 ```
 
-**Prerequisites:**
-
-1. Make sure the official [GitHub CLI (gh)](https://cli.github.com/) is installed and authenticated
-2. Ensure you have access to the repository's issues
-
-No further configuration is needed! Gaunt Sloth will automatically fetch the GitHub issue content using the GitHub CLI.
-
-The project review preamble can be modified to reject a pull request immediately if it appears to implement something different from what was requested in the requirements.
-
-Gaunt Sloth also supports JIRA integration as an alternative requirements provider.
-For more information on **JIRA** setup and other configuration options, see [CONFIGURATION.md#jira](./docs/CONFIGURATION.md#jira).
-
-### Review any Diff
-
-Review current local changes:
+**Review local changes:**
 ```shell
 git --no-pager diff | gsloth review
 ```
 
+**Ask questions:**
 ```shell
-git --no-pager diff origin/master...yourgitcommithash | gsloth review
-```
-(helpful to review a subset of PR)
-
-### Question Answering
-```shell
-gsloth ask "which types of primitives are available in JavaScript?"
+gsloth ask "What does this function do?" -f utils.js
 ```
 
+**Interactive sessions:**
 ```shell
-gsloth ask "Please have a look at this file" -f index.js
-```
-
-Multiple files may be provided as well
-
-```shell
-gsloth ask "Please have a look at these files" -f index.js test.js
+gsloth chat  # Start chat session
+gsloth code  # Start coding session
 ```
 
 ## Installation
