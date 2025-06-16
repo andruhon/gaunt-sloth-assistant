@@ -1,32 +1,5 @@
-import { exec, spawn } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import path from 'path';
-
-const execAsync = promisify(exec);
-
-/**
- * Runs a command in the integration-tests directory using exec
- * Note: This method may cause stdin to be detected as a pipe
- * @param command - The command to run
- * @returns The command output as a string
- */
-export async function runCommandInTestDir(command: string): Promise<string> {
-  const testDir = path.resolve('./integration-tests');
-  try {
-    const { stdout } = await execAsync(command, {
-      cwd: testDir,
-      env: {
-        ...process.env,
-        // Add any environment variables needed for testing
-        // For example, if using Claude, you might need:
-        // ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY
-      },
-    });
-    return stdout;
-  } catch (e) {
-    throw new Error(`Command failed: ${command}\n${e.message}`);
-  }
-}
 
 /**
  * Runs a command in the integration-tests directory using spawn
