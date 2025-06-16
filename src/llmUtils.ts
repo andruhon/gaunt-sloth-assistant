@@ -23,12 +23,12 @@ export async function invoke(
   runConfig?: RunnableConfig,
   checkpointSaver?: BaseCheckpointSaver | undefined
 ): Promise<string> {
-  // try {
-  //   if (config.streamOutput && config.llm._llmType() === 'anthropic') {
-  //     displayWarning('To avoid known bug with Anthropic forcing streamOutput to false');
-  //     config.streamOutput = false;
-  //   }
-  // } catch {}
+  try {
+    if (config.streamOutput && config.llm._llmType() === 'anthropic') {
+      displayWarning('To avoid known bug with Anthropic forcing streamOutput to false');
+      config.streamOutput = false;
+    }
+  } catch {}
   if (llmGlobalSettings.verbose) {
     config.llm.verbose = true;
   }
