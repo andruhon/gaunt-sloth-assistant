@@ -1,5 +1,6 @@
 /node_modules/
 /dist/
+/req/
 /gth_*
 /integration-tests/gth_*
 /integration-tests/.gsloth.config.json
