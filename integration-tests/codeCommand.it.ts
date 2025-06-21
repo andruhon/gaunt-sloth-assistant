@@ -19,7 +19,7 @@ describe('Code Command Integration Tests', () => {
   });
 
   it('should start interactive session without initial message', async () => {
-    const output = await runCommandWithArgs('npx', ['gth', 'code']);
+    const output = await runCommandWithArgs('npx', ['gth', 'code'], ' >');
 
     // Check for expected content in the response
     expect(checkOutputForExpectedContent(output, 'ready to code')).toBe(true);
