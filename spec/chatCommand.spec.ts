@@ -55,12 +55,13 @@ vi.mock('#src/llmUtils.js', () => ({
   invoke: vi.fn().mockResolvedValue('Mock response'),
 }));
 
+const invocationInstance = {
+  init: vi.fn().mockResolvedValue(undefined),
+  invoke: vi.fn().mockResolvedValue('Mock response'),
+  cleanup: vi.fn().mockResolvedValue(undefined),
+};
 vi.mock('#src/core/Invocation.js', () => ({
-  Invocation: vi.fn().mockImplementation(() => ({
-    init: vi.fn().mockResolvedValue(undefined),
-    invoke: vi.fn().mockResolvedValue('Mock response'),
-    cleanup: vi.fn().mockResolvedValue(undefined),
-  })),
+  Invocation: vi.fn().mockImplementation(() => invocationInstance),
 }));
 
 vi.mock('node:readline', () => ({
@@ -126,9 +127,6 @@ describe('chatCommand', () => {
 
     chatCommand(program);
     await program.parseAsync(['na', 'na', 'chat', 'test message']);
-
-    const InvocationMock = vi.mocked(await import('#src/core/Invocation.js')).Invocation;
-    const invocationInstance = InvocationMock.mock.results[0].value;
 
     expect(invocationInstance.init).toHaveBeenCalledWith(
       'chat',
@@ -275,9 +273,6 @@ describe('chatCommand', () => {
 
     await messageHandler('first message');
     await messageHandler('second message');
-
-    const InvocationMock = vi.mocked(await import('#src/core/Invocation.js')).Invocation;
-    const invocationInstance = InvocationMock.mock.results[0].value;
 
     expect(invocationInstance.invoke).toHaveBeenCalledTimes(2);
     expect(invocationInstance.invoke).toHaveBeenNthCalledWith(
