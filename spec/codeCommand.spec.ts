@@ -29,6 +29,10 @@ vi.mock('#src/consoleUtils.js', () => ({
   display: vi.fn(),
   displayError: vi.fn(),
   displaySuccess: vi.fn(),
+  displayInfo: vi.fn(),
+  displayWarning: vi.fn(),
+  displayDebug: vi.fn(),
+  defaultStatusCallbacks: vi.fn(),
 }));
 
 vi.mock('#src/filePathUtils.js', () => ({
@@ -38,6 +42,9 @@ vi.mock('#src/filePathUtils.js', () => ({
 vi.mock('#src/utils.js', () => ({
   generateStandardFileName: vi.fn().mockReturnValue('mock-code-file.txt'),
   appendToFile: vi.fn(),
+  ProgressIndicator: vi.fn().mockImplementation(() => ({
+    stop: vi.fn(),
+  })),
 }));
 
 vi.mock('node:fs', () => ({
@@ -46,6 +53,14 @@ vi.mock('node:fs', () => ({
 
 vi.mock('#src/llmUtils.js', () => ({
   invoke: vi.fn().mockResolvedValue('Mock response'),
+}));
+
+vi.mock('#src/core/Invocation.js', () => ({
+  Invocation: vi.fn().mockImplementation(() => ({
+    init: vi.fn().mockResolvedValue(undefined),
+    invoke: vi.fn().mockResolvedValue('Mock response'),
+    cleanup: vi.fn().mockResolvedValue(undefined),
+  })),
 }));
 
 vi.mock('node:readline', () => ({
@@ -112,15 +127,21 @@ describe('codeCommand', () => {
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code', 'test message']);
 
-    expect(vi.mocked(invoke)).toHaveBeenCalledWith(
+    const InvocationMock = vi.mocked(await import('#src/core/Invocation.js')).Invocation;
+    const invocationInstance = InvocationMock.mock.results[0].value;
+
+    expect(invocationInstance.init).toHaveBeenCalledWith(
       'code',
+      expect.any(Object),
+      expect.any(MemorySaver)
+    );
+
+    expect(invocationInstance.invoke).toHaveBeenCalledWith(
       [
         new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
         new HumanMessage('test message'),
       ],
-      expect.any(Object),
-      expect.any(Object),
-      expect.any(MemorySaver)
+      expect.any(Object)
     );
   });
 
@@ -255,25 +276,22 @@ describe('codeCommand', () => {
     await messageHandler('first message');
     await messageHandler('second message');
 
-    expect(vi.mocked(invoke)).toHaveBeenCalledTimes(2);
-    expect(vi.mocked(invoke)).toHaveBeenNthCalledWith(
+    const InvocationMock = vi.mocked(await import('#src/core/Invocation.js')).Invocation;
+    const invocationInstance = InvocationMock.mock.results[0].value;
+
+    expect(invocationInstance.invoke).toHaveBeenCalledTimes(2);
+    expect(invocationInstance.invoke).toHaveBeenNthCalledWith(
       1,
-      'code',
       [
         new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
         new HumanMessage('first message'),
       ],
-      expect.any(Object),
-      expect.any(Object),
-      expect.any(MemorySaver)
+      expect.any(Object)
     );
-    expect(vi.mocked(invoke)).toHaveBeenNthCalledWith(
+    expect(invocationInstance.invoke).toHaveBeenNthCalledWith(
       2,
-      'code',
       [new HumanMessage('second message')],
-      expect.any(Object),
-      expect.any(Object),
-      expect.any(MemorySaver)
+      expect.any(Object)
     );
   });
 

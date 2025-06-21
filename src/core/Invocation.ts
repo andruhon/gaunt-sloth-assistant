@@ -10,8 +10,7 @@ import type { StructuredToolInterface } from '@langchain/core/tools';
 import { ProgressIndicator } from '#src/utils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { ToolCall } from '@langchain/core/messages/tool';
-
-export type StatusLevel = 'info' | 'warning' | 'error' | 'success' | 'debug' | 'display' | 'stream';
+import { StatusLevel } from '#src/core/types.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -84,10 +83,10 @@ export class Invocation {
 
     // Run the agent
     try {
-      this.statusUpdate('display', `Connecting to LLM...`);
+      this.statusUpdate('stream', `Thinking`);
       const output = { aiMessage: '' };
       if (!this.config.streamOutput) {
-        const progress = new ProgressIndicator('Thinking.');
+        const progress = new ProgressIndicator('.');
         try {
           const response = await this.agent.invoke({ messages }, runConfig);
           output.aiMessage = response.messages[response.messages.length - 1].content as string;

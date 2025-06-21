@@ -1,10 +1,9 @@
 import { initConfig } from '#src/config.js';
-import { display } from '#src/consoleUtils.js';
-import { invoke } from '#src/llmUtils.js';
+import { defaultStatusCallbacks, display } from '#src/consoleUtils.js';
 import { v4 as uuidv4 } from 'uuid';
 import chalk from 'chalk';
 import { MemorySaver } from '@langchain/langgraph';
-import { HumanMessage, SystemMessage, type BaseMessage } from '@langchain/core/messages';
+import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import {
   createInterface,
   error,
@@ -14,8 +13,9 @@ import {
 } from '#src/systemUtils.js';
 import { RunnableConfig } from '@langchain/core/runnables';
 import { getGslothFilePath } from '#src/filePathUtils.js';
-import { generateStandardFileName, appendToFile } from '#src/utils.js';
+import { appendToFile, generateStandardFileName } from '#src/utils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
+import { Invocation } from '#src/core/Invocation.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -26,9 +26,13 @@ export interface SessionConfig {
 }
 
 export async function createInteractiveSession(sessionConfig: SessionConfig, message?: string) {
+  const config = { ...(await initConfig()), streamOutput: false };
+  const checkpointSaver = new MemorySaver();
+  // Initialize Invocation once
+  const invocation = new Invocation(defaultStatusCallbacks);
+  await invocation.init(sessionConfig.mode, config, checkpointSaver);
+
   try {
-    const config = { ...(await initConfig()), streamOutput: false };
-    const checkpointSaver = new MemorySaver();
     const rl = createInterface({ input, output });
     let isFirstMessage = true;
     let shouldExit = false;
@@ -59,13 +63,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
         configurable: { thread_id },
       } as RunnableConfig;
 
-      const aiResponse = await invoke(
-        sessionConfig.mode,
-        messages,
-        config,
-        runConfig,
-        checkpointSaver
-      );
+      const aiResponse = await invocation.invoke(messages, runConfig);
 
       const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n${aiResponse}\n\n`;
       appendToFile(logFileName, logEntry);
@@ -75,17 +73,14 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
 
     const askQuestion = () => {
       rl.question(chalk.magenta('  > '), async (userInput) => {
+        if (!userInput.trim()) {
+          rl.close(); // This is not the end of the loop, simply skipping inference if no input
+          return;
+        }
         if (userInput.toLowerCase() === 'exit') {
           rl.close();
           shouldExit = true;
-          return;
-        }
-        if (isFirstMessage && !userInput.trim()) {
-          rl.close();
-          return;
-        }
-        if (!userInput.trim()) {
-          rl.close();
+          await invocation.cleanup();
           return;
         }
         await processMessage(userInput);
@@ -102,6 +97,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
     }
     if (!shouldExit) askQuestion();
   } catch (err) {
+    await invocation.cleanup();
     error(`Error in ${sessionConfig.mode} command: ${err}`);
     exit(1);
   }

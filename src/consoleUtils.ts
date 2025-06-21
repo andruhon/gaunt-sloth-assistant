@@ -1,5 +1,7 @@
 import chalk from 'chalk';
 import { debug as systemDebug, error as systemError, log } from '#src/systemUtils.js';
+import { StatusUpdateCallback } from '#src/core/Invocation.js';
+import { StatusLevel } from '#src/core/types.js';
 
 // TODO it seems like commander supports coloured output, maybe dependency to chalk can be removed
 
@@ -31,3 +33,33 @@ export function displayDebug(message: string | Error | undefined): void {
     systemDebug(message);
   }
 }
+
+// Create status update callback
+export const defaultStatusCallbacks: StatusUpdateCallback = (
+  level: StatusLevel,
+  message: string
+) => {
+  switch (level) {
+    case 'info':
+      displayInfo(message);
+      break;
+    case 'warning':
+      displayWarning(message);
+      break;
+    case 'error':
+      displayError(message);
+      break;
+    case 'success':
+      displaySuccess(message);
+      break;
+    case 'debug':
+      displayDebug(message);
+      break;
+    case 'display':
+      display(message);
+      break;
+    case 'stream':
+      process.stdout.write(message);
+      break;
+  }
+};

@@ -4,7 +4,8 @@ import { display, displayError, displayInfo, displayWarning } from '#src/console
 import { stdout } from '#src/systemUtils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { BaseCheckpointSaver } from '@langchain/langgraph';
-import { Invocation, type StatusLevel } from '#src/core/Invocation.js';
+import { Invocation } from '#src/core/Invocation.js';
+import { StatusLevel } from '#src/core/types.js';
 
 const llmGlobalSettings = {
   verbose: false,
