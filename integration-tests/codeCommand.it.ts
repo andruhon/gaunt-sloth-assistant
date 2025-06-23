@@ -6,7 +6,7 @@ describe('Code Command Integration Tests', () => {
   it('should respond to initial message', async () => {
     const output = await runCommandWithArgs(
       'npx',
-      ['gth', 'code', 'Hello, can you help me with some code?'],
+      ['gth', 'code', '"Hello, can you help me with some code?"'],
       ' >'
     );
 

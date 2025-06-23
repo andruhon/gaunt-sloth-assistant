@@ -8,7 +8,7 @@ describe('Ask Command Integration Tests', () => {
     const output = await runCommandWithArgs('npx', [
       'gth',
       'ask',
-      'which programming language JS stands for',
+      '"Which programming language does JS stand for?"',
     ]);
 
     // Check for expected content in the response
@@ -19,7 +19,7 @@ describe('Ask Command Integration Tests', () => {
     const output = await runCommandWithArgs('npx', [
       'gth',
       'ask',
-      'read file test-data/filewithgoodcode.js',
+      '"read file test-data/filewithgoodcode.js"',
     ]);
 
     // Check for expected content in the response

@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import path from 'path';
+import { platform } from 'node:os';
 
 /**
  * Runs a command in the integration-tests directory using spawn
@@ -24,6 +25,7 @@ export async function runCommandWithArgs(
       env: {
         ...process.env,
       },
+      shell: platform().includes('win'),
       // Explicitly ignore stdin, otherwise the app switches to pipe mode
       stdio: ['ignore', 'pipe', 'pipe'],
     });

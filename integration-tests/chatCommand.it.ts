@@ -6,7 +6,7 @@ describe('Chat Command Integration Tests', () => {
   it('should respond to initial message', async () => {
     const output = await runCommandWithArgs(
       'npx',
-      ['gth', 'chat', 'Hello, can you help me?'],
+      ['gth', 'chat', '"Hello, can you help me?"'],
       ' >'
     );
 
