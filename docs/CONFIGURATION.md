@@ -139,7 +139,9 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
 }
 ```
 
-### JavaScript Configuration (.gsloth.config.js or .gsloth.config.mjs)
+### JavaScript Configuration
+
+(.gsloth.config.js or .gsloth.config.mjs)
 
 **Example of .gsloth.config.js for Anthropic**
 ```javascript

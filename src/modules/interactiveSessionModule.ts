@@ -1,6 +1,6 @@
 import { initConfig } from '#src/config.js';
 import { defaultStatusCallbacks, display } from '#src/consoleUtils.js';
-import { v4 as uuidv4 } from 'uuid';
+import * as crypto from 'crypto';
 import chalk from 'chalk';
 import { MemorySaver } from '@langchain/langgraph';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
@@ -36,7 +36,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
     const rl = createInterface({ input, output });
     let isFirstMessage = true;
     let shouldExit = false;
-    const thread_id = uuidv4();
+    const thread_id = crypto.randomUUID();
     const logFileName = getGslothFilePath(
       generateStandardFileName(sessionConfig.mode.toUpperCase())
     );

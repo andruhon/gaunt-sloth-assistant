@@ -1,15 +1,37 @@
 # Gaunt Sloth Assistant
 [![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml)
 
-Gaunt GSloth Assistant is a lightweight **command line AI assistant** for software developers
-designed to enhance code review quality while reducing cognitive load and time investment on **code reviews**
-and pull request diff analysis.
+Gaunt GSloth Assistant is a lightweight **command line AI assistant**
+built with TypeScript (JavaScript) and distributed via NPM with minimum dependencies.
 
 ![GSloth Banner](assets/gaunt-sloth-logo.png)
 
-Based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
+Based on [LangChain.js](https://github.com/langchain-ai/langchainjs)
+
+## Why?
+
+There are many Open Source command line AI assistants available, such as Aider and Goose;
+there are great non-open source options such as Claude Code.
+
+Gaunt Sloth does not intend to be your "Daily Driver" and is not aiming to replace your Cursor.
+What it promises is that it is small, extendable, cross-platform and can itself be a dependency in your project.
+
+The GSloth was initially built as a code review tool, fetching PR contents and Jira contents before feeding them to
+the LLM, but we ourselves found many more use cases which we initially did not anticipate; for example,
+we may have it as a dependency in an MCP project, allowing us to quickly spin it up to simulate or test some use cases.
+
+The promise of Gaunt Sloth:
+
+- **Minimum dependencies**. Ideally, we aim to only have CommanderJS and some packages from LangChainJS and LangGraphJS.
+- **Extensibility**. Feel free to write some JS and create your Tool, Provider or connect to the MCP server of your choice.
+- **No vendor lock-in**. Just BYO API keys.
+- **Easy installation via NPM**.
+- **All prompts are editable** via markdown files.
+- **No UI**. Command Line only, with intent to be used as a dependency, potentially in your build pipeline.
+  Of course, you can use Gaunt Sloth as a dependency and hook your own UI.
 
 ## What GSloth does:
+
 - Reviews code;
   - Suggests bug fixes;
   - Explains provided code
@@ -19,27 +41,17 @@ Based on [Langchain.js](https://github.com/langchain-ai/langchainjs)
   - Fetches descriptions (requirements) from Github issue or Jira (`gsloth pr 42 12`);;
 - Answers questions about provided code;
 - Writes code;
+- Connects to MCP server;
 - Saves all responses in .md file in the project directory;
 - Anything else you need, when combined with other command line tools.
 
-## Why?
-
-While there are many powerful AI assistants available, Gaunt Sloth Assistant stands out by providing developers with:
-
-1. **Provider flexibility** - Freedom to choose and switch between different AI providers (Google Vertex AI, Anthropic, Groq) based on your specific requirements, performance needs, or compliance policies
-2. **Open-source transparency** - Complete visibility into how your code and data are processed, with no vendor lock-in
-3. **Command-line integration** - Seamless workflow integration with existing developer tools and processes
-4. **Specialized focus** - Purpose-built for code review and PR analysis rather than general-purpose assistance
-5. **Extensibility** - GSloth is based on LangChain JS and can be easily extended, configured or augmented in different ways.
-6. **Model Context Protocol (MCP)** - Support for MCP allows for enhanced context management.
-7. **Cost Effectiveness** - When agentic tools will send a number of requests to figure out a user's intent burning thousands of tokens, gsloth simply sends your diff prefixed with guidelines for review.
-
-Unlike proprietary solutions that restrict you to a single AI provider, Gaunt Sloth empowers developers with choice and control while maintaining the specialized capabilities needed for effective code review.
-
 ### To make GSloth work, you need an **API key** from some AI provider, such as:
+
 - Google Vertex AI;
 - Anthropic;
 - Groq.
+
+`*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#JavaScript-Configuration).
 
 ## Commands Overview
 

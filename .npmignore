@@ -7,3 +7,4 @@ integration-tests/
 .claude/
 CLAUDE.md
 /gth_*
+/req

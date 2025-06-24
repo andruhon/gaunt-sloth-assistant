@@ -34,8 +34,7 @@
     "@langchain/mcp-adapters": "^0.5.2",
     "@modelcontextprotocol/server-filesystem": "^2025.3.28",
     "chalk": "^5.4.1",
-    "commander": "^14.0.0",
-    "uuid": "^11.1.0"
+    "commander": "^14.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
