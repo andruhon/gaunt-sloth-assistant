@@ -1,40 +1,116 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
-import { AIMessageChunk, SystemMessage, HumanMessage } from '@langchain/core/messages';
 import type { SlothConfig } from '#src/config.js';
 
-describe('reviewModule', () => {
-  beforeEach(async () => {
+const invocationMock = {
+  setVerbose: vi.fn(),
+  init: vi.fn(),
+  invoke: vi.fn(),
+  cleanup: vi.fn(),
+};
+
+const InvocationConstructor = vi.fn();
+
+vi.mock('#src/core/Invocation.js', () => ({
+  Invocation: InvocationConstructor,
+}));
+
+const consoleUtilsMock = {
+  display: vi.fn(),
+  displayError: vi.fn(),
+  displayInfo: vi.fn(),
+  displayWarning: vi.fn(),
+};
+vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+
+const systemUtilsMock = {
+  stdout: {
+    write: vi.fn(),
+  },
+};
+vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+
+describe('llmUtils', () => {
+  beforeEach(() => {
     vi.resetAllMocks();
+    InvocationConstructor.mockImplementation(() => invocationMock);
   });
 
-  it('should invoke LLM (internal)', async () => {
-    let aiMessageChunk = new AIMessageChunk({
-      content: 'First LLM message',
-      name: 'AIMessageChunk',
-    });
-    const fakeListChatModel = new FakeStreamingChatModel({
-      responses: [aiMessageChunk],
-    });
+  it('should create Invocation and call its methods correctly', async () => {
+    invocationMock.invoke.mockResolvedValue('Test response');
 
-    // Import the module after setting up mocks
     const { invoke } = await import('#src/llmUtils.js');
 
-    // Create a mock config
     const mockConfig: SlothConfig = {
       streamOutput: false,
-      llm: fakeListChatModel,
+      llm: {} as any,
       filesystem: 'none',
-      contentProvider: 'test',
-      requirementsProvider: 'test',
-      projectGuidelines: 'test',
-      projectReviewInstructions: 'test',
-    };
-    const messages = [new SystemMessage('test-preamble'), new HumanMessage('test-diff')];
+    } as SlothConfig;
+    const messages = [{ role: 'user', content: 'test message' }] as any;
 
-    // Test the function
-    const output = await invoke('review', messages, mockConfig);
+    const result = await invoke('review', messages, mockConfig);
 
-    expect(output).toBe('First LLM message');
+    expect(InvocationConstructor).toHaveBeenCalledWith(expect.any(Function));
+    expect(invocationMock.setVerbose).toHaveBeenCalledWith(false);
+    expect(invocationMock.init).toHaveBeenCalledWith('review', mockConfig, undefined);
+    expect(invocationMock.invoke).toHaveBeenCalledWith(messages, undefined);
+    expect(invocationMock.cleanup).toHaveBeenCalled();
+    expect(result).toBe('Test response');
+  });
+
+  it('should pass runConfig and checkpointSaver when provided', async () => {
+    invocationMock.invoke.mockResolvedValue('Another response');
+
+    const { invoke } = await import('#src/llmUtils.js');
+
+    const mockConfig: SlothConfig = {
+      streamOutput: true,
+      llm: {} as any,
+      filesystem: 'all',
+    } as SlothConfig;
+    const messages = [{ role: 'system', content: 'system message' }] as any;
+    const runConfig = { configurable: { thread_id: 'test-thread' } };
+    const checkpointSaver = {} as any;
+
+    const result = await invoke('chat', messages, mockConfig, runConfig, checkpointSaver);
+
+    expect(invocationMock.init).toHaveBeenCalledWith('chat', mockConfig, checkpointSaver);
+    expect(invocationMock.invoke).toHaveBeenCalledWith(messages, runConfig);
+    expect(result).toBe('Another response');
+  });
+
+  it('should call cleanup even when invoke throws an error', async () => {
+    const error = new Error('Test error');
+    invocationMock.invoke.mockRejectedValue(error);
+
+    const { invoke } = await import('#src/llmUtils.js');
+
+    const mockConfig: SlothConfig = {
+      streamOutput: false,
+      llm: {} as any,
+      filesystem: 'none',
+    } as SlothConfig;
+    const messages = [] as any;
+
+    await expect(invoke('ask', messages, mockConfig)).rejects.toThrow('Test error');
+    expect(invocationMock.cleanup).toHaveBeenCalled();
+  });
+
+  it('should set verbose mode correctly', async () => {
+    invocationMock.invoke.mockResolvedValue('Response');
+
+    const { setVerbose, invoke } = await import('#src/llmUtils.js');
+
+    setVerbose(true);
+
+    const mockConfig: SlothConfig = {
+      streamOutput: false,
+      llm: {} as any,
+      filesystem: 'none',
+    } as SlothConfig;
+    const messages = [] as any;
+
+    await invoke('code', messages, mockConfig);
+
+    expect(invocationMock.setVerbose).toHaveBeenCalledWith(true);
   });
 });

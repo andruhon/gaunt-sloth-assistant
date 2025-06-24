@@ -1,19 +1,21 @@
 import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
-import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import type { SlothConfig } from '#src/config.js';
 import type { StatusUpdateCallback } from '#src/core/Invocation.js';
 import type { StructuredToolInterface } from '@langchain/core/tools';
 import type { RunnableConfig } from '@langchain/core/runnables';
+import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 const systemUtilsMock = {
   getCurrentDir: vi.fn(),
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
-const progressIndicatorMock = vi.fn().mockImplementation(() => ({
+const progressIndicatorInstanceMock = {
   stop: vi.fn(),
-}));
+};
+const progressIndicatorMock = vi.fn().mockImplementation(() => progressIndicatorInstanceMock);
 vi.mock('#src/utils.js', () => ({
   ProgressIndicator: progressIndicatorMock,
 }));
@@ -43,7 +45,8 @@ describe('Invocation', () => {
 
     systemUtilsMock.getCurrentDir.mockReturnValue('/test/dir');
     multiServerMCPClientMock.mockImplementation(() => mcpClientInstanceMock);
-    
+    progressIndicatorMock.mockImplementation(() => progressIndicatorInstanceMock);
+
     mockAgent = {
       invoke: vi.fn(),
       stream: vi.fn(),
@@ -51,7 +54,7 @@ describe('Invocation', () => {
     createReactAgentMock.mockReturnValue(mockAgent);
 
     statusUpdateCallback = vi.fn();
-    
+
     mockConfig = {
       projectGuidelines: 'test guidelines',
       llm: {
@@ -94,9 +97,9 @@ describe('Invocation', () => {
     it('should initialize with basic configuration', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
-      
+
       await invocation.init(undefined, mockConfig);
-      
+
       expect(createReactAgentMock).toHaveBeenCalledWith({
         llm: mockConfig.llm,
         tools: [],
@@ -112,11 +115,11 @@ describe('Invocation', () => {
         llm: {
           ...mockConfig.llm,
           _llmType: vi.fn().mockReturnValue('anthropic'),
-        },
-      };
-      
+        } as any as BaseChatModel,
+      } as SlothConfig;
+
       await invocation.init(undefined, anthropicConfig);
-      
+
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'warning',
         'To avoid known bug with Anthropic forcing streamOutput to false'
@@ -128,9 +131,9 @@ describe('Invocation', () => {
       const invocation = new Invocation(statusUpdateCallback);
       invocation.setVerbose(true);
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
-      
+
       await invocation.init(undefined, mockConfig);
-      
+
       expect(mockConfig.llm.verbose).toBe(true);
     });
 
@@ -144,9 +147,9 @@ describe('Invocation', () => {
           },
         },
       };
-      
+
       await invocation.init('code', configWithCommands);
-      
+
       expect(invocation['config']?.filesystem).toEqual(['read_file', 'write_file']);
     });
 
@@ -155,16 +158,16 @@ describe('Invocation', () => {
       const configWithFilesystem = {
         ...mockConfig,
         filesystem: 'all',
-      };
-      
+      } as SlothConfig;
+
       const mockTools = [
         { name: 'mcp__filesystem__read_file' },
         { name: 'mcp__filesystem__write_file' },
       ];
       mcpClientInstanceMock.getTools.mockResolvedValue(mockTools);
-      
+
       await invocation.init(undefined, configWithFilesystem);
-      
+
       expect(multiServerMCPClientMock).toHaveBeenCalledWith({
         throwOnLoadError: true,
         prefixToolNameWithServerName: true,
@@ -184,9 +187,9 @@ describe('Invocation', () => {
       const invocation = new Invocation(statusUpdateCallback);
       const checkpointSaver = new MemorySaver();
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
-      
+
       await invocation.init(undefined, mockConfig, checkpointSaver);
-      
+
       expect(createReactAgentMock).toHaveBeenCalledWith({
         llm: mockConfig.llm,
         tools: [],
@@ -198,7 +201,7 @@ describe('Invocation', () => {
   describe('invoke', () => {
     it('should throw error if not initialized', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      
+
       await expect(invocation.invoke([new HumanMessage('test')])).rejects.toThrow(
         'Invocation not initialized. Call init() first.'
       );
@@ -207,17 +210,15 @@ describe('Invocation', () => {
     it('should invoke agent in non-streaming mode', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       await invocation.init(undefined, mockConfig);
-      
+
       const messages = [new HumanMessage('test message')];
       const mockResponse = {
-        messages: [
-          new AIMessage('test response'),
-        ],
+        messages: [new AIMessage('test response')],
       };
       mockAgent.invoke.mockResolvedValue(mockResponse);
-      
+
       const result = await invocation.invoke(messages);
-      
+
       expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'Thinking');
       expect(mockAgent.invoke).toHaveBeenCalledWith({ messages }, undefined);
       expect(statusUpdateCallback).toHaveBeenCalledWith('display', 'test response');
@@ -227,7 +228,7 @@ describe('Invocation', () => {
     it('should display tool usage in non-streaming mode', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       await invocation.init(undefined, mockConfig);
-      
+
       const messages = [new HumanMessage('test message')];
       const mockResponse = {
         messages: [
@@ -241,24 +242,31 @@ describe('Invocation', () => {
         ],
       };
       mockAgent.invoke.mockResolvedValue(mockResponse);
-      
+
       await invocation.invoke(messages);
-      
-      expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nUsed tools: read_file, write_file');
+
+      expect(statusUpdateCallback).toHaveBeenCalledWith(
+        'info',
+        '\nUsed tools: read_file, write_file'
+      );
     });
 
     it('should handle errors in non-streaming mode', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       await invocation.init(undefined, mockConfig);
-      
+
       const messages = [new HumanMessage('test message')];
       const error = new Error('Test error');
       mockAgent.invoke.mockRejectedValue(error);
-      
+
       const result = await invocation.invoke(messages);
-      
-      expect(statusUpdateCallback).toHaveBeenCalledWith('warning', 'Something went wrong Test error');
+
+      expect(statusUpdateCallback).toHaveBeenCalledWith(
+        'warning',
+        'Something went wrong Test error'
+      );
       expect(progressIndicatorMock).toHaveBeenCalled();
+      expect(progressIndicatorInstanceMock.stop).toHaveBeenCalled();
       expect(result).toBe('');
     });
 
@@ -266,20 +274,17 @@ describe('Invocation', () => {
       const invocation = new Invocation(statusUpdateCallback);
       const streamConfig = { ...mockConfig, streamOutput: true };
       await invocation.init(undefined, streamConfig);
-      
+
       const messages = [new HumanMessage('test message')];
       const mockStream = [
         [new AIMessage({ content: 'chunk1' }), {}],
         [new AIMessage({ content: 'chunk2' }), {}],
       ];
       mockAgent.stream.mockResolvedValue(mockStream);
-      
+
       const result = await invocation.invoke(messages);
-      
-      expect(mockAgent.stream).toHaveBeenCalledWith(
-        { messages },
-        { streamMode: 'messages' }
-      );
+
+      expect(mockAgent.stream).toHaveBeenCalledWith({ messages }, { streamMode: 'messages' });
       expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'chunk1');
       expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'chunk2');
       expect(result).toBe('chunk1chunk2');
@@ -289,18 +294,21 @@ describe('Invocation', () => {
       const invocation = new Invocation(statusUpdateCallback);
       const streamConfig = { ...mockConfig, streamOutput: true };
       await invocation.init(undefined, streamConfig);
-      
+
       const messages = [new HumanMessage('test message')];
       const mockStream = [
-        [new AIMessage({
-          content: 'response',
-          tool_calls: [{ name: 'read_file', args: {}, id: '1' }],
-        }), {}],
+        [
+          new AIMessage({
+            content: 'response',
+            tool_calls: [{ name: 'read_file', args: {}, id: '1' }],
+          }),
+          {},
+        ],
       ];
       mockAgent.stream.mockResolvedValue(mockStream);
-      
+
       await invocation.invoke(messages);
-      
+
       expect(statusUpdateCallback).toHaveBeenCalledWith('info', 'Using tool read_file');
     });
 
@@ -308,50 +316,66 @@ describe('Invocation', () => {
       const invocation = new Invocation(statusUpdateCallback);
       const streamConfig = { ...mockConfig, streamOutput: true };
       await invocation.init(undefined, streamConfig);
-      
+
       const messages = [new HumanMessage('test message')];
       const mockStream = [
-        [new AIMessage({
-          content: 'response',
-          tool_calls: [
-            { name: 'read_file', args: {}, id: '1' },
-            { name: 'write_file', args: {}, id: '2' },
-          ],
-        }), {}],
+        [
+          new AIMessage({
+            content: 'response',
+            tool_calls: [
+              { name: 'read_file', args: {}, id: '1' },
+              { name: 'write_file', args: {}, id: '2' },
+            ],
+          }),
+          {},
+        ],
       ];
       mockAgent.stream.mockResolvedValue(mockStream);
-      
+
       await invocation.invoke(messages);
-      
-      expect(statusUpdateCallback).toHaveBeenCalledWith('info', 'Using tools read_file, write_file');
+
+      expect(statusUpdateCallback).toHaveBeenCalledWith(
+        'info',
+        'Using tools read_file, write_file'
+      );
     });
 
-    it('should handle ToolException errors', async () => {
+    it('should handle ToolException errors in streaming mode', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      await invocation.init(undefined, mockConfig);
-      
+      const streamConfig = { ...mockConfig, streamOutput: true };
+      await invocation.init(undefined, streamConfig);
+
       const messages = [new HumanMessage('test message')];
       const error = new Error('Tool failed');
       error.name = 'ToolException';
-      mockAgent.invoke.mockRejectedValue(error);
-      
+
+      // Create a mock async generator that throws the error
+      const mockStream = (async function* () {
+        throw error;
+      })();
+
+      mockAgent.stream.mockResolvedValue(mockStream);
+
       await expect(invocation.invoke(messages)).rejects.toThrow(error);
-      expect(statusUpdateCallback).toHaveBeenCalledWith('error', 'Tool execution failed: Tool failed');
+      expect(statusUpdateCallback).toHaveBeenCalledWith(
+        'error',
+        'Tool execution failed: Tool failed'
+      );
     });
 
     it('should pass run config to agent', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       await invocation.init(undefined, mockConfig);
-      
+
       const messages = [new HumanMessage('test message')];
       const runConfig: RunnableConfig = { configurable: { thread_id: 'test' } };
       const mockResponse = {
         messages: [new AIMessage('test response')],
       };
       mockAgent.invoke.mockResolvedValue(mockResponse);
-      
+
       await invocation.invoke(messages, runConfig);
-      
+
       expect(mockAgent.invoke).toHaveBeenCalledWith({ messages }, runConfig);
     });
   });
@@ -362,12 +386,12 @@ describe('Invocation', () => {
       const configWithFilesystem = {
         ...mockConfig,
         filesystem: 'all',
-      };
+      } as SlothConfig;
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
-      
+
       await invocation.init(undefined, configWithFilesystem);
       await invocation.cleanup();
-      
+
       expect(mcpClientInstanceMock.close).toHaveBeenCalled();
       expect(invocation['mcpClient']).toBeNull();
       expect(invocation['agent']).toBeNull();
@@ -376,7 +400,7 @@ describe('Invocation', () => {
 
     it('should handle cleanup when not initialized', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      
+
       await expect(invocation.cleanup()).resolves.not.toThrow();
     });
   });
@@ -389,9 +413,9 @@ describe('Invocation', () => {
         { name: 'mcp__filesystem__write_file' } as any,
         { name: 'mcp__other__tool' } as any,
       ];
-      
+
       const result = invocation['filterTools'](tools, 'all');
-      
+
       expect(result).toEqual(tools);
     });
 
@@ -401,9 +425,9 @@ describe('Invocation', () => {
         { name: 'mcp__filesystem__read_file' } as any,
         { name: 'mcp__other__tool' } as any,
       ];
-      
+
       const result = invocation['filterTools'](tools, 'none');
-      
+
       expect(result).toEqual(tools);
     });
 
@@ -415,9 +439,9 @@ describe('Invocation', () => {
         { name: 'mcp__filesystem__delete_file' } as any,
         { name: 'mcp__other__tool' } as any,
       ];
-      
+
       const result = invocation['filterTools'](tools, ['read_file', 'write_file']);
-      
+
       expect(result).toEqual([
         { name: 'mcp__filesystem__read_file' },
         { name: 'mcp__filesystem__write_file' },
@@ -432,13 +456,10 @@ describe('Invocation', () => {
         { name: 'mcp__other__tool1' } as any,
         { name: 'mcp__other__tool2' } as any,
       ];
-      
+
       const result = invocation['filterTools'](tools, ['write_file']);
-      
-      expect(result).toEqual([
-        { name: 'mcp__other__tool1' },
-        { name: 'mcp__other__tool2' },
-      ]);
+
+      expect(result).toEqual([{ name: 'mcp__other__tool1' }, { name: 'mcp__other__tool2' }]);
     });
   });
 
@@ -449,11 +470,11 @@ describe('Invocation', () => {
         ...mockConfig,
         filesystem: 'none',
         mcpServers: undefined,
-      };
-      
-      const result = invocation['getMcpClient'](config);
-      
-      expect(result).toBeNull();
+      } as SlothConfig;
+
+      const _result = invocation['getMcpClient'](config);
+
+      expect(_result).toBeNull();
     });
 
     it('should create MCP client with filesystem server', async () => {
@@ -462,9 +483,9 @@ describe('Invocation', () => {
         ...mockConfig,
         filesystem: 'all' as const,
       };
-      
+
       const result = invocation['getMcpClient'](config);
-      
+
       expect(multiServerMCPClientMock).toHaveBeenCalledWith({
         throwOnLoadError: true,
         prefixToolNameWithServerName: true,
@@ -493,9 +514,9 @@ describe('Invocation', () => {
           },
         },
       };
-      
-      const result = invocation['getMcpClient'](config);
-      
+
+      invocation['getMcpClient'](config);
+
       expect(multiServerMCPClientMock).toHaveBeenCalledWith({
         throwOnLoadError: true,
         prefixToolNameWithServerName: true,
@@ -529,9 +550,9 @@ describe('Invocation', () => {
           filesystem: customFilesystemConfig,
         },
       };
-      
-      const result = invocation['getMcpClient'](config);
-      
+
+      invocation['getMcpClient'](config);
+
       expect(multiServerMCPClientMock).toHaveBeenCalledWith({
         throwOnLoadError: true,
         prefixToolNameWithServerName: true,
@@ -555,9 +576,9 @@ describe('Invocation', () => {
           },
         },
       };
-      
-      const result = invocation['getMcpClient'](config);
-      
+
+      invocation['getMcpClient'](config);
+
       expect(multiServerMCPClientMock).toHaveBeenCalledWith({
         throwOnLoadError: true,
         prefixToolNameWithServerName: true,
