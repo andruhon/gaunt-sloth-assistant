@@ -216,12 +216,11 @@ export function extractLastMessageContent(output: LLMOutput): string {
 
 /**
  * Dynamically imports a module from a file path from the outside of the installation dir
- * @param filePath - The path to the file to import
  * @returns A promise that resolves to the imported module
  */
 export function importExternalFile(
   filePath: string
-): Promise<{ configure: (module: string) => Promise<Partial<SlothConfig>> }> {
+): Promise<{ configure: () => Promise<Partial<SlothConfig>> }> {
   const configFileUrl = url.pathToFileURL(filePath).toString();
   return import(configFileUrl);
 }

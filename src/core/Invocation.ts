@@ -61,7 +61,14 @@ export class Invocation {
     this.config = effectiveConfig;
     this.mcpClient = this.getMcpClient(effectiveConfig);
 
-    const allTools = (await this.mcpClient?.getTools()) ?? [];
+    // First get tools from config
+    const configTools = effectiveConfig.tools || [];
+
+    // Then add tools from MCP server
+    const mcpTools = (await this.mcpClient?.getTools()) ?? [];
+    const allTools = [...configTools, ...mcpTools];
+
+    // Then filter them
     const tools = this.filterTools(allTools, effectiveConfig.filesystem || 'none');
 
     if (allTools.length > 0) {

@@ -143,13 +143,38 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
 
 (.gsloth.config.js or .gsloth.config.mjs)
 
+JavaScript configuration provides more flexibility than JSON configuration, allowing you to use dynamic imports and include custom tools.
+
+**Example with Custom Tools**
+```javascript
+import { tool } from '@langchain/core/tools';
+import { z } from 'zod';
+
+const parrotTool = tool((s) => {
+  console.log(s);
+}, {
+  name: 'parrot_tool',
+  description: `This tool will simply print the string`,
+  schema: z.string(),
+});
+
+export async function configure() {
+  const anthropic = await import('@langchain/google-vertexai');
+  return {
+    llm: new anthropic.ChatVertexAI({
+      model: 'gemini-2.5-pro',
+    }),
+    tools: [
+      parrotTool
+    ]
+  };
+}
+```
+
 **Example of .gsloth.config.js for Anthropic**
 ```javascript
-export async function configure(importFunction, global) {
-    // this is going to be imported from sloth dependencies,
-    // but can potentially be pulled from global node modules or from this project
-    // At a moment only google-vertexai and anthropic packaged with Sloth, but you can install support for any other langchain llms
-    const anthropic = await importFunction('@langchain/anthropic');
+export async function configure() {
+    const anthropic = await import('@langchain/anthropic');
     return {
         llm: new anthropic.ChatAnthropic({
             apiKey: process.env.ANTHROPIC_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
@@ -163,12 +188,8 @@ export async function configure(importFunction, global) {
 VertexAI usually needs `gcloud auth application-default login`
 (or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
 ```javascript
-export async function configure(importFunction, global) {
-    // this is going to be imported from sloth dependencies,
-    // but can potentially be pulled from global node modules or from this project
-    // At a moment only google-vertexai and anthropic packaged with Sloth, but you can install support for any other langchain llms
-    // Note: for vertex AI you likely to need to do `gcloud auth login`
-    const vertexAi = await importFunction('@langchain/google-vertexai');
+export async function configure() {
+    const vertexAi = await import('@langchain/google-vertexai');
     return {
         llm: new vertexAi.ChatVertexAI({
             model: "gemini-2.5-pro-preview-05-06", // Consider checking for latest recommended model versions
@@ -184,10 +205,8 @@ export async function configure(importFunction, global) {
 
 **Example of .gsloth.config.js for Groq**
 ```javascript
-export async function configure(importFunction, global) {
-    // this is going to be imported from sloth dependencies,
-    // but can potentially be pulled from global node modules or from this project
-    const groq = await importFunction('@langchain/groq');
+export async function configure() {
+    const groq = await import('@langchain/groq');
     return {
         llm: new groq.ChatGroq({
             model: "deepseek-r1-distill-llama-70b", // Check other models available
@@ -337,8 +356,8 @@ Optionally displayUrl can be defined to have a clickable link in the output:
 JavaScript:
 
 ```javascript
-export async function configure(importFunction, global) {
-    const vertexAi = await importFunction('@langchain/google-vertexai');
+export async function configure() {
+    const vertexAi = await import('@langchain/google-vertexai');
     return {
         llm: new vertexAi.ChatVertexAI({
             model: "gemini-2.5-pro-preview-05-06"
@@ -392,8 +411,8 @@ JSON:
 JavaScript:
 
 ```javascript
-export async function configure(importFunction, global) {
-    const vertexAi = await importFunction('@langchain/google-vertexai');
+export async function configure() {
+    const vertexAi = await import('@langchain/google-vertexai');
     return {
         llm: new vertexAi.ChatVertexAI({
             model: "gemini-2.5-pro-preview-05-06"

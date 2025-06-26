@@ -17,20 +17,6 @@ export async function processJsonConfig(llmConfig: ChatGroqInput): Promise<BaseC
   });
 }
 
-const jsContent = `/* eslint-disable */
-export async function configure(importFunction, global) {
-    // this is going to be imported from sloth dependencies,
-    // but can potentially be pulled from global node modules or from this project
-    const groq = await importFunction('@langchain/groq');
-    return {
-        llm: new groq.ChatGroq({
-            model: "deepseek-r1-distill-llama-70b", // Check other models available
-            apiKey: process.env.GROQ_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
-        })
-    };
-}
-`;
-
 const jsonContent = `{
   "llm": {
     "type": "groq",
@@ -44,9 +30,11 @@ export function init(configFileName: string): void {
   path.join(currentDir, configFileName);
 
   // Determine which content to use based on file extension
-  const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
+  if (!configFileName.endsWith('.json')) {
+    throw new Error('Only JSON config is supported.');
+  }
 
-  writeFileIfNotExistsWithMessages(configFileName, content);
+  writeFileIfNotExistsWithMessages(configFileName, jsonContent);
   displayInfo(
     `You can define GROQ_API_KEY environment variable with your Groq API key and it will work with default model.`
   );

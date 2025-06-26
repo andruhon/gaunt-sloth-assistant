@@ -5,6 +5,7 @@ import { error, exit } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
 import type { Connection } from '@langchain/mcp-adapters';
+import type { StructuredToolInterface } from '@langchain/core/tools';
 import {
   USER_PROJECT_CONFIG_JS,
   USER_PROJECT_CONFIG_JSON,
@@ -21,6 +22,7 @@ export interface SlothConfig extends BaseSlothConfig {
   projectReviewInstructions: string;
   streamOutput: boolean;
   filesystem: string[] | 'all' | 'none';
+  tools?: StructuredToolInterface[];
 }
 
 /**
@@ -144,7 +146,7 @@ async function tryJsConfig(): Promise<SlothConfig> {
   if (existsSync(jsConfigPath)) {
     try {
       const i = await importExternalFile(jsConfigPath);
-      const customConfig = await i.configure(jsConfigPath);
+      const customConfig = await i.configure();
       return mergeConfig(customConfig) as SlothConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
@@ -164,7 +166,7 @@ async function tryMjsConfig(): Promise<SlothConfig> {
   if (existsSync(mjsConfigPath)) {
     try {
       const i = await importExternalFile(mjsConfigPath);
-      const customConfig = await i.configure(mjsConfigPath);
+      const customConfig = await i.configure();
       return mergeConfig(customConfig) as SlothConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
