@@ -44,7 +44,7 @@ describe('GthFileSystemToolkit - Basic Tests', () => {
       toolkit = new GthFileSystemToolkit([process.cwd()]);
       expect(toolkit).toBeDefined();
       expect(toolkit.tools).toBeDefined();
-      expect(toolkit.tools.length).toBe(12); // All filesystem tools
+      expect(toolkit.tools.length).toBe(14); // All filesystem tools
     });
 
     it('should have all expected tools', () => {
@@ -62,6 +62,8 @@ describe('GthFileSystemToolkit - Basic Tests', () => {
       expect(toolNames).toContain('move_file');
       expect(toolNames).toContain('search_files');
       expect(toolNames).toContain('get_file_info');
+      expect(toolNames).toContain('delete_file');
+      expect(toolNames).toContain('delete_directory');
       expect(toolNames).toContain('list_allowed_directories');
     });
   });

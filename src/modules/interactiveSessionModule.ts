@@ -26,7 +26,7 @@ export interface SessionConfig {
 }
 
 export async function createInteractiveSession(sessionConfig: SessionConfig, message?: string) {
-  const config = { ...(await initConfig()), streamOutput: false };
+  const config = { ...(await initConfig()) };
   const checkpointSaver = new MemorySaver();
   // Initialize Invocation once
   const invocation = new Invocation(defaultStatusCallbacks);
@@ -41,7 +41,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       generateStandardFileName(sessionConfig.mode.toUpperCase())
     );
 
-    display(chalk.gray(`${sessionConfig.mode} session will be logged to ${logFileName}\n`));
+    display(chalk.dim(`${sessionConfig.mode} session will be logged to ${logFileName}\n`));
 
     const processMessage = async (userInput: string) => {
       const messages: BaseMessage[] = [];
@@ -84,7 +84,8 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
           return;
         }
         await processMessage(userInput);
-        display(chalk.gray(sessionConfig.exitMessage));
+        display('\n\n');
+        display(chalk.dim(sessionConfig.exitMessage));
         if (!shouldExit) askQuestion();
       });
     };
@@ -93,7 +94,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       await processMessage(message);
     } else {
       display(sessionConfig.readyMessage);
-      display(chalk.gray(sessionConfig.exitMessage));
+      display(chalk.dim(sessionConfig.exitMessage));
     }
     if (!shouldExit) askQuestion();
   } catch (err) {

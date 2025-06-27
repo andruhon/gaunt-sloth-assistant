@@ -1,7 +1,7 @@
-import { display, displayError, displaySuccess, displayWarning } from '#src/consoleUtils.js';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { displayError, displayInfo, displaySuccess, displayWarning } from '#src/consoleUtils.js';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { SlothConfig } from '#src/config.js';
-import { resolve, dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentDir, getInstallDir, stdout } from '#src/systemUtils.js';
 import url from 'node:url';
@@ -43,7 +43,7 @@ export function generateStandardFileName(command: string): string {
 export function readFileFromCurrentDir(fileName: string): string {
   const currentDir = getCurrentDir();
   const filePath = resolve(currentDir, fileName);
-  display(`Reading file ${filePath}...`);
+  displayInfo(`Reading file ${filePath}...`);
   return readFileSyncWithMessages(filePath);
 }
 
@@ -51,14 +51,16 @@ export function readFileFromCurrentOrInstallDir(filePath: string, silentCurrent?
   const currentDir = getCurrentDir();
   const currentFilePath = resolve(currentDir, filePath);
   if (!silentCurrent) {
-    display(`Reading file ${currentFilePath}...`);
+    displayInfo(`Reading file ${currentFilePath}...`);
   }
 
   try {
     return readFileSync(currentFilePath, { encoding: 'utf8' });
   } catch (_error) {
     if (!silentCurrent) {
-      display(`The ${currentFilePath} not found or can\'t be read, trying install directory...`);
+      displayWarning(
+        `The ${currentFilePath} not found or can\'t be read, trying install directory...`
+      );
     }
     const installDir = getInstallDir();
     const installFilePath = resolve(installDir, filePath);
@@ -72,7 +74,7 @@ export function readFileFromCurrentOrInstallDir(filePath: string, silentCurrent?
 }
 
 export function writeFileIfNotExistsWithMessages(filePath: string, content: string): void {
-  display(`checking ${filePath} existence`);
+  displayInfo(`checking ${filePath} existence`);
   if (!existsSync(filePath)) {
     // Create parent directories if they don't exist
     const parentDir = dirname(filePath);
@@ -149,7 +151,7 @@ export async function spawnCommand(
 
     spawned.on('close', (code) => {
       if (code === 0) {
-        display(successMessage);
+        displaySuccess(successMessage);
         resolve(out.stdout);
       } else {
         displayError(`Failed to spawn command with code ${code}`);

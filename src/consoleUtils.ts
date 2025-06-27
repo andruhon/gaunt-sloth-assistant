@@ -18,7 +18,7 @@ export function displaySuccess(message: string): void {
 }
 
 export function displayInfo(message: string): void {
-  systemError(chalk.blue(message));
+  systemError(chalk.dim(message));
 }
 
 export function display(message: string): void {

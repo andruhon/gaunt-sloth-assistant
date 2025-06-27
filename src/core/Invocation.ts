@@ -109,10 +109,9 @@ export class Invocation {
 
     // Run the agent
     try {
-      this.statusUpdate('stream', `Thinking`);
       const output = { aiMessage: '' };
       if (!this.config.streamOutput) {
-        const progress = new ProgressIndicator('.');
+        const progress = new ProgressIndicator('Thinking.');
         try {
           const response = await this.agent.invoke({ messages }, runConfig);
           output.aiMessage = response.messages[response.messages.length - 1].content as string;
@@ -130,6 +129,7 @@ export class Invocation {
         }
         this.statusUpdate('display', output.aiMessage);
       } else {
+        this.statusUpdate('info', '\nThinking...\n');
         const stream = await this.agent.stream(
           { messages },
           { ...runConfig, streamMode: 'messages' }
@@ -218,6 +218,8 @@ export class Invocation {
       'move_file',
       'search_files',
       'get_file_info',
+      'delete_file',
+      'delete_directory',
       'list_allowed_directories',
     ];
     return filesystemToolNames.includes(toolName);

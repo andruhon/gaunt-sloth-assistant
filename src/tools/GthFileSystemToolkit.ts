@@ -71,6 +71,15 @@ const GetFileInfoArgsSchema = z.object({
   path: z.string(),
 });
 
+const DeleteFileArgsSchema = z.object({
+  path: z.string(),
+});
+
+const DeleteDirectoryArgsSchema = z.object({
+  path: z.string(),
+  recursive: z.boolean().default(false).describe('If true, delete directory and all its contents'),
+});
+
 interface FileInfo {
   size: number;
   created: Date;
@@ -95,6 +104,13 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
   private normalizePath(p: string): string {
     return path.normalize(p);
+  }
+
+  private isProtectedDirectory(dirPath: string): boolean {
+    const normalizedPath = this.normalizePath(path.resolve(dirPath));
+    return this.allowedDirectories.some(
+      (allowedDir) => this.normalizePath(allowedDir) === normalizedPath
+    );
   }
 
   private expandHome(filepath: string): string {
@@ -674,6 +690,70 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'and type. This tool is perfect for understanding file characteristics ' +
             'without reading the actual content. Only works within allowed directories.',
           schema: GetFileInfoArgsSchema,
+        }
+      ),
+
+      tool(
+        async (args: z.infer<typeof DeleteFileArgsSchema>): Promise<string> => {
+          const validPath = await this.validatePath(args.path);
+          const stats = await fs.stat(validPath);
+          if (stats.isDirectory()) {
+            throw new Error(
+              `Cannot delete directory: ${args.path}. Use rmdir or a recursive delete tool for directories.`
+            );
+          }
+          await fs.unlink(validPath);
+          return `Successfully deleted file: ${args.path}`;
+        },
+        {
+          name: 'delete_file',
+          description:
+            'Delete a file from the filesystem. This operation cannot be undone. ' +
+            'Only works for files, not directories. Use with caution. ' +
+            'Only works within allowed directories.',
+          schema: DeleteFileArgsSchema,
+        }
+      ),
+
+      tool(
+        async (args: z.infer<typeof DeleteDirectoryArgsSchema>): Promise<string> => {
+          const validPath = await this.validatePath(args.path);
+
+          // Check if this is a protected directory
+          if (this.isProtectedDirectory(validPath)) {
+            throw new Error(
+              `Cannot delete protected directory: ${args.path}. This is one of the allowed root directories.`
+            );
+          }
+
+          const stats = await fs.stat(validPath);
+          if (!stats.isDirectory()) {
+            throw new Error(`Not a directory: ${args.path}. Use delete_file for files.`);
+          }
+
+          if (args.recursive) {
+            await fs.rm(validPath, { recursive: true, force: true });
+            return `Successfully deleted directory and all contents: ${args.path}`;
+          } else {
+            // For non-recursive delete, check if directory is empty
+            const entries = await fs.readdir(validPath);
+            if (entries.length > 0) {
+              throw new Error(
+                `Directory not empty: ${args.path}. Use recursive: true to delete non-empty directories.`
+              );
+            }
+            await fs.rmdir(validPath);
+            return `Successfully deleted empty directory: ${args.path}`;
+          }
+        },
+        {
+          name: 'delete_directory',
+          description:
+            'Delete a directory from the filesystem. Can delete empty directories or recursively delete ' +
+            'directories with contents. Cannot delete protected directories (allowed root directories). ' +
+            'This operation cannot be undone. Use with extreme caution. ' +
+            'Only works within allowed directories.',
+          schema: DeleteDirectoryArgsSchema,
         }
       ),
 
