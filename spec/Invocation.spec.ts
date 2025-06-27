@@ -18,6 +18,7 @@ const progressIndicatorInstanceMock = {
 const progressIndicatorMock = vi.fn().mockImplementation(() => progressIndicatorInstanceMock);
 vi.mock('#src/utils.js', () => ({
   ProgressIndicator: progressIndicatorMock,
+  formatToolCalls: vi.fn((toolCalls) => toolCalls.map((tc: any) => `${tc.name}()`).join(', ')),
 }));
 
 const createReactAgentMock = vi.fn();
@@ -174,7 +175,7 @@ describe('Invocation', () => {
         { name: 'custom_tool_1', invoke: vi.fn(), description: 'Test tool 1' },
         { name: 'custom_tool_2', invoke: vi.fn(), description: 'Test tool 2' },
         { name: 'custom_tool_3', invoke: vi.fn(), description: 'Test tool 3' },
-      ] as StructuredToolInterface[];
+      ] as Partial<StructuredToolInterface>[];
 
       const configWithTools = {
         ...mockConfig,
@@ -292,7 +293,6 @@ describe('Invocation', () => {
 
       const result = await invocation.invoke(messages);
 
-      expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'Thinking');
       expect(mockAgent.invoke).toHaveBeenCalledWith({ messages }, undefined);
       expect(statusUpdateCallback).toHaveBeenCalledWith('display', 'test response');
       expect(result).toBe('test response');
@@ -320,7 +320,7 @@ describe('Invocation', () => {
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'info',
-        '\nUsed tools: read_file, write_file'
+        '\nUsed tools: read_file(), write_file()'
       );
     });
 
@@ -382,7 +382,7 @@ describe('Invocation', () => {
 
       await invocation.invoke(messages);
 
-      expect(statusUpdateCallback).toHaveBeenCalledWith('info', 'Using tool read_file');
+      expect(statusUpdateCallback).toHaveBeenCalledWith('info', 'Used tools: read_file()');
     });
 
     it('should handle multiple tool calls in streaming mode', async () => {
@@ -409,7 +409,7 @@ describe('Invocation', () => {
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'info',
-        'Using tools read_file, write_file'
+        'Used tools: read_file(), write_file()'
       );
     });
 

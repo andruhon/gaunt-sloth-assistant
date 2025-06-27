@@ -23,6 +23,7 @@ const consoleUtilsMock = {
   displayError: vi.fn(),
   displayWarning: vi.fn(),
   displaySuccess: vi.fn(),
+  displayInfo: vi.fn(),
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
@@ -100,7 +101,7 @@ describe('utils', () => {
       expect(fsUtilsMock.readFileSync).toHaveBeenCalledWith(filePath, { encoding: 'utf8' });
       expect(systemUtilsMock.getCurrentDir).toHaveBeenCalled();
       expect(systemUtilsMock.getInstallDir).not.toHaveBeenCalled();
-      expect(consoleUtilsMock.display).toHaveBeenCalledWith(expect.stringContaining('Reading'));
+      expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith(expect.stringContaining('Reading'));
     });
 
     it('should read file from install directory if not found in current directory', async () => {
@@ -134,7 +135,7 @@ describe('utils', () => {
       expect(fsUtilsMock.readFileSync).toHaveBeenCalledWith(installFilePath, { encoding: 'utf8' });
       expect(systemUtilsMock.getCurrentDir).toHaveBeenCalled();
       expect(systemUtilsMock.getInstallDir).toHaveBeenCalled();
-      expect(consoleUtilsMock.display).toHaveBeenCalledWith(
+      expect(consoleUtilsMock.displayWarning).toHaveBeenCalledWith(
         expect.stringContaining('trying install directory')
       );
     });

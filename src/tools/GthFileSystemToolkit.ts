@@ -5,6 +5,7 @@ import path from 'path';
 import os from 'os';
 import { createTwoFilesPatch } from 'diff';
 import { minimatch } from 'minimatch';
+import { displayInfo } from '#src/consoleUtils.js';
 
 // Inspired by https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
 
@@ -403,6 +404,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
     return [
       tool(
         async (args: z.infer<typeof ReadFileArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Reading file: ${args.path}`);
           const validPath = await this.validatePath(args.path);
 
           if (args.head && args.tail) {
@@ -434,6 +436,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof ReadMultipleFilesArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Reading ${args.paths.length} files`);
           const results = await Promise.all(
             args.paths.map(async (filePath: string) => {
               try {
@@ -462,6 +465,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof WriteFileArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Writing file: ${args.path}`);
           const validPath = await this.validatePath(args.path);
           await fs.writeFile(validPath, args.content, 'utf-8');
           return `Successfully wrote to ${args.path}`;
@@ -478,6 +482,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof EditFileArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Editing file: ${args.path}`);
           const validPath = await this.validatePath(args.path);
           return await this.applyFileEdits(validPath, args.edits, args.dryRun);
         },
@@ -486,13 +491,18 @@ export default class GthFileSystemToolkit extends BaseToolkit {
           description:
             'Make line-based edits to a text file. Each edit replaces exact line sequences ' +
             'with new content. Returns a git-style diff showing the changes made. ' +
-            'Only works within allowed directories.',
+            'Only works within allowed directories.' +
+            'Always present diff returned by this tool back to the user.' +
+            'Prefer applying small edits, eg. one function at a time, one block or one condition.' +
+            'Fall back to using the "write_file" tool if you need to make large edits.' +
+            'or of the "edit_file" fails for some reason.',
           schema: EditFileArgsSchema,
         }
       ),
 
       tool(
         async (args: z.infer<typeof CreateDirectoryArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Creating directory: ${args.path}`);
           const validPath = await this.validatePath(args.path);
           await fs.mkdir(validPath, { recursive: true });
           return `Successfully created directory ${args.path}`;
@@ -510,6 +520,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof ListDirectoryArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Listing directory: ${args.path}`);
           const validPath = await this.validatePath(args.path);
           const entries = await fs.readdir(validPath, { withFileTypes: true });
           return entries
@@ -529,6 +540,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof ListDirectoryWithSizesArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Listing directory with sizes: ${args.path}`);
           const validPath = await this.validatePath(args.path);
           const entries = await fs.readdir(validPath, { withFileTypes: true });
 
@@ -596,6 +608,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof DirectoryTreeArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Building directory tree: ${args.path}`);
           interface TreeEntry {
             name: string;
             type: 'file' | 'directory';
@@ -640,6 +653,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof MoveFileArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Moving ${args.source} to ${args.destination}`);
           const validSourcePath = await this.validatePath(args.source);
           const validDestPath = await this.validatePath(args.destination);
           await fs.rename(validSourcePath, validDestPath);
@@ -658,6 +672,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof SearchFilesArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Searching for '${args.pattern}' in ${args.path}`);
           const validPath = await this.validatePath(args.path);
           const results = await this.searchFiles(validPath, args.pattern, args.excludePatterns);
           return results.length > 0 ? results.join('\n') : 'No matches found';
@@ -676,6 +691,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof GetFileInfoArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Getting file info: ${args.path}`);
           const validPath = await this.validatePath(args.path);
           const info = await this.getFileStats(validPath);
           return Object.entries(info)
@@ -695,6 +711,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof DeleteFileArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Deleting file: ${args.path}`);
           const validPath = await this.validatePath(args.path);
           const stats = await fs.stat(validPath);
           if (stats.isDirectory()) {
@@ -717,6 +734,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
       tool(
         async (args: z.infer<typeof DeleteDirectoryArgsSchema>): Promise<string> => {
+          displayInfo(`📁 Deleting directory: ${args.path}${args.recursive ? ' (recursive)' : ''}`);
           const validPath = await this.validatePath(args.path);
 
           // Check if this is a protected directory

@@ -12,6 +12,7 @@ import { ToolCall } from '@langchain/core/messages/tool';
 import { StatusLevel } from '#src/core/types.js';
 import { getCurrentDir } from '#src/systemUtils.js';
 import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
+import { formatToolCalls } from '#src/utils.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -115,12 +116,12 @@ export class Invocation {
         try {
           const response = await this.agent.invoke({ messages }, runConfig);
           output.aiMessage = response.messages[response.messages.length - 1].content as string;
-          const toolNames =
-            response.messages
-              .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
-              .flatMap((msg: AIMessage) => msg.tool_calls?.map((tc: ToolCall) => tc.name)) ?? [];
-          if (toolNames.length > 0) {
-            this.statusUpdate('info', `\nUsed tools: ${toolNames.join(', ')}`);
+          const toolCalls = response.messages
+            .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
+            .flatMap((msg: AIMessage) => msg.tool_calls ?? [])
+            .filter((tc: ToolCall) => tc.name);
+          if (toolCalls.length > 0) {
+            this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
           }
         } catch (e) {
           this.statusUpdate('warning', `Something went wrong ${(e as Error).message}`);
@@ -139,11 +140,9 @@ export class Invocation {
           if (isAIMessage(chunk)) {
             this.statusUpdate('stream', chunk.content as string);
             output.aiMessage += chunk.content;
-            let toolCalls = chunk.tool_calls;
+            const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
             if (toolCalls && toolCalls.length > 0) {
-              const suffix = toolCalls.length > 1 ? 's' : '';
-              const toolCallsString = toolCalls.map((t) => t?.name).join(', ');
-              this.statusUpdate('info', `Using tool${suffix} ${toolCallsString}`);
+              this.statusUpdate('info', `Used tools: ${formatToolCalls(toolCalls)}`);
             }
           }
         }
