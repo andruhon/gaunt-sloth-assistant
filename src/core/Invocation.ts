@@ -118,7 +118,7 @@ export class Invocation {
             output.aiMessage += chunk.text;
             const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
             if (toolCalls && toolCalls.length > 0) {
-              this.statusUpdate('info', `Used tools: ${formatToolCalls(toolCalls)}`);
+              this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
             }
           }
         }
