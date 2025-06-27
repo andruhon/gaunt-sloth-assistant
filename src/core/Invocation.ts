@@ -1,16 +1,14 @@
 import type { Message } from '#src/modules/types.js';
 import { AIMessage, isAIMessage } from '@langchain/core/messages';
-import { SlothConfig } from '#src/config.js';
+import { getDefaultTools, SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
-import { ProgressIndicator } from '#src/utils.js';
+import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { ToolCall } from '@langchain/core/messages/tool';
 import { StatusLevel } from '#src/core/types.js';
-import { formatToolCalls } from '#src/utils.js';
-import { getDefaultTools } from '#src/config.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;

@@ -1,11 +1,10 @@
-import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import type { SlothConfig } from '#src/config.js';
 import type { StatusUpdateCallback } from '#src/core/Invocation.js';
 import type { StructuredToolInterface } from '@langchain/core/tools';
 import type { RunnableConfig } from '@langchain/core/runnables';
-import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 const systemUtilsMock = {
   getCurrentDir: vi.fn(),
