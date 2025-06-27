@@ -5,14 +5,13 @@ import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
-import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import { ProgressIndicator } from '#src/utils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { ToolCall } from '@langchain/core/messages/tool';
 import { StatusLevel } from '#src/core/types.js';
-import { getCurrentDir } from '#src/systemUtils.js';
-import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
 import { formatToolCalls } from '#src/utils.js';
+import { getDefaultTools } from '#src/config.js';
+import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -63,29 +62,18 @@ export class Invocation {
     this.config = effectiveConfig;
     this.mcpClient = this.getMcpClient(effectiveConfig);
 
-    // Get default tools and combine with config tools
-    const defaultTools = this.getDefaultTools();
+    // Get default filesystem tools (filtered based on config)
+    const defaultTools = getDefaultTools(effectiveConfig.filesystem || 'none');
+
+    // Get user config tools
     const configTools = effectiveConfig.tools || [];
+    const flattenedConfigTools = this.extractAndFlattenTools(configTools);
 
-    // Flatten any toolkits into individual tools
-    const flattenedConfigTools: StructuredToolInterface[] = [];
-    for (const toolOrToolkit of [...defaultTools, ...configTools]) {
-      // eslint-disable-next-line
-      if ((toolOrToolkit as any)['getTools'] instanceof Function) {
-        // This is a toolkit
-        flattenedConfigTools.push(...(toolOrToolkit as BaseToolkit).getTools());
-      } else {
-        // This is a regular tool
-        flattenedConfigTools.push(toolOrToolkit as StructuredToolInterface);
-      }
-    }
-
-    // Then add tools from MCP server
+    // Get MCP tools
     const mcpTools = (await this.mcpClient?.getTools()) ?? [];
-    const allTools = [...flattenedConfigTools, ...mcpTools];
 
-    // Then filter them
-    const tools = this.filterTools(allTools, effectiveConfig.filesystem || 'none');
+    // Combine all tools
+    const tools = [...defaultTools, ...flattenedConfigTools, ...mcpTools];
 
     if (tools.length > 0) {
       const toolNames = tools
@@ -168,64 +156,24 @@ export class Invocation {
     this.config = null;
   }
 
-  protected filterTools(
-    tools: StructuredToolInterface[],
-    filesystemConfig: string[] | 'all' | 'none'
-  ) {
-    if (filesystemConfig === 'all') {
-      return tools;
-    }
-
-    if (filesystemConfig === 'none') {
-      // Filter out all filesystem tools (local only, since MCP filesystem is removed)
-      return tools.filter((tool) => tool.name && !this.isFilesystemTool(tool.name));
-    }
-
-    if (!Array.isArray(filesystemConfig)) {
-      return tools;
-    }
-
-    // Create set of allowed local filesystem tool names
-    const allowedLocalToolNames = new Set(filesystemConfig);
-
-    return tools.filter((tool) => {
-      // Skip tools without names
-      if (!tool.name) {
-        return false;
+  /**
+   * Extract and flatten tools from toolkits
+   */
+  private extractAndFlattenTools(
+    tools: (StructuredToolInterface | BaseToolkit)[]
+  ): StructuredToolInterface[] {
+    const flattenedTools: StructuredToolInterface[] = [];
+    for (const toolOrToolkit of tools) {
+      // eslint-disable-next-line
+      if ((toolOrToolkit as any)['getTools'] instanceof Function) {
+        // This is a toolkit
+        flattenedTools.push(...(toolOrToolkit as BaseToolkit).getTools());
+      } else {
+        // This is a regular tool
+        flattenedTools.push(toolOrToolkit as StructuredToolInterface);
       }
-
-      // Allow non-filesystem tools
-      if (!this.isFilesystemTool(tool.name)) {
-        return true;
-      }
-
-      // Allow only specifically allowed filesystem tools
-      return allowedLocalToolNames.has(tool.name);
-    });
-  }
-
-  private isFilesystemTool(toolName: string): boolean {
-    const filesystemToolNames = [
-      'read_file',
-      'read_multiple_files',
-      'write_file',
-      'edit_file',
-      'create_directory',
-      'list_directory',
-      'list_directory_with_sizes',
-      'directory_tree',
-      'move_file',
-      'search_files',
-      'get_file_info',
-      'delete_file',
-      'delete_directory',
-      'list_allowed_directories',
-    ];
-    return filesystemToolNames.includes(toolName);
-  }
-
-  protected getDefaultTools(): (StructuredToolInterface | BaseToolkit)[] {
-    return [new GthFileSystemToolkit([getCurrentDir()])];
+    }
+    return flattenedTools;
   }
 
   protected getDefaultMcpServers(): Record<string, Connection> {

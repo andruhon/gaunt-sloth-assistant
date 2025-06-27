@@ -45,30 +45,19 @@ describe('Config Tool Functions', () => {
       expect(result).toEqual([]);
     });
 
-    it('should filter tools based on read/write type', () => {
-      const resultRead = getDefaultTools(['read']);
-      expect(resultRead.map((t) => t.name)).toEqual(['read_file', 'list_directory']);
-
-      const resultWrite = getDefaultTools(['write']);
-      expect(resultWrite.map((t) => t.name)).toEqual(['write_file', 'edit_file']);
+    it('should return only read tools when filesystem is "read"', () => {
+      const result = getDefaultTools('read');
+      expect(result.map((t) => t.name)).toEqual(['read_file', 'list_directory']);
     });
 
-    it('should allow both read and write when both are in config', () => {
-      const result = getDefaultTools(['read', 'write']);
-
-      expect(result).toHaveLength(4);
-      expect(result.map((t) => t.name)).toEqual([
-        'read_file',
-        'write_file',
-        'list_directory',
-        'edit_file',
-      ]);
+    it('should work with read in array format', () => {
+      const result = getDefaultTools(['read']);
+      expect(result.map((t) => t.name)).toEqual(['read_file', 'list_directory']);
     });
 
-    it('should filter filesystem tools based on specific allowed list', () => {
-      const result = getDefaultTools(['read_file', 'write_file']);
-
-      expect(result.map((t) => t.name)).toEqual(['read_file', 'write_file']);
+    it('should filter filesystem tools based on specific read-only tool names', () => {
+      const result = getDefaultTools(['read_file']);
+      expect(result.map((t) => t.name)).toEqual(['read_file']);
     });
   });
 });

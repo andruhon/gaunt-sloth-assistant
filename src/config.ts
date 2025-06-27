@@ -13,6 +13,8 @@ import {
   USER_PROJECT_CONFIG_JSON,
   USER_PROJECT_CONFIG_MJS,
 } from '#src/constants.js';
+import { getCurrentDir } from '#src/systemUtils.js';
+import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -21,7 +23,7 @@ export interface SlothConfig extends BaseSlothConfig {
   projectGuidelines: string;
   projectReviewInstructions: string;
   streamOutput: boolean;
-  filesystem: string[] | 'all' | 'none';
+  filesystem: string[] | 'all' | 'read' | 'none';
   tools?: StructuredToolInterface[] | BaseToolkit[];
 }
 
@@ -42,26 +44,26 @@ interface BaseSlothConfig {
   projectGuidelines?: string;
   projectReviewInstructions?: string;
   streamOutput?: boolean;
-  filesystem?: string[] | 'all' | 'none';
+  filesystem?: string[] | 'all' | 'read' | 'none';
   commands?: {
     pr?: {
       contentProvider?: string;
       requirementsProvider?: string;
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
     };
     review?: {
       requirementsProvider?: string;
       contentProvider?: string;
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
     };
     ask?: {
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
     };
     chat?: {
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
     };
     code?: {
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
     };
   };
   requirementsProviderConfig?: Record<string, unknown>;
@@ -84,15 +86,7 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   streamOutput: true,
-  filesystem: [
-    'read_file',
-    'read_multiple_files',
-    'list_directory',
-    'directory_tree',
-    'search_files',
-    'get_file_info',
-    'list_allowed_directories',
-  ],
+  filesystem: 'read',
   commands: {
     pr: {
       contentProvider: 'github', // gh pr diff NN
@@ -308,4 +302,61 @@ function mergeConfig(partialConfig: Partial<SlothConfig>): SlothConfig {
  */
 function mergeRawConfig(config: RawSlothConfig, llm: BaseChatModel): SlothConfig {
   return mergeConfig({ ...config, llm });
+}
+
+/**
+ * Filter filesystem tools based on configuration
+ */
+function filterFilesystemTools(
+  toolkit: GthFileSystemToolkit,
+  filesystemConfig: string[] | 'all' | 'read' | 'none'
+): StructuredToolInterface[] {
+  if (filesystemConfig === 'all') {
+    return toolkit.getTools();
+  }
+
+  if (filesystemConfig === 'none') {
+    return [];
+  }
+
+  if (filesystemConfig === 'read') {
+    // Read-only: only allow read operations
+    return toolkit.getFilteredTools(['read']);
+  }
+
+  if (!Array.isArray(filesystemConfig)) {
+    return toolkit.getTools();
+  }
+
+  if (filesystemConfig.includes('all')) {
+    return toolkit.getTools();
+  }
+
+  // Handle an array of specific tool names or 'read'/'all'
+  const allowedTools: StructuredToolInterface[] = filesystemConfig.includes('read')
+    ? toolkit.getFilteredTools(['read'])
+    : [];
+
+  // Also allow specific tool names
+  const allowedToolNames = new Set(
+    filesystemConfig.filter((name) => name !== 'read' && name !== 'all')
+  );
+  const specificNamedTools = toolkit.getTools().filter((tool) => {
+    return tool.name && allowedToolNames.has(tool.name);
+  });
+
+  // Combine and deduplicate
+  const allAllowedTools = [...allowedTools, ...specificNamedTools];
+  return allAllowedTools.filter(
+    (tool, index, arr) => arr.findIndex((t) => t.name === tool.name) === index
+  );
+}
+
+/**
+ * Get default tools based on filesystem configuration
+ */
+export function getDefaultTools(
+  filesystemConfig: string[] | 'all' | 'read' | 'none' = 'none'
+): StructuredToolInterface[] {
+  return [...filterFilesystemTools(new GthFileSystemToolkit([getCurrentDir()]), filesystemConfig)];
 }

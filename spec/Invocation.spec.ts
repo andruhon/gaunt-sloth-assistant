@@ -12,6 +12,17 @@ const systemUtilsMock = {
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
+const configMock = {
+  getDefaultTools: vi.fn(),
+};
+vi.mock('#src/config.js', async () => {
+  const actual = await vi.importActual('#src/config.js');
+  return {
+    ...actual,
+    getDefaultTools: configMock.getDefaultTools,
+  };
+});
+
 const progressIndicatorInstanceMock = {
   stop: vi.fn(),
 };
@@ -61,6 +72,9 @@ describe('Invocation', () => {
     multiServerMCPClientMock.mockImplementation(() => mcpClientInstanceMock);
     progressIndicatorMock.mockImplementation(() => progressIndicatorInstanceMock);
     gthFileSystemToolkitMock.getTools.mockReturnValue([]);
+
+    // Setup config mocks
+    configMock.getDefaultTools.mockReturnValue([]);
 
     mockAgent = {
       invoke: vi.fn(),
@@ -481,65 +495,6 @@ describe('Invocation', () => {
       const invocation = new Invocation(statusUpdateCallback);
 
       await expect(invocation.cleanup()).resolves.not.toThrow();
-    });
-  });
-
-  describe('filterTools', () => {
-    it('should return all tools when filesystem is "all"', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const tools: StructuredToolInterface[] = [
-        { name: 'mcp__filesystem__read_file' } as any,
-        { name: 'mcp__filesystem__write_file' } as any,
-        { name: 'mcp__other__tool' } as any,
-      ];
-
-      const result = invocation['filterTools'](tools, 'all');
-
-      expect(result).toEqual(tools);
-    });
-
-    it('should filter out filesystem tools when filesystem is "none"', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const tools: StructuredToolInterface[] = [
-        { name: 'read_file' } as any,
-        { name: 'mcp__other__tool' } as any,
-        { name: 'status_update' } as any,
-      ];
-
-      const result = invocation['filterTools'](tools, 'none');
-
-      expect(result).toEqual([{ name: 'mcp__other__tool' }, { name: 'status_update' }]);
-    });
-
-    it('should filter filesystem tools based on allowed list', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const tools: StructuredToolInterface[] = [
-        { name: 'read_file' } as any,
-        { name: 'write_file' } as any,
-        { name: 'edit_file' } as any,
-        { name: 'mcp__other__tool' } as any,
-      ];
-
-      const result = invocation['filterTools'](tools, ['read_file', 'write_file']);
-
-      expect(result).toEqual([
-        { name: 'read_file' },
-        { name: 'write_file' },
-        { name: 'mcp__other__tool' },
-      ]);
-    });
-
-    it('should include all non-filesystem tools', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const tools: StructuredToolInterface[] = [
-        { name: 'read_file' } as any,
-        { name: 'mcp__other__tool1' } as any,
-        { name: 'mcp__other__tool2' } as any,
-      ];
-
-      const result = invocation['filterTools'](tools, ['write_file']);
-
-      expect(result).toEqual([{ name: 'mcp__other__tool1' }, { name: 'mcp__other__tool2' }]);
     });
   });
 

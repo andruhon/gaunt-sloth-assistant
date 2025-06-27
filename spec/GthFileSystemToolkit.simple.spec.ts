@@ -79,6 +79,7 @@ describe('GthFileSystemToolkit - Basic Tests', () => {
       expect(tool).toBeDefined();
       expect(tool.name).toBe('read_file');
       expect(tool.description).toContain('Read the complete contents of a file');
+      expect((tool as any).gthFileSystemType).toBe('read');
     });
 
     it('write_file tool should be defined and callable', async () => {
@@ -86,6 +87,7 @@ describe('GthFileSystemToolkit - Basic Tests', () => {
       expect(tool).toBeDefined();
       expect(tool.name).toBe('write_file');
       expect(tool.description).toContain('Create a new file or completely overwrite');
+      expect((tool as any).gthFileSystemType).toBe('write');
     });
 
     it('list_directory tool should be defined and callable', async () => {
@@ -93,6 +95,7 @@ describe('GthFileSystemToolkit - Basic Tests', () => {
       expect(tool).toBeDefined();
       expect(tool.name).toBe('list_directory');
       expect(tool.description).toContain('Get a detailed listing of all files and directories');
+      expect((tool as any).gthFileSystemType).toBe('read');
     });
 
     it('list_allowed_directories should return configured directories', async () => {

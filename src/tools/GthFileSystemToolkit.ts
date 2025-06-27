@@ -7,6 +7,22 @@ import { createTwoFilesPatch } from 'diff';
 import { minimatch } from 'minimatch';
 import { displayInfo } from '#src/consoleUtils.js';
 
+// Helper function to create a tool with filesystem type
+function createGthTool<T extends z.ZodSchema>(
+  fn: (args: z.infer<T>) => Promise<string>,
+  config: {
+    name: string;
+    description: string;
+    schema: T;
+  },
+  gthFileSystemType: 'read' | 'write'
+): StructuredToolInterface {
+  const toolInstance = tool(fn, config);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (toolInstance as any).gthFileSystemType = gthFileSystemType;
+  return toolInstance;
+}
+
 // Inspired by https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
 
 // Schema definitions
@@ -101,6 +117,17 @@ export default class GthFileSystemToolkit extends BaseToolkit {
       this.normalizePath(path.resolve(this.expandHome(dir)))
     );
     this.tools = this.createTools();
+  }
+
+  /**
+   * Get tools filtered by operation type
+   */
+  getFilteredTools(allowedOperations: ('read' | 'write')[]): StructuredToolInterface[] {
+    return this.tools.filter((tool) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const toolType = (tool as any).gthFileSystemType;
+      return allowedOperations.includes(toolType);
+    });
   }
 
   private normalizePath(p: string): string {
@@ -402,7 +429,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
   private createTools(): StructuredToolInterface[] {
     return [
-      tool(
+      createGthTool(
         async (args: z.infer<typeof ReadFileArgsSchema>): Promise<string> => {
           displayInfo(`📁 Reading file: ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -431,10 +458,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             "the first N lines of a file, or the 'tail' parameter to read only " +
             'the last N lines of a file. Only works within allowed directories.',
           schema: ReadFileArgsSchema,
-        }
+        },
+        'read'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof ReadMultipleFilesArgsSchema>): Promise<string> => {
           displayInfo(`📁 Reading ${args.paths.length} files`);
           const results = await Promise.all(
@@ -460,10 +488,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             "path as a reference. Failed reads for individual files won't stop " +
             'the entire operation. Only works within allowed directories.',
           schema: ReadMultipleFilesArgsSchema,
-        }
+        },
+        'read'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof WriteFileArgsSchema>): Promise<string> => {
           displayInfo(`📁 Writing file: ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -477,10 +506,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'Use with caution as it will overwrite existing files without warning. ' +
             'Handles text content with proper encoding. Only works within allowed directories.',
           schema: WriteFileArgsSchema,
-        }
+        },
+        'write'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof EditFileArgsSchema>): Promise<string> => {
           displayInfo(`📁 Editing file: ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -497,10 +527,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'Fall back to using the "write_file" tool if you need to make large edits.' +
             'or of the "edit_file" fails for some reason.',
           schema: EditFileArgsSchema,
-        }
+        },
+        'write'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof CreateDirectoryArgsSchema>): Promise<string> => {
           displayInfo(`📁 Creating directory: ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -515,10 +546,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'this operation will succeed silently. Perfect for setting up directory ' +
             'structures for projects or ensuring required paths exist. Only works within allowed directories.',
           schema: CreateDirectoryArgsSchema,
-        }
+        },
+        'write'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof ListDirectoryArgsSchema>): Promise<string> => {
           displayInfo(`📁 Listing directory: ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -535,10 +567,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'prefixes. This tool is essential for understanding directory structure and ' +
             'finding specific files within a directory. Only works within allowed directories.',
           schema: ListDirectoryArgsSchema,
-        }
+        },
+        'read'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof ListDirectoryWithSizesArgsSchema>): Promise<string> => {
           displayInfo(`📁 Listing directory with sizes: ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -603,10 +636,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'prefixes. This tool is useful for understanding directory structure and ' +
             'finding specific files within a directory. Only works within allowed directories.',
           schema: ListDirectoryWithSizesArgsSchema,
-        }
+        },
+        'read'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof DirectoryTreeArgsSchema>): Promise<string> => {
           displayInfo(`📁 Building directory tree: ${args.path}`);
           interface TreeEntry {
@@ -648,10 +682,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'Files have no children array, while directories always have a children array (which may be empty). ' +
             'The output is formatted with 2-space indentation for readability. Only works within allowed directories.',
           schema: DirectoryTreeArgsSchema,
-        }
+        },
+        'read'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof MoveFileArgsSchema>): Promise<string> => {
           displayInfo(`📁 Moving ${args.source} to ${args.destination}`);
           const validSourcePath = await this.validatePath(args.source);
@@ -667,10 +702,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'operation will fail. Works across different directories and can be used ' +
             'for simple renaming within the same directory. Both source and destination must be within allowed directories.',
           schema: MoveFileArgsSchema,
-        }
+        },
+        'write'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof SearchFilesArgsSchema>): Promise<string> => {
           displayInfo(`📁 Searching for '${args.pattern}' in ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -686,10 +722,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             "matching items. Great for finding files when you don't know their exact location. " +
             'Only searches within allowed directories.',
           schema: SearchFilesArgsSchema,
-        }
+        },
+        'read'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof GetFileInfoArgsSchema>): Promise<string> => {
           displayInfo(`📁 Getting file info: ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -706,10 +743,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'and type. This tool is perfect for understanding file characteristics ' +
             'without reading the actual content. Only works within allowed directories.',
           schema: GetFileInfoArgsSchema,
-        }
+        },
+        'read'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof DeleteFileArgsSchema>): Promise<string> => {
           displayInfo(`📁 Deleting file: ${args.path}`);
           const validPath = await this.validatePath(args.path);
@@ -729,10 +767,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'Only works for files, not directories. Use with caution. ' +
             'Only works within allowed directories.',
           schema: DeleteFileArgsSchema,
-        }
+        },
+        'write'
       ),
 
-      tool(
+      createGthTool(
         async (args: z.infer<typeof DeleteDirectoryArgsSchema>): Promise<string> => {
           displayInfo(`📁 Deleting directory: ${args.path}${args.recursive ? ' (recursive)' : ''}`);
           const validPath = await this.validatePath(args.path);
@@ -772,10 +811,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'This operation cannot be undone. Use with extreme caution. ' +
             'Only works within allowed directories.',
           schema: DeleteDirectoryArgsSchema,
-        }
+        },
+        'write'
       ),
 
-      tool(
+      createGthTool(
         async (): Promise<string> => {
           return `Allowed directories:\n${this.allowedDirectories.join('\n')}`;
         },
@@ -785,7 +825,8 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'Returns the list of directories that this server is allowed to access. ' +
             'Use this to understand which directories are available before trying to access files.',
           schema: z.object({}),
-        }
+        },
+        'read'
       ),
     ];
   }
