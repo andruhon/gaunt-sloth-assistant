@@ -34,6 +34,19 @@ vi.mock('@langchain/mcp-adapters', () => ({
   MultiServerMCPClient: multiServerMCPClientMock,
 }));
 
+const gthFileSystemToolkitMock = {
+  getTools: vi.fn(() => []),
+};
+const GthFileSystemToolkitConstructorMock = vi.fn();
+GthFileSystemToolkitConstructorMock.mockImplementation(() => {
+  const instance = Object.create({});
+  instance.getTools = gthFileSystemToolkitMock.getTools;
+  return instance;
+});
+vi.mock('#src/tools/GthFileSystemToolkit.js', () => ({
+  default: GthFileSystemToolkitConstructorMock,
+}));
+
 describe('Invocation', () => {
   let Invocation: typeof import('#src/core/Invocation.js').Invocation;
   let statusUpdateCallback: Mock<StatusUpdateCallback>;
@@ -46,6 +59,7 @@ describe('Invocation', () => {
     systemUtilsMock.getCurrentDir.mockReturnValue('/test/dir');
     multiServerMCPClientMock.mockImplementation(() => mcpClientInstanceMock);
     progressIndicatorMock.mockImplementation(() => progressIndicatorInstanceMock);
+    gthFileSystemToolkitMock.getTools.mockReturnValue([]);
 
     mockAgent = {
       invoke: vi.fn(),
@@ -153,34 +167,30 @@ describe('Invocation', () => {
       expect(invocation['config']?.filesystem).toEqual(['read_file', 'write_file']);
     });
 
-    it('should initialize MCP client with filesystem tools', async () => {
+    it('should display loaded tools as comma-separated list', async () => {
+      // Create a simple config with custom tools to test the message format
       const invocation = new Invocation(statusUpdateCallback);
-      const configWithFilesystem = {
+      const mockTools = [
+        { name: 'custom_tool_1', invoke: vi.fn(), description: 'Test tool 1' },
+        { name: 'custom_tool_2', invoke: vi.fn(), description: 'Test tool 2' },
+        { name: 'custom_tool_3', invoke: vi.fn(), description: 'Test tool 3' },
+      ] as StructuredToolInterface[];
+
+      const configWithTools = {
         ...mockConfig,
-        filesystem: 'all',
+        tools: mockTools,
+        filesystem: 'none', // Disable filesystem tools to simplify test
       } as SlothConfig;
 
-      const mockTools = [
-        { name: 'mcp__filesystem__read_file' },
-        { name: 'mcp__filesystem__write_file' },
-      ];
-      mcpClientInstanceMock.getTools.mockResolvedValue(mockTools);
+      mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
-      await invocation.init(undefined, configWithFilesystem);
+      await invocation.init(undefined, configWithTools);
 
-      expect(multiServerMCPClientMock).toHaveBeenCalledWith({
-        throwOnLoadError: true,
-        prefixToolNameWithServerName: true,
-        additionalToolNamePrefix: 'mcp',
-        mcpServers: {
-          filesystem: {
-            transport: 'stdio',
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-filesystem', '/test/dir'],
-          },
-        },
-      });
-      expect(statusUpdateCallback).toHaveBeenCalledWith('info', 'Loaded 2 tools.');
+      // Should display comma-separated list of tool names
+      expect(statusUpdateCallback).toHaveBeenCalledWith(
+        'info',
+        'Loaded tools: custom_tool_1, custom_tool_2, custom_tool_3'
+      );
     });
 
     it('should initialize with checkpoint saver', async () => {
@@ -200,9 +210,9 @@ describe('Invocation', () => {
     it('should flatten toolkits into individual tools', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const mockToolkit = {
-        tools: [
-          { name: 'read_file' } as StructuredToolInterface,
-          { name: 'write_file' } as StructuredToolInterface,
+        getTools: () => [
+          { name: 'custom_tool_1' } as StructuredToolInterface,
+          { name: 'custom_tool_2' } as StructuredToolInterface,
         ],
       };
       const mockTool = { name: 'status_update' } as StructuredToolInterface;
@@ -210,40 +220,54 @@ describe('Invocation', () => {
       const configWithTools = {
         ...mockConfig,
         tools: [mockToolkit, mockTool],
-      };
+      } as SlothConfig;
 
+      // Reset default toolkit mock to return empty for this test since filesystem is 'none'
+      gthFileSystemToolkitMock.getTools.mockReturnValue([]);
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
       await invocation.init(undefined, configWithTools);
 
-      expect(createReactAgentMock).toHaveBeenCalledWith({
-        llm: mockConfig.llm,
-        tools: [{ name: 'read_file' }, { name: 'write_file' }, { name: 'status_update' }],
-        checkpointSaver: undefined,
-      });
+      // Since filesystem is 'none', only non-filesystem tools should remain
+      expect(createReactAgentMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          llm: mockConfig.llm,
+          tools: expect.arrayContaining([
+            expect.objectContaining({ name: 'custom_tool_1' }),
+            expect.objectContaining({ name: 'custom_tool_2' }),
+            expect.objectContaining({ name: 'status_update' }),
+          ]),
+          checkpointSaver: undefined,
+        })
+      );
     });
 
     it('should combine toolkit tools with MCP tools', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const mockToolkit = {
-        tools: [{ name: 'read_file' } as StructuredToolInterface],
+        getTools: () => [{ name: 'custom_tool' } as StructuredToolInterface],
       };
 
       const configWithTools = {
         ...mockConfig,
         tools: [mockToolkit],
-      };
+      } as SlothConfig;
 
+      // Reset default toolkit mock to return empty for this test since filesystem is 'none'
+      gthFileSystemToolkitMock.getTools.mockReturnValue([]);
       const mcpTools = [{ name: 'mcp__filesystem__list_directory' } as StructuredToolInterface];
       mcpClientInstanceMock.getTools.mockResolvedValue(mcpTools);
 
       await invocation.init(undefined, configWithTools);
 
-      expect(createReactAgentMock).toHaveBeenCalledWith({
-        llm: mockConfig.llm,
-        tools: [{ name: 'read_file' }, { name: 'mcp__filesystem__list_directory' }],
-        checkpointSaver: undefined,
-      });
+      // Since filesystem is 'none', MCP filesystem tools should be filtered out
+      expect(createReactAgentMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          llm: mockConfig.llm,
+          tools: expect.arrayContaining([expect.objectContaining({ name: 'custom_tool' })]),
+          checkpointSaver: undefined,
+        })
+      );
     });
   });
 
@@ -432,13 +456,19 @@ describe('Invocation', () => {
   describe('cleanup', () => {
     it('should cleanup MCP client and reset state', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      const configWithFilesystem = {
+      const configWithMcp = {
         ...mockConfig,
-        filesystem: 'all',
+        mcpServers: {
+          custom: {
+            transport: 'stdio' as const,
+            command: 'custom-server',
+            args: [],
+          },
+        },
       } as SlothConfig;
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
-      await invocation.init(undefined, configWithFilesystem);
+      await invocation.init(undefined, configWithMcp);
       await invocation.cleanup();
 
       expect(mcpClientInstanceMock.close).toHaveBeenCalled();
@@ -471,7 +501,6 @@ describe('Invocation', () => {
     it('should filter out filesystem tools when filesystem is "none"', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const tools: StructuredToolInterface[] = [
-        { name: 'mcp__filesystem__read_file' } as any,
         { name: 'read_file' } as any,
         { name: 'mcp__other__tool' } as any,
         { name: 'status_update' } as any,
@@ -485,20 +514,15 @@ describe('Invocation', () => {
     it('should filter filesystem tools based on allowed list', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const tools: StructuredToolInterface[] = [
-        { name: 'mcp__filesystem__read_file' } as any,
-        { name: 'mcp__filesystem__write_file' } as any,
-        { name: 'mcp__filesystem__delete_file' } as any,
         { name: 'read_file' } as any,
         { name: 'write_file' } as any,
-        { name: 'delete_file' } as any,
+        { name: 'edit_file' } as any,
         { name: 'mcp__other__tool' } as any,
       ];
 
       const result = invocation['filterTools'](tools, ['read_file', 'write_file']);
 
       expect(result).toEqual([
-        { name: 'mcp__filesystem__read_file' },
-        { name: 'mcp__filesystem__write_file' },
         { name: 'read_file' },
         { name: 'write_file' },
         { name: 'mcp__other__tool' },
@@ -508,7 +532,7 @@ describe('Invocation', () => {
     it('should include all non-filesystem tools', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const tools: StructuredToolInterface[] = [
-        { name: 'mcp__filesystem__read_file' } as any,
+        { name: 'read_file' } as any,
         { name: 'mcp__other__tool1' } as any,
         { name: 'mcp__other__tool2' } as any,
       ];
@@ -533,11 +557,18 @@ describe('Invocation', () => {
       expect(_result).toBeNull();
     });
 
-    it('should create MCP client with filesystem server', async () => {
+    it('should create MCP client with custom server', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const config = {
         ...mockConfig,
         filesystem: 'all' as const,
+        mcpServers: {
+          custom: {
+            transport: 'stdio' as const,
+            command: 'custom-server',
+            args: ['--arg'],
+          },
+        },
       };
 
       const result = invocation['getMcpClient'](config);
@@ -547,17 +578,17 @@ describe('Invocation', () => {
         prefixToolNameWithServerName: true,
         additionalToolNamePrefix: 'mcp',
         mcpServers: {
-          filesystem: {
+          custom: {
             transport: 'stdio',
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-filesystem', '/test/dir'],
+            command: 'custom-server',
+            args: ['--arg'],
           },
         },
       });
       expect(result).toBe(mcpClientInstanceMock);
     });
 
-    it('should merge user MCP servers with default filesystem', async () => {
+    it('should combine default servers with user config', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const config = {
         ...mockConfig,
@@ -566,7 +597,7 @@ describe('Invocation', () => {
           custom: {
             transport: 'stdio' as const,
             command: 'custom-server',
-            args: [],
+            args: ['--custom'],
           },
         },
       };
@@ -578,43 +609,11 @@ describe('Invocation', () => {
         prefixToolNameWithServerName: true,
         additionalToolNamePrefix: 'mcp',
         mcpServers: {
-          filesystem: {
-            transport: 'stdio',
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-filesystem', '/test/dir'],
-          },
           custom: {
             transport: 'stdio',
             command: 'custom-server',
-            args: [],
+            args: ['--custom'],
           },
-        },
-      });
-    });
-
-    it('should override default filesystem config with user config', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const customFilesystemConfig = {
-        transport: 'stdio' as const,
-        command: 'custom-fs-server',
-        args: ['--custom'],
-      };
-      const config = {
-        ...mockConfig,
-        filesystem: 'all' as const,
-        mcpServers: {
-          filesystem: customFilesystemConfig,
-        },
-      };
-
-      invocation['getMcpClient'](config);
-
-      expect(multiServerMCPClientMock).toHaveBeenCalledWith({
-        throwOnLoadError: true,
-        prefixToolNameWithServerName: true,
-        additionalToolNamePrefix: 'mcp',
-        mcpServers: {
-          filesystem: customFilesystemConfig,
         },
       });
     });

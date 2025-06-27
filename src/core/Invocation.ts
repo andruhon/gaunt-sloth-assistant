@@ -10,6 +10,8 @@ import { ProgressIndicator } from '#src/utils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { ToolCall } from '@langchain/core/messages/tool';
 import { StatusLevel } from '#src/core/types.js';
+import { getCurrentDir } from '#src/systemUtils.js';
+import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -60,12 +62,13 @@ export class Invocation {
     this.config = effectiveConfig;
     this.mcpClient = this.getMcpClient(effectiveConfig);
 
-    // First get tools from config
+    // Get default tools and combine with config tools
+    const defaultTools = this.getDefaultTools();
     const configTools = effectiveConfig.tools || [];
 
     // Flatten any toolkits into individual tools
     const flattenedConfigTools: StructuredToolInterface[] = [];
-    for (const toolOrToolkit of configTools) {
+    for (const toolOrToolkit of [...defaultTools, ...configTools]) {
       // eslint-disable-next-line
       if ((toolOrToolkit as any)['getTools'] instanceof Function) {
         // This is a toolkit
@@ -83,8 +86,12 @@ export class Invocation {
     // Then filter them
     const tools = this.filterTools(allTools, effectiveConfig.filesystem || 'none');
 
-    if (allTools.length > 0) {
-      this.statusUpdate('info', `Loaded ${tools.length} tools.`);
+    if (tools.length > 0) {
+      const toolNames = tools
+        .map((tool) => tool.name)
+        .filter((name) => name)
+        .join(', ');
+      this.statusUpdate('info', `Loaded tools: ${toolNames}`);
     }
 
     // Create the React agent
@@ -171,30 +178,30 @@ export class Invocation {
     }
 
     if (filesystemConfig === 'none') {
-      // Filter out all filesystem tools (both MCP and local)
-      return tools.filter(
-        (tool) => !tool.name.startsWith('mcp__filesystem__') && !this.isFilesystemTool(tool.name)
-      );
+      // Filter out all filesystem tools (local only, since MCP filesystem is removed)
+      return tools.filter((tool) => tool.name && !this.isFilesystemTool(tool.name));
     }
 
     if (!Array.isArray(filesystemConfig)) {
       return tools;
     }
 
-    // Create set of allowed tool names with mcp__filesystem__ prefix and local filesystem tools
-    const allowedMcpToolNames = new Set(
-      filesystemConfig.map((shortName) => `mcp__filesystem__${shortName}`)
-    );
+    // Create set of allowed local filesystem tool names
     const allowedLocalToolNames = new Set(filesystemConfig);
 
     return tools.filter((tool) => {
+      // Skip tools without names
+      if (!tool.name) {
+        return false;
+      }
+
       // Allow non-filesystem tools
-      if (!tool.name.startsWith('mcp__filesystem__') && !this.isFilesystemTool(tool.name)) {
+      if (!this.isFilesystemTool(tool.name)) {
         return true;
       }
 
       // Allow only specifically allowed filesystem tools
-      return allowedMcpToolNames.has(tool.name) || allowedLocalToolNames.has(tool.name);
+      return allowedLocalToolNames.has(tool.name);
     });
   }
 
@@ -216,19 +223,16 @@ export class Invocation {
     return filesystemToolNames.includes(toolName);
   }
 
-  protected getMcpClient(config: SlothConfig) {
-    const defaultServers: Record<string, Connection> = {};
+  protected getDefaultTools(): (StructuredToolInterface | BaseToolkit)[] {
+    return [new GthFileSystemToolkit([getCurrentDir()])];
+  }
 
-    // // Add filesystem server if configured
-    // if (config.filesystem && config.filesystem !== 'none') {
-    //   const filesystemConfig: Connection = {
-    //     transport: 'stdio' as const,
-    //     command: 'npx',
-    //     args: ['-y', '@modelcontextprotocol/server-filesystem', getCurrentDir()],
-    //   };
-    //
-    //   defaultServers.filesystem = filesystemConfig;
-    // }
+  protected getDefaultMcpServers(): Record<string, Connection> {
+    return {};
+  }
+
+  protected getMcpClient(config: SlothConfig) {
+    const defaultServers = this.getDefaultMcpServers();
 
     // Merge with user's mcpServers
     const mcpServers = { ...defaultServers, ...(config.mcpServers || {}) };
