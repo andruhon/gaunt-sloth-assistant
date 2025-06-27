@@ -24,7 +24,7 @@ export async function review(
   }
   try {
     writeFileSync(filePath, outputContent);
-    displaySuccess(`\nThis report can be found in ${filePath}`);
+    displaySuccess(`\n\nThis report can be found in ${filePath}`);
   } catch (error) {
     displayDebug(error instanceof Error ? error : String(error));
     displayError(`Failed to write review to file: ${filePath}`);

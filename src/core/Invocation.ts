@@ -36,16 +36,6 @@ export class Invocation {
     config: SlothConfig,
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void> {
-    try {
-      if (config.streamOutput && config.llm._llmType() === 'anthropic') {
-        this.statusUpdate(
-          'warning',
-          'To avoid known bug with Anthropic forcing streamOutput to false'
-        );
-        config.streamOutput = false;
-      }
-    } catch {}
-
     if (this.verbose) {
       config.llm.verbose = true;
     }
@@ -126,8 +116,8 @@ export class Invocation {
 
         for await (const [chunk, _metadata] of stream) {
           if (isAIMessage(chunk)) {
-            this.statusUpdate('stream', chunk.content as string);
-            output.aiMessage += chunk.content;
+            this.statusUpdate('stream', chunk.text as string);
+            output.aiMessage += chunk.text;
             const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
             if (toolCalls && toolCalls.length > 0) {
               this.statusUpdate('info', `Used tools: ${formatToolCalls(toolCalls)}`);

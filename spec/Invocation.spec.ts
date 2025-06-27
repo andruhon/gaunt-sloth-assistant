@@ -136,26 +136,6 @@ describe('Invocation', () => {
       });
     });
 
-    it('should force streamOutput to false for anthropic LLM', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const anthropicConfig = {
-        ...mockConfig,
-        streamOutput: true,
-        llm: {
-          ...mockConfig.llm,
-          _llmType: vi.fn().mockReturnValue('anthropic'),
-        } as any as BaseChatModel,
-      } as SlothConfig;
-
-      await invocation.init(undefined, anthropicConfig);
-
-      expect(statusUpdateCallback).toHaveBeenCalledWith(
-        'warning',
-        'To avoid known bug with Anthropic forcing streamOutput to false'
-      );
-      expect(anthropicConfig.streamOutput).toBe(false);
-    });
-
     it('should set verbose on LLM when verbose mode is enabled', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       invocation.setVerbose(true);
