@@ -196,6 +196,55 @@ describe('Invocation', () => {
         checkpointSaver,
       });
     });
+
+    it('should flatten toolkits into individual tools', async () => {
+      const invocation = new Invocation(statusUpdateCallback);
+      const mockToolkit = {
+        tools: [
+          { name: 'read_file' } as StructuredToolInterface,
+          { name: 'write_file' } as StructuredToolInterface,
+        ],
+      };
+      const mockTool = { name: 'status_update' } as StructuredToolInterface;
+
+      const configWithTools = {
+        ...mockConfig,
+        tools: [mockToolkit, mockTool],
+      };
+
+      mcpClientInstanceMock.getTools.mockResolvedValue([]);
+
+      await invocation.init(undefined, configWithTools);
+
+      expect(createReactAgentMock).toHaveBeenCalledWith({
+        llm: mockConfig.llm,
+        tools: [{ name: 'read_file' }, { name: 'write_file' }, { name: 'status_update' }],
+        checkpointSaver: undefined,
+      });
+    });
+
+    it('should combine toolkit tools with MCP tools', async () => {
+      const invocation = new Invocation(statusUpdateCallback);
+      const mockToolkit = {
+        tools: [{ name: 'read_file' } as StructuredToolInterface],
+      };
+
+      const configWithTools = {
+        ...mockConfig,
+        tools: [mockToolkit],
+      };
+
+      const mcpTools = [{ name: 'mcp__filesystem__list_directory' } as StructuredToolInterface];
+      mcpClientInstanceMock.getTools.mockResolvedValue(mcpTools);
+
+      await invocation.init(undefined, configWithTools);
+
+      expect(createReactAgentMock).toHaveBeenCalledWith({
+        llm: mockConfig.llm,
+        tools: [{ name: 'read_file' }, { name: 'mcp__filesystem__list_directory' }],
+        checkpointSaver: undefined,
+      });
+    });
   });
 
   describe('invoke', () => {
@@ -419,16 +468,18 @@ describe('Invocation', () => {
       expect(result).toEqual(tools);
     });
 
-    it('should return all tools when filesystem is "none"', async () => {
+    it('should filter out filesystem tools when filesystem is "none"', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const tools: StructuredToolInterface[] = [
         { name: 'mcp__filesystem__read_file' } as any,
+        { name: 'read_file' } as any,
         { name: 'mcp__other__tool' } as any,
+        { name: 'status_update' } as any,
       ];
 
       const result = invocation['filterTools'](tools, 'none');
 
-      expect(result).toEqual(tools);
+      expect(result).toEqual([{ name: 'mcp__other__tool' }, { name: 'status_update' }]);
     });
 
     it('should filter filesystem tools based on allowed list', async () => {
@@ -437,6 +488,9 @@ describe('Invocation', () => {
         { name: 'mcp__filesystem__read_file' } as any,
         { name: 'mcp__filesystem__write_file' } as any,
         { name: 'mcp__filesystem__delete_file' } as any,
+        { name: 'read_file' } as any,
+        { name: 'write_file' } as any,
+        { name: 'delete_file' } as any,
         { name: 'mcp__other__tool' } as any,
       ];
 
@@ -445,6 +499,8 @@ describe('Invocation', () => {
       expect(result).toEqual([
         { name: 'mcp__filesystem__read_file' },
         { name: 'mcp__filesystem__write_file' },
+        { name: 'read_file' },
+        { name: 'write_file' },
         { name: 'mcp__other__tool' },
       ]);
     });

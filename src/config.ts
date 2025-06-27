@@ -5,13 +5,13 @@ import { error, exit } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
 import type { Connection } from '@langchain/mcp-adapters';
-import type { StructuredToolInterface } from '@langchain/core/tools';
+import type { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import {
+  PROJECT_GUIDELINES,
+  PROJECT_REVIEW_INSTRUCTIONS,
   USER_PROJECT_CONFIG_JS,
   USER_PROJECT_CONFIG_JSON,
   USER_PROJECT_CONFIG_MJS,
-  PROJECT_GUIDELINES,
-  PROJECT_REVIEW_INSTRUCTIONS,
 } from '#src/constants.js';
 
 export interface SlothConfig extends BaseSlothConfig {
@@ -22,7 +22,7 @@ export interface SlothConfig extends BaseSlothConfig {
   projectReviewInstructions: string;
   streamOutput: boolean;
   filesystem: string[] | 'all' | 'none';
-  tools?: StructuredToolInterface[];
+  tools?: StructuredToolInterface[] | BaseToolkit[];
 }
 
 /**

@@ -32,12 +32,13 @@
     "@langchain/groq": "^0.2.3",
     "@langchain/langgraph": "^0.3.1",
     "@langchain/mcp-adapters": "^0.5.2",
-    "@modelcontextprotocol/server-filesystem": "^2025.3.28",
     "chalk": "^5.4.1",
-    "commander": "^14.0.0"
+    "commander": "^14.0.0",
+    "minimatch": "^10.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
+    "@types/diff": "^7.0.2",
     "@types/node": "^24.0.2",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.34.0",

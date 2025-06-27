@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { createInteractiveSession, SessionConfig } from '../modules/interactiveSessionModule.js';
+import { createInteractiveSession, SessionConfig } from '#src/modules/interactiveSessionModule.js';
 import { readCodePrompt } from '#src/prompt.js';
 
 export function codeCommand(program: Command): void {

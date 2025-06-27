@@ -5,8 +5,7 @@ import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
-import { getCurrentDir } from '#src/systemUtils.js';
-import type { StructuredToolInterface } from '@langchain/core/tools';
+import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import { ProgressIndicator } from '#src/utils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { ToolCall } from '@langchain/core/messages/tool';
@@ -64,9 +63,22 @@ export class Invocation {
     // First get tools from config
     const configTools = effectiveConfig.tools || [];
 
+    // Flatten any toolkits into individual tools
+    const flattenedConfigTools: StructuredToolInterface[] = [];
+    for (const toolOrToolkit of configTools) {
+      // eslint-disable-next-line
+      if ((toolOrToolkit as any)['getTools'] instanceof Function) {
+        // This is a toolkit
+        flattenedConfigTools.push(...(toolOrToolkit as BaseToolkit).getTools());
+      } else {
+        // This is a regular tool
+        flattenedConfigTools.push(toolOrToolkit as StructuredToolInterface);
+      }
+    }
+
     // Then add tools from MCP server
     const mcpTools = (await this.mcpClient?.getTools()) ?? [];
-    const allTools = [...configTools, ...mcpTools];
+    const allTools = [...flattenedConfigTools, ...mcpTools];
 
     // Then filter them
     const tools = this.filterTools(allTools, effectiveConfig.filesystem || 'none');
@@ -134,7 +146,7 @@ export class Invocation {
     } catch (error) {
       if (error instanceof Error) {
         if (error?.name === 'ToolException') {
-          this.statusUpdate('error', `Tool execution failed: ${error.message}`);
+          this.statusUpdate('error', `Tool execution failed: ${error?.message}`);
         }
       }
       throw error;
@@ -154,34 +166,69 @@ export class Invocation {
     tools: StructuredToolInterface[],
     filesystemConfig: string[] | 'all' | 'none'
   ) {
-    if (filesystemConfig === 'all' || !Array.isArray(filesystemConfig)) {
+    if (filesystemConfig === 'all') {
       return tools;
     }
 
-    // Create set of allowed tool names with mcp__filesystem__ prefix
-    const allowedToolNames = new Set(
+    if (filesystemConfig === 'none') {
+      // Filter out all filesystem tools (both MCP and local)
+      return tools.filter(
+        (tool) => !tool.name.startsWith('mcp__filesystem__') && !this.isFilesystemTool(tool.name)
+      );
+    }
+
+    if (!Array.isArray(filesystemConfig)) {
+      return tools;
+    }
+
+    // Create set of allowed tool names with mcp__filesystem__ prefix and local filesystem tools
+    const allowedMcpToolNames = new Set(
       filesystemConfig.map((shortName) => `mcp__filesystem__${shortName}`)
     );
+    const allowedLocalToolNames = new Set(filesystemConfig);
 
     return tools.filter((tool) => {
-      // Allow non-filesystem tools and only allowed filesystem tools
-      return !tool.name.startsWith('mcp__filesystem__') || allowedToolNames.has(tool.name);
+      // Allow non-filesystem tools
+      if (!tool.name.startsWith('mcp__filesystem__') && !this.isFilesystemTool(tool.name)) {
+        return true;
+      }
+
+      // Allow only specifically allowed filesystem tools
+      return allowedMcpToolNames.has(tool.name) || allowedLocalToolNames.has(tool.name);
     });
+  }
+
+  private isFilesystemTool(toolName: string): boolean {
+    const filesystemToolNames = [
+      'read_file',
+      'read_multiple_files',
+      'write_file',
+      'edit_file',
+      'create_directory',
+      'list_directory',
+      'list_directory_with_sizes',
+      'directory_tree',
+      'move_file',
+      'search_files',
+      'get_file_info',
+      'list_allowed_directories',
+    ];
+    return filesystemToolNames.includes(toolName);
   }
 
   protected getMcpClient(config: SlothConfig) {
     const defaultServers: Record<string, Connection> = {};
 
-    // Add filesystem server if configured
-    if (config.filesystem && config.filesystem !== 'none') {
-      const filesystemConfig: Connection = {
-        transport: 'stdio' as const,
-        command: 'npx',
-        args: ['-y', '@modelcontextprotocol/server-filesystem', getCurrentDir()],
-      };
-
-      defaultServers.filesystem = filesystemConfig;
-    }
+    // // Add filesystem server if configured
+    // if (config.filesystem && config.filesystem !== 'none') {
+    //   const filesystemConfig: Connection = {
+    //     transport: 'stdio' as const,
+    //     command: 'npx',
+    //     args: ['-y', '@modelcontextprotocol/server-filesystem', getCurrentDir()],
+    //   };
+    //
+    //   defaultServers.filesystem = filesystemConfig;
+    // }
 
     // Merge with user's mcpServers
     const mcpServers = { ...defaultServers, ...(config.mcpServers || {}) };
