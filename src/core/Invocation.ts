@@ -8,7 +8,7 @@ import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
 import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { ToolCall } from '@langchain/core/messages/tool';
-import { StatusLevel } from '#src/core/types.js';
+import { GthCommand, StatusLevel } from '#src/core/types.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
@@ -30,7 +30,7 @@ export class Invocation {
   }
 
   async init(
-    command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined,
+    command: GthCommand | undefined,
     config: SlothConfig,
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void> {
@@ -70,10 +70,7 @@ export class Invocation {
     });
   }
 
-  getEffectiveConfig(
-    config: SlothConfig,
-    command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined
-  ): SlothConfig {
+  getEffectiveConfig(config: SlothConfig, command: GthCommand | undefined): SlothConfig {
     const supportsTools = !!config.llm.bindTools;
     if (!supportsTools) {
       this.statusUpdate('warning', 'Model does not seem to support tools.');
