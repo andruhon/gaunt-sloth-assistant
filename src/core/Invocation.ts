@@ -1,15 +1,15 @@
 import type { Message } from '#src/modules/types.js';
-import { AIMessage, isAIMessage } from '@langchain/core/messages';
 import { getDefaultTools, SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
-import { createReactAgent } from '@langchain/langgraph/prebuilt';
-import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
+import { BaseCheckpointSaver } from '@langchain/langgraph';
 import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
-import { ToolCall } from '@langchain/core/messages/tool';
 import { GthCommand, StatusLevel } from '#src/core/types.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
+import type { GenericAgent } from './AgentInterface.js';
+import { LangChainAgentWrapper } from './LangChainAgentWrapper.js';
+import { HuggingFaceAgentWrapper } from './HuggingFaceAgentWrapper.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -17,8 +17,7 @@ export class Invocation {
   private statusUpdate: StatusUpdateCallback;
   private verbose: boolean = false;
   private mcpClient: MultiServerMCPClient | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private agent: CompiledStateGraph<any, any> | null = null;
+  private agent: GenericAgent | null = null;
   private config: SlothConfig | null = null;
 
   constructor(statusUpdate: StatusUpdateCallback) {
@@ -62,19 +61,26 @@ export class Invocation {
       this.statusUpdate('info', `Loaded tools: ${toolNames}`);
     }
 
-    // Create the React agent
-    this.agent = createReactAgent({
-      llm: this.config.llm,
-      tools,
-      checkpointSaver,
-    });
+    // Create the appropriate agent based on configuration
+    const agentType = this.config.agentType || 'langchain';
+
+    if (agentType === 'huggingface') {
+      if (!this.config.huggingfaceConfig) {
+        throw new Error('HuggingFace configuration is required when agentType is "huggingface"');
+      }
+      this.agent = new HuggingFaceAgentWrapper(this.config.huggingfaceConfig);
+    } else {
+      this.agent = new LangChainAgentWrapper(this.config.llm, checkpointSaver);
+    }
+
+    await this.agent.init(tools);
   }
 
   getEffectiveConfig(config: SlothConfig, command: GthCommand | undefined): SlothConfig {
-    const supportsTools = !!config.llm.bindTools;
-    if (!supportsTools) {
-      this.statusUpdate('warning', 'Model does not seem to support tools.');
-    }
+    // const supportsTools = !!config.llm.bindTools;
+    // if (!supportsTools) {
+    //   this.statusUpdate('warning', 'Model does not seem to support tools.');
+    // }
     return {
       ...config,
       filesystem:
@@ -95,33 +101,31 @@ export class Invocation {
       if (this.config.streamOutput) {
         // Streaming output
         this.statusUpdate('info', '\nThinking...\n');
-        const stream = await this.agent.stream(
-          { messages },
-          { ...runConfig, streamMode: 'messages' }
-        );
 
-        for await (const [chunk, _metadata] of stream) {
-          if (isAIMessage(chunk)) {
-            this.statusUpdate('stream', chunk.text as string);
-            output.aiMessage += chunk.text;
-            const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
-            if (toolCalls && toolCalls.length > 0) {
-              this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
-            }
+        for await (const chunk of this.agent.stream(messages, runConfig)) {
+          if (chunk.type === 'text') {
+            this.statusUpdate('stream', chunk.content);
+            output.aiMessage += chunk.content;
+          } else if (chunk.type === 'tool_call' && chunk.toolCalls) {
+            const toolCallsForFormatting = chunk.toolCalls.map((tc) => ({
+              name: tc.name,
+              args: tc.parameters as Record<string, unknown> | undefined,
+            }));
+            this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCallsForFormatting)}`);
           }
         }
       } else {
         // Not streaming output
         const progress = new ProgressIndicator('Thinking.');
         try {
-          const response = await this.agent.invoke({ messages }, runConfig);
-          output.aiMessage = response.messages[response.messages.length - 1].content as string;
-          const toolCalls = response.messages
-            .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
-            .flatMap((msg: AIMessage) => msg.tool_calls ?? [])
-            .filter((tc: ToolCall) => tc.name);
-          if (toolCalls.length > 0) {
-            this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
+          const response = await this.agent.invoke(messages, runConfig);
+          output.aiMessage = response.content;
+          if (response.toolCalls && response.toolCalls.length > 0) {
+            const toolCallsForFormatting = response.toolCalls.map((tc) => ({
+              name: tc.name,
+              args: tc.parameters as Record<string, unknown> | undefined,
+            }));
+            this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCallsForFormatting)}`);
           }
         } catch (e) {
           this.statusUpdate('warning', `Something went wrong ${(e as Error).message}`);
@@ -147,7 +151,10 @@ export class Invocation {
       await this.mcpClient.close();
       this.mcpClient = null;
     }
-    this.agent = null;
+    if (this.agent) {
+      await this.agent.cleanup();
+      this.agent = null;
+    }
     this.config = null;
   }
 

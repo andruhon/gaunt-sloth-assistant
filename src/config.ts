@@ -25,6 +25,12 @@ export interface SlothConfig extends BaseSlothConfig {
   streamOutput: boolean;
   filesystem: string[] | 'all' | 'read' | 'none';
   tools?: StructuredToolInterface[] | BaseToolkit[];
+  agentType?: 'langchain' | 'huggingface';
+  huggingfaceConfig?: {
+    provider?: string;
+    model: string;
+    apiKey: string;
+  };
 }
 
 /**
@@ -45,6 +51,12 @@ interface BaseSlothConfig {
   projectReviewInstructions?: string;
   streamOutput?: boolean;
   filesystem?: string[] | 'all' | 'read' | 'none';
+  agentType?: 'langchain' | 'huggingface';
+  huggingfaceConfig?: {
+    provider?: string;
+    model: string;
+    apiKey: string;
+  };
   commands?: {
     pr?: {
       contentProvider?: string;
@@ -87,6 +99,7 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   streamOutput: true,
   filesystem: 'read',
+  agentType: 'langchain',
   commands: {
     pr: {
       contentProvider: 'github', // gh pr diff NN

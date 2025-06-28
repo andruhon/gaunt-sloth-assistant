@@ -109,6 +109,7 @@ describe('config', async () => {
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
         filesystem: 'read',
+        agentType: 'langchain',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -163,6 +164,7 @@ describe('config', async () => {
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
         filesystem: 'read',
+        agentType: 'langchain',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -217,6 +219,7 @@ describe('config', async () => {
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
         filesystem: 'read',
+        agentType: 'langchain',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -289,6 +292,7 @@ describe('config', async () => {
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
         filesystem: 'read',
+        agentType: 'langchain',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },

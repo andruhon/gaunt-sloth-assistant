@@ -26,6 +26,7 @@
     "gth": "index.js"
   },
   "dependencies": {
+    "@huggingface/tiny-agents": "^0.2.3",
     "@langchain/anthropic": "^0.3.22",
     "@langchain/core": "^0.3.58",
     "@langchain/google-vertexai": "^0.2.10",
