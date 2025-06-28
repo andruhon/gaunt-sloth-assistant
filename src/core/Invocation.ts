@@ -95,7 +95,26 @@ export class Invocation {
     // Run the agent
     try {
       const output = { aiMessage: '' };
-      if (!this.config.streamOutput) {
+      if (this.config.streamOutput) {
+        // Streaming output
+        this.statusUpdate('info', '\nThinking...\n');
+        const stream = await this.agent.stream(
+          { messages },
+          { ...runConfig, streamMode: 'messages' }
+        );
+
+        for await (const [chunk, _metadata] of stream) {
+          if (isAIMessage(chunk)) {
+            this.statusUpdate('stream', chunk.text as string);
+            output.aiMessage += chunk.text;
+            const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
+            if (toolCalls && toolCalls.length > 0) {
+              this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
+            }
+          }
+        }
+      } else {
+        // Not streaming output
         const progress = new ProgressIndicator('Thinking.');
         try {
           const response = await this.agent.invoke({ messages }, runConfig);
@@ -113,23 +132,6 @@ export class Invocation {
           progress.stop();
         }
         this.statusUpdate('display', output.aiMessage);
-      } else {
-        this.statusUpdate('info', '\nThinking...\n');
-        const stream = await this.agent.stream(
-          { messages },
-          { ...runConfig, streamMode: 'messages' }
-        );
-
-        for await (const [chunk, _metadata] of stream) {
-          if (isAIMessage(chunk)) {
-            this.statusUpdate('stream', chunk.text as string);
-            output.aiMessage += chunk.text;
-            const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
-            if (toolCalls && toolCalls.length > 0) {
-              this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
-            }
-          }
-        }
       }
 
       return output.aiMessage;
