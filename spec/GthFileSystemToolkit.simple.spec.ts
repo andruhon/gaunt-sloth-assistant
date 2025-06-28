@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import os from 'os';
+import path from 'node:path';
 
 // Simple mock that allows all operations
 const fsMock = {
@@ -131,7 +132,7 @@ describe('GthFileSystemToolkit - Basic Tests', () => {
     it('should expand home directory', () => {
       const expandHome = toolkit['expandHome'];
 
-      expect(expandHome('~/test')).toBe(os.homedir() + '/test');
+      expect(expandHome('~/test')).toBe(os.homedir() + path.sep + 'test');
       expect(expandHome('/absolute/path')).toBe('/absolute/path');
       expect(expandHome('relative/path')).toBe('relative/path');
     });

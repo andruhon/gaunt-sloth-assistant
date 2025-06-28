@@ -39,23 +39,14 @@ export class Invocation {
     }
 
     // Merge command-specific filesystem config if provided
-    let effectiveConfig = config;
-    if (command && config.commands?.[command]?.filesystem !== undefined) {
-      effectiveConfig = {
-        ...config,
-        filesystem: config.commands[command].filesystem!,
-      };
-    }
-
-    this.config = effectiveConfig;
-    this.mcpClient = this.getMcpClient(effectiveConfig);
+    this.config = this.getEffectiveConfig(config, command);
+    this.mcpClient = this.getMcpClient(this.config);
 
     // Get default filesystem tools (filtered based on config)
-    const defaultTools = getDefaultTools(effectiveConfig.filesystem || 'none');
+    const defaultTools = getDefaultTools(this.config.filesystem || 'none');
 
     // Get user config tools
-    const configTools = effectiveConfig.tools || [];
-    const flattenedConfigTools = this.extractAndFlattenTools(configTools);
+    const flattenedConfigTools = this.extractAndFlattenTools(this.config.tools || []);
 
     // Get MCP tools
     const mcpTools = (await this.mcpClient?.getTools()) ?? [];
@@ -73,10 +64,27 @@ export class Invocation {
 
     // Create the React agent
     this.agent = createReactAgent({
-      llm: config.llm,
+      llm: this.config.llm,
       tools,
       checkpointSaver,
     });
+  }
+
+  getEffectiveConfig(
+    config: SlothConfig,
+    command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined
+  ): SlothConfig {
+    const supportsTools = !!config.llm.bindTools;
+    if (!supportsTools) {
+      this.statusUpdate('warning', 'Model does not seem to support tools.');
+    }
+    return {
+      ...config,
+      filesystem:
+        command && config.commands?.[command]?.filesystem !== undefined
+          ? config.commands[command].filesystem!
+          : config.filesystem,
+    };
   }
 
   async invoke(messages: Message[], runConfig?: RunnableConfig): Promise<string> {

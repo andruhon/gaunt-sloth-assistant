@@ -1,7 +1,7 @@
 import { BaseToolkit, StructuredToolInterface, tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import fs from 'fs/promises';
-import path from 'path';
+import path from 'node:path';
 import os from 'os';
 import { createTwoFilesPatch } from 'diff';
 import { minimatch } from 'minimatch';
