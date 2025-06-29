@@ -41,18 +41,18 @@ To run the integration tests:
 
 3. Navigate to the project root directory and run:
    ```
-   npm run it-anthropic
+   npm run it anthropic
    ```
 
-Or `npm run it-vertexai` or `npm run it-groq`,
+Or `npm run it vertexai` or `npm run it groq`,
 please note if you are on free tier of Groq review and PR tests are likely to fail,
 because tokens limit has been hit.
 
    Or run a specific test file:
    ```
-   npm run it-anthropic askCommand.it.ts
-   npm run it-anthropic reviewCommand.it.ts
-   npm run it-anthropic prCommand.it.ts
+   npm run it anthropic askCommand.it.ts
+   npm run it anthropic reviewCommand.it.ts
+   npm run it anthropic prCommand.it.ts
    ```
 
 ## Notes
