@@ -20,8 +20,7 @@ export async function processJsonConfig(llmConfig: ChatGroqInput): Promise<BaseC
 const jsonContent = `{
   "llm": {
     "type": "groq",
-    "model": "deepseek-r1-distill-llama-70b",
-    "apiKey": "your-api-key-here"
+    "model": "deepseek-r1-distill-llama-70b"
   }
 }`;
 
@@ -35,8 +34,8 @@ export function init(configFileName: string): void {
   }
 
   writeFileIfNotExistsWithMessages(configFileName, jsonContent);
-  displayInfo(
-    `You can define GROQ_API_KEY environment variable with your Groq API key and it will work with default model.`
+  displayWarning(
+    `You need to edit your ${configFileName} to configure model, ` +
+      'or define GROQ_API_KEY environment variable.'
   );
-  displayWarning(`You need to edit your ${configFileName} to configure model.`);
 }

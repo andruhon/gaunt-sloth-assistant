@@ -8,8 +8,7 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 const jsonContent = `{
   "llm": {
     "type": "vertexai",
-    "model": "gemini-2.5-pro-preview-05-06",
-    "temperature": 0
+    "model": "gemini-2.5-pro"
   }
 }`;
 
@@ -33,6 +32,6 @@ export async function processJsonConfig(llmConfig: ChatVertexAIInput): Promise<B
   const vertexAi = await import('@langchain/google-vertexai');
   return new vertexAi.ChatVertexAI({
     ...llmConfig,
-    model: llmConfig.model || 'gemini-2.5-pro-preview-05-06',
+    model: llmConfig.model || 'gemini-2.5-pro',
   });
 }
