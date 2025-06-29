@@ -199,7 +199,7 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<SlothCo
       // Get the configuration for the specific LLM type
       const llmConfig = jsonConfig.llm;
       // Import the appropriate config module
-      const configModule = await import(`./configs/${llmType}.js`);
+      const configModule = await import(`./presets/${llmType}.js`);
       if (configModule.processJsonConfig) {
         const llm = (await configModule.processJsonConfig(llmConfig)) as BaseChatModel;
         return mergeRawConfig(jsonConfig, llm);
@@ -237,7 +237,7 @@ export async function createProjectConfig(configType: string): Promise<void> {
   displayWarning(`Make sure you add as much detail as possible to your ${PROJECT_GUIDELINES}.\n`);
 
   displayInfo(`Creating project config for ${configType}`);
-  const vendorConfig = await import(`./configs/${configType}.js`);
+  const vendorConfig = await import(`./presets/${configType}.js`);
   vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON));
 }
 

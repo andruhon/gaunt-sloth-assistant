@@ -83,7 +83,7 @@ describe('config', async () => {
       });
 
       // Mock the vertexai config module to process the config
-      vi.doMock('#src/configs/vertexai.js', () => ({
+      vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
       }));
 
@@ -264,7 +264,7 @@ describe('config', async () => {
         type: 'vertexai',
         model: 'test-model',
       };
-      vi.doMock('#src/configs/vertexai.js', () => ({
+      vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue(mockLlm),
       }));
 
@@ -305,7 +305,7 @@ describe('config', async () => {
       } as RawSlothConfig;
 
       // When importing a non-existent config module, it should throw
-      vi.doMock('#src/configs/unsupported.js', () => {
+      vi.doMock('#src/presets/unsupported.js', () => {
         throw new Error('Cannot find module');
       });
 
@@ -322,7 +322,7 @@ describe('config', async () => {
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Error processing LLM config: Unknown variable dynamic import: ./configs/unsupported.js'
+        'Error processing LLM config: Unknown variable dynamic import: ./presets/unsupported.js'
       );
       expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
       expect(consoleUtilsMock.display).not.toHaveBeenCalled();
@@ -341,7 +341,7 @@ describe('config', async () => {
       } as RawSlothConfig;
 
       // When importing a non-existent config module, it should throw
-      vi.doMock('#src/configs/test.js', () => {
+      vi.doMock('#src/presets/test.js', () => {
         throw new Error('Cannot find module');
       });
 
@@ -358,7 +358,7 @@ describe('config', async () => {
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Error processing LLM config: Unknown variable dynamic import: ./configs/test.js'
+        'Error processing LLM config: Unknown variable dynamic import: ./presets/test.js'
       );
       expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
       expect(consoleUtilsMock.display).not.toHaveBeenCalled();
@@ -378,7 +378,7 @@ describe('config', async () => {
       } as RawSlothConfig;
 
       // Mock a config module without processJsonConfig
-      vi.doMock('#src/configs/badconfig.js', () => ({
+      vi.doMock('#src/presets/badconfig.js', () => ({
         // No processJsonConfig function
       }));
 
@@ -393,7 +393,7 @@ describe('config', async () => {
       }
 
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Error processing LLM config: Unknown variable dynamic import: ./configs/badconfig.js'
+        'Error processing LLM config: Unknown variable dynamic import: ./presets/badconfig.js'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
@@ -450,7 +450,7 @@ describe('config', async () => {
       const mockInit = vi.fn();
 
       // Mock the vertexai config module
-      vi.doMock('#src/configs/vertexai.js', () => ({
+      vi.doMock('#src/presets/vertexai.js', () => ({
         init: mockInit,
       }));
 
@@ -513,7 +513,7 @@ describe('config', async () => {
       const mockInit = vi.fn();
 
       // Mock the anthropic config module
-      vi.doMock('#src/configs/anthropic.js', () => ({
+      vi.doMock('#src/presets/anthropic.js', () => ({
         init: mockInit,
       }));
 
@@ -537,7 +537,7 @@ describe('config', async () => {
       const mockInit = vi.fn();
 
       // Mock the groq config module
-      vi.doMock('#src/configs/groq.js', () => ({
+      vi.doMock('#src/presets/groq.js', () => ({
         init: mockInit,
       }));
 
