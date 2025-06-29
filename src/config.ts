@@ -76,7 +76,7 @@ export interface LLMConfig extends Record<string, unknown> {
   model: string;
 }
 
-export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'] as const;
+export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq', 'deepseek'] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
 export const DEFAULT_CONFIG: Partial<SlothConfig> = {

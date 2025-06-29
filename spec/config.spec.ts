@@ -503,7 +503,7 @@ describe('config', async () => {
       }
 
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq'
+        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq, deepseek'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });

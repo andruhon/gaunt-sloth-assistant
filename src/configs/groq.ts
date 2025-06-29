@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { displayInfo, displayWarning } from '#src/consoleUtils.js';
+import { displayWarning } from '#src/consoleUtils.js';
 import { env, getCurrentDir } from '#src/systemUtils.js';
 import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
