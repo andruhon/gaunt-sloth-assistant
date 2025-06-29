@@ -42,7 +42,7 @@ It is always worth checking sourcecode in [config.ts](../src/config.ts) for more
 | Parameter                                | Required                          | Default Value | Description                                                                                                                                                                                                                                               |
 |------------------------------------------|-----------------------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `llm`                                    | Required                          | -             | An object configuring LLM. In JS config could be actual instance of LangChainJS [BaseChatModel](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html), allowing to use LLMs which do not have a preset. |
-| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq` and `vertexai`. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
+| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq`, `vertexai` and `deepseek`. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
 | `llm.model`                              | Optional                          | -             | Particular LLM model string (Check in your provider documentation).                                                                                                                                                                                       |
 | `llm.apiKey`                             | Optional                          | -             | API key for the LLM provider. You can either use this parameter or use environment variable.                                                                                                                                                              |
 | `contentProvider`                        | Optional                          | `file`        | Default content provider used to get content for review. Options available are `github`, `file` and `text` (`text` provides text as it is).                                                                                                               |
@@ -83,7 +83,7 @@ It is always worth checking sourcecode in [config.ts](../src/config.ts) for more
 
 ## Config initialization
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, vertexai, anthropic and groq can be configured with `gsloth init [vendor]`.
+Currently, vertexai, anthropic, groq and deepseek can be configured with `gsloth init [vendor]`.
 
 ### Google Vertex AI
 ```shell
@@ -106,6 +106,14 @@ cd ./your-project
 gsloth init groq
 ```
 Make sure you either define `GROQ_API_KEY` environment variable or edit your configuration file and set up your key.
+
+### DeepSeek
+```shell
+cd ./your-project
+gsloth init deepseek
+```
+Make sure you either define `DEEPSEEK_API_KEY` environment variable or edit your configuration file and set up your key.
+(note this meant to be an API key from deepseek.com, rather than from a distributor like TogetherAI)
 
 ## Examples of configuration for different providers 
 
@@ -141,6 +149,17 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
   "llm": {
     "type": "groq",
     "model": "deepseek-r1-distill-llama-70b",
+    "apiKey": "your-api-key-here"
+  }
+}
+```
+
+**Example of .gsloth.config.json for DeepSeek**
+```json
+{
+  "llm": {
+    "type": "deepseek",
+    "model": "deepseek-reasoner",
     "apiKey": "your-api-key-here"
   }
 }
@@ -201,7 +220,6 @@ export async function configure() {
         llm: new vertexAi.ChatVertexAI({
             model: "gemini-2.5-pro-preview-05-06", // Consider checking for latest recommended model versions
             // API Key from AI Studio should also work
-            temperature: 0,
             //// Other parameters might be relevant depending on Vertex AI API updates.
             //// The project is not in the interface, but it is in documentation and it seems to work.
             // project: 'your-cool-google-cloud-project',
@@ -218,6 +236,19 @@ export async function configure() {
         llm: new groq.ChatGroq({
             model: "deepseek-r1-distill-llama-70b", // Check other models available
             apiKey: process.env.GROQ_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
+        })
+    };
+}
+```
+
+**Example of .gsloth.config.js for DeepSeek**
+```javascript
+export async function configure() {
+    const deepseek = await import('@langchain/deepseek');
+    return {
+        llm: new deepseek.ChatDeepSeek({
+            model: 'deepseek-reasoner',
+            apiKey: process.env.DEEPSEEK_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
         })
     };
 }
