@@ -28,3 +28,6 @@ jobs:
     
     - name: Run Integration tests with Groq
       run: npm run it groq
+      with:
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}6
