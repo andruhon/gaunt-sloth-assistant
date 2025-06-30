@@ -1,7 +1,7 @@
 {
   "llm": {
     "type": "anthropic",
-    "model": "claude-sonnet-4-20250514",
+    "model": "claude-3-5-haiku-latest",
     "temperature": 0
   }
 }
