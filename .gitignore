@@ -1,6 +1,12 @@
 /node_modules/
-/sloth-DIFF-review*
-/sloth-PR-review*
-/sloth-ASK*
+/dist/
+/req/
+/gth_*
+/integration-tests/gth_*
+/integration-tests/.gsloth.config.json
+.junie
 .idea
-.gsloth.config.js
+.claude
+CLAUDE.md
+gaunt-sloth-assistant.iml
+/.gsloth.config*

@@ -1,0 +1,10 @@
+spec/
+integration-tests/
+.gsloth.config.*
+.idea/
+.github/
+.junie/
+.claude/
+CLAUDE.md
+/gth_*
+/req

@@ -1,0 +1,118 @@
+import { Command, Option } from 'commander';
+import {
+  readBackstory,
+  readGuidelines,
+  readReviewInstructions,
+  readSystemPrompt,
+} from '#src/prompt.js';
+import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
+import {
+  CONTENT_PROVIDERS,
+  type ContentProviderType,
+  getRequirementsFromProvider,
+  REQUIREMENTS_PROVIDERS,
+  type RequirementsProviderType,
+} from './commandUtils.js';
+import jiraLogWork from '#src/helpers/jira/jiraLogWork.js';
+import { JiraConfig } from '#src/providers/types.js';
+
+interface PrCommandOptions {
+  file?: string[];
+  requirementsProvider?: RequirementsProviderType;
+  message?: string;
+}
+
+export function prCommand(program: Command): void {
+  program
+    .command('pr')
+    .description(
+      'Review provided Pull Request in current directory. ' +
+        'This command is similar to `review`, but default content provider is `github`. ' +
+        '(assuming that GitHub CLI is installed and authenticated for current project'
+    )
+    .argument('<prId>', 'Pull request ID to review.')
+    .argument(
+      '[requirementsId]',
+      'Optional requirements ID argument to retrieve requirements with requirements provider'
+    )
+    .addOption(
+      new Option(
+        '-p, --requirements-provider <requirementsProvider>',
+        'Requirements provider for this review.'
+      ).choices(Object.keys(REQUIREMENTS_PROVIDERS))
+    )
+    .option(
+      '-f, --file [files...]',
+      'Input files. Content of these files will be added BEFORE the diff, but after requirements'
+    )
+    .option('-m, --message <message>', 'Extra message to provide just before the content')
+    .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
+      const { initConfig } = await import('#src/config.js');
+      const config = await initConfig(); // Initialize and get config
+
+      const systemPrompt = readSystemPrompt();
+      const systemMessage = [
+        readBackstory(),
+        readGuidelines(config.projectGuidelines),
+        readReviewInstructions(config.projectReviewInstructions),
+      ];
+      if (systemPrompt) {
+        systemMessage.push(systemPrompt);
+      }
+      const content: string[] = [];
+      const requirementsProvider =
+        options.requirementsProvider ??
+        (config?.commands?.pr?.requirementsProvider as RequirementsProviderType | undefined) ??
+        (config?.requirementsProvider as RequirementsProviderType | undefined);
+
+      const contentProvider =
+        (config?.commands?.pr?.contentProvider as ContentProviderType | undefined) ??
+        (config?.contentProvider as ContentProviderType | undefined) ??
+        'github';
+
+      // Handle requirements
+      const requirements = await getRequirementsFromProvider(
+        requirementsProvider,
+        requirementsId,
+        config
+      );
+      if (requirements) {
+        content.push(requirements);
+      }
+
+      if (options.file) {
+        content.push(readMultipleFilesFromCurrentDir(options.file));
+      }
+
+      // Get PR diff using the provider
+      const providerPath = `#src/providers/${CONTENT_PROVIDERS[contentProvider]}`;
+      const { get } = await import(providerPath);
+      content.push(await get(null, prId));
+
+      if (options.message) {
+        content.push(options.message);
+      }
+
+      const { review } = await import('#src/modules/reviewModule.js');
+      // TODO consider including requirements id
+      // TODO sanitize prId
+      await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'), config, 'pr');
+
+      if (
+        requirementsId &&
+        (config.commands?.pr?.requirementsProvider ?? config.requirementsProvider) === 'jira' &&
+        config.commands?.pr?.logWorkForReviewInSeconds
+      ) {
+        // TODO we need to figure out some sort of post-processors
+        let jiraConfig =
+          config.prebuiltToolsConfig?.jira ||
+          (config.requirementsProviderConfig?.jira as JiraConfig);
+        await jiraLogWork(
+          jiraConfig,
+          requirementsId,
+          config.commands?.pr?.logWorkForReviewInSeconds,
+          'code review'
+        );
+      }
+    });
+}
