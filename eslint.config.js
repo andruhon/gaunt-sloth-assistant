@@ -13,7 +13,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Global ignores applied to all configurations
-const globalIgnores = ['**/node_modules/**', '**/dist/**', 'coverage/**', '.git/**'];
+const globalIgnores = [
+  '**/node_modules/**',
+  '**/dist/**',
+  '**/test-data/**',
+  'coverage/**',
+  '.git/**',
+];
 
 export default defineConfig([
   // Ignore files config - applies first
