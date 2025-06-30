@@ -1,4 +1,4 @@
-name: Tests and Lint
+name: Integration tests (Groq)
 
 on:
   push:
