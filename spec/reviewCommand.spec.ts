@@ -231,4 +231,63 @@ describe('reviewCommand', () => {
       })
     );
   });
+
+  it('Should call review with message parameter', async () => {
+    const { reviewCommand } = await import('#src/commands/reviewCommand.js');
+    const program = new Command();
+
+    reviewCommand(program);
+    await program.parseAsync([
+      'na',
+      'na',
+      'review',
+      '-f',
+      'test.file',
+      '-m',
+      'Please check for memory leaks',
+    ]);
+
+    expect(review).toHaveBeenCalledWith(
+      'REVIEW',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
+      'test.file:\n```\nFILE TO REVIEW\n```\nPlease check for memory leaks',
+      expect.objectContaining({
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+      })
+    );
+  });
+
+  it('Should call review with message and content provider', async () => {
+    // Setup specific config for this test
+    const testConfig = {
+      ...mockConfig,
+      contentProvider: 'github',
+      streamOutput: false,
+    };
+    configMock.initConfig.mockResolvedValue(testConfig);
+
+    const { reviewCommand } = await import('#src/commands/reviewCommand.js');
+    const program = new Command();
+
+    // Mock the gh provider
+    const ghProvider = vi.fn().mockResolvedValue('PR Diff Content');
+    vi.doMock('#src/providers/ghPrDiffProvider.js', () => ({
+      get: ghProvider,
+    }));
+
+    reviewCommand(program);
+    await program.parseAsync(['na', 'na', 'review', '123', '-m', 'Focus on code style']);
+
+    expect(review).toHaveBeenCalledWith(
+      'REVIEW',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
+      'PR Diff Content\nFocus on code style',
+      expect.objectContaining({
+        contentProvider: 'github',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+      })
+    );
+  });
 });

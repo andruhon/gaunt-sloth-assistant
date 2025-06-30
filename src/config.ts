@@ -13,8 +13,7 @@ import {
   USER_PROJECT_CONFIG_JSON,
   USER_PROJECT_CONFIG_MJS,
 } from '#src/constants.js';
-import { getCurrentDir } from '#src/systemUtils.js';
-import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
+import { JiraConfig } from '#src/providers/types.js';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -24,6 +23,7 @@ export interface SlothConfig extends BaseSlothConfig {
   projectReviewInstructions: string;
   streamOutput: boolean;
   filesystem: string[] | 'all' | 'read' | 'none';
+  builtInTools?: string[];
   tools?: StructuredToolInterface[] | BaseToolkit[];
 }
 
@@ -45,31 +45,45 @@ interface BaseSlothConfig {
   projectReviewInstructions?: string;
   streamOutput?: boolean;
   filesystem?: string[] | 'all' | 'read' | 'none';
+  prebuiltToolsConfig?: PreBuiltToolsConfig;
+  customToolsConfig?: CustomToolsConfig;
+  requirementsProviderConfig?: Record<string, unknown>;
+  contentProviderConfig?: Record<string, unknown>;
+  mcpServers?: Record<string, Connection>;
+  builtInTools?: string[];
   commands?: {
     pr?: {
       contentProvider?: string;
       requirementsProvider?: string;
       filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
+      logWorkForReviewInSeconds?: number;
     };
     review?: {
       requirementsProvider?: string;
       contentProvider?: string;
       filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
     };
     ask?: {
       filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
     };
     chat?: {
       filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
     };
     code?: {
       filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
     };
   };
-  requirementsProviderConfig?: Record<string, unknown>;
-  contentProviderConfig?: Record<string, unknown>;
-  mcpServers?: Record<string, Connection>;
 }
+
+export type CustomToolsConfig = Record<string, object>;
+export type PreBuiltToolsConfig = {
+  jira: JiraConfig;
+};
 
 export interface LLMConfig extends Record<string, unknown> {
   type: string;
@@ -118,6 +132,7 @@ export async function initConfig(): Promise<SlothConfig> {
         exit(1);
         // noinspection ExceptionCaughtLocallyJS
         // This throw is unreachable due to exit(1) above, but satisfies TS type analysis and prevents tests from exiting
+        // noinspection ExceptionCaughtLocallyJS
         throw new Error('Unexpected error occurred.');
       }
     } catch (e) {
@@ -302,61 +317,4 @@ function mergeConfig(partialConfig: Partial<SlothConfig>): SlothConfig {
  */
 function mergeRawConfig(config: RawSlothConfig, llm: BaseChatModel): SlothConfig {
   return mergeConfig({ ...config, llm });
-}
-
-/**
- * Filter filesystem tools based on configuration
- */
-function filterFilesystemTools(
-  toolkit: GthFileSystemToolkit,
-  filesystemConfig: string[] | 'all' | 'read' | 'none'
-): StructuredToolInterface[] {
-  if (filesystemConfig === 'all') {
-    return toolkit.getTools();
-  }
-
-  if (filesystemConfig === 'none') {
-    return [];
-  }
-
-  if (filesystemConfig === 'read') {
-    // Read-only: only allow read operations
-    return toolkit.getFilteredTools(['read']);
-  }
-
-  if (!Array.isArray(filesystemConfig)) {
-    return toolkit.getTools();
-  }
-
-  if (filesystemConfig.includes('all')) {
-    return toolkit.getTools();
-  }
-
-  // Handle an array of specific tool names or 'read'/'all'
-  const allowedTools: StructuredToolInterface[] = filesystemConfig.includes('read')
-    ? toolkit.getFilteredTools(['read'])
-    : [];
-
-  // Also allow specific tool names
-  const allowedToolNames = new Set(
-    filesystemConfig.filter((name) => name !== 'read' && name !== 'all')
-  );
-  const specificNamedTools = toolkit.getTools().filter((tool) => {
-    return tool.name && allowedToolNames.has(tool.name);
-  });
-
-  // Combine and deduplicate
-  const allAllowedTools = [...allowedTools, ...specificNamedTools];
-  return allAllowedTools.filter(
-    (tool, index, arr) => arr.findIndex((t) => t.name === tool.name) === index
-  );
-}
-
-/**
- * Get default tools based on filesystem configuration
- */
-export function getDefaultTools(
-  filesystemConfig: string[] | 'all' | 'read' | 'none' = 'none'
-): StructuredToolInterface[] {
-  return [...filterFilesystemTools(new GthFileSystemToolkit([getCurrentDir()]), filesystemConfig)];
 }

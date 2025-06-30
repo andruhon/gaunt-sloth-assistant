@@ -72,7 +72,7 @@ describe('Invocation', () => {
     gthFileSystemToolkitMock.getTools.mockReturnValue([]);
 
     // Setup config mocks
-    configMock.getDefaultTools.mockReturnValue([]);
+    configMock.getDefaultTools.mockResolvedValue([]);
 
     statusUpdateCallback = vi.fn();
 
@@ -190,7 +190,7 @@ describe('Invocation', () => {
           { name: 'custom_tool_2' } as StructuredToolInterface,
         ],
       };
-      const mockTool = { name: 'status_update' } as StructuredToolInterface;
+      const mockTool = { name: 'gth_status_update' } as StructuredToolInterface;
 
       const configWithTools = {
         ...mockConfig,

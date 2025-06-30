@@ -1,6 +1,6 @@
 import type { Message } from '#src/modules/types.js';
 import { AIMessage, isAIMessage } from '@langchain/core/messages';
-import { getDefaultTools, SlothConfig } from '#src/config.js';
+import { SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
@@ -10,6 +10,7 @@ import { type RunnableConfig } from '@langchain/core/runnables';
 import { ToolCall } from '@langchain/core/messages/tool';
 import { GthCommand, StatusLevel } from '#src/core/types.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
+import { getDefaultTools } from '#src/builtInToolsConfig.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -43,7 +44,7 @@ export class Invocation {
     this.mcpClient = this.getMcpClient(this.config);
 
     // Get default filesystem tools (filtered based on config)
-    const defaultTools = getDefaultTools(this.config.filesystem || 'none');
+    const defaultTools = await getDefaultTools(config);
 
     // Get user config tools
     const flattenedConfigTools = this.extractAndFlattenTools(this.config.tools || []);
@@ -81,6 +82,10 @@ export class Invocation {
         command && config.commands?.[command]?.filesystem !== undefined
           ? config.commands[command].filesystem!
           : config.filesystem,
+      builtInTools:
+        command && config.commands?.[command]?.builtInTools !== undefined
+          ? config.commands[command].builtInTools!
+          : config.builtInTools,
     };
   }
 

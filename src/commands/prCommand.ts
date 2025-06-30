@@ -7,16 +7,19 @@ import {
 } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import {
-  REQUIREMENTS_PROVIDERS,
   CONTENT_PROVIDERS,
-  type RequirementsProviderType,
-  getRequirementsFromProvider,
   type ContentProviderType,
+  getRequirementsFromProvider,
+  REQUIREMENTS_PROVIDERS,
+  type RequirementsProviderType,
 } from './commandUtils.js';
+import jiraLogWork from '#src/helpers/jira/jiraLogWork.js';
+import { JiraConfig } from '#src/providers/types.js';
 
 interface PrCommandOptions {
   file?: string[];
   requirementsProvider?: RequirementsProviderType;
+  message?: string;
 }
 
 export function prCommand(program: Command): void {
@@ -42,6 +45,7 @@ export function prCommand(program: Command): void {
       '-f, --file [files...]',
       'Input files. Content of these files will be added BEFORE the diff, but after requirements'
     )
+    .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
       const config = await initConfig(); // Initialize and get config
@@ -85,9 +89,30 @@ export function prCommand(program: Command): void {
       const { get } = await import(providerPath);
       content.push(await get(null, prId));
 
+      if (options.message) {
+        content.push(options.message);
+      }
+
       const { review } = await import('#src/modules/reviewModule.js');
       // TODO consider including requirements id
       // TODO sanitize prId
       await review(`PR-${prId}`, systemMessage.join('\n'), content.join('\n'), config, 'pr');
+
+      if (
+        requirementsId &&
+        (config.commands?.pr?.requirementsProvider ?? config.requirementsProvider) === 'jira' &&
+        config.commands?.pr?.logWorkForReviewInSeconds
+      ) {
+        // TODO we need to figure out some sort of post-processors
+        let jiraConfig =
+          config.prebuiltToolsConfig?.jira ||
+          (config.requirementsProviderConfig?.jira as JiraConfig);
+        await jiraLogWork(
+          jiraConfig,
+          requirementsId,
+          config.commands?.pr?.logWorkForReviewInSeconds,
+          'code review'
+        );
+      }
     });
 }
