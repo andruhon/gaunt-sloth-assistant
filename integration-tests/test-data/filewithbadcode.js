@@ -1,4 +1,5 @@
 /* eslint-disable */
+console.log('fufu factorial');
 function factorial(n) {
   if (n == 0) {
     return 1;
@@ -18,6 +19,10 @@ function isPrime(num) {
 
   return true;
 }
+
+console.log('trololo');
+
+zob
 
 var secretKey = '1234567890';
 
