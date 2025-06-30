@@ -1,7 +1,6 @@
 {
   "llm": {
     "type": "groq",
-    "model": "deepseek-r1-distill-llama-70b",
-    "temperature": 0
+    "model": "deepseek-r1-distill-llama-70b"
   }
 }
