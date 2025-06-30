@@ -1,5 +1,5 @@
 # Gaunt Sloth Assistant
-[![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml)
+[![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml) [![Integration Tests (Groq)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/it.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/it.yml)
 
 Gaunt GSloth Assistant is a lightweight **command line AI assistant**
 built with TypeScript (JavaScript) and distributed via NPM with minimum dependencies.
