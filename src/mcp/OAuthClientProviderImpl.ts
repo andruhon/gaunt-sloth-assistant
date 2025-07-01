@@ -18,9 +18,12 @@ interface OAuthClientProviderConfig {
 }
 
 export class OAuthClientProviderImpl implements OAuthClientProvider {
+  // TODO refactor all storage things to be stored on FS in home user dir
   private tokensStorage?: string;
   private codeVerifierStorage?: string;
+  // TODO save this one as json
   private clientInformationStorage?: OAuthClientInformationFull;
+
   private config: OAuthClientProviderConfig;
   private innerState: string;
 
@@ -64,13 +67,12 @@ export class OAuthClientProviderImpl implements OAuthClientProvider {
     return Promise.resolve(this.clientInformationStorage);
   }
 
-  // TODO save storage in real place
-  tokens(): OAuthTokens | undefined {
-    return this.tokensStorage ? JSON.parse(this.tokensStorage) : undefined;
-  }
-
   async saveTokens(tokens: OAuthTokens): Promise<void> {
     this.tokensStorage = JSON.stringify(tokens);
+  }
+
+  tokens(): OAuthTokens | undefined {
+    return this.tokensStorage ? JSON.parse(this.tokensStorage) : undefined;
   }
 
   saveCodeVerifier(codeVerifier: string): Promise<void> {
@@ -88,7 +90,7 @@ export class OAuthClientProviderImpl implements OAuthClientProvider {
   async redirectToAuthorization(authUrl: URL): Promise<void> {
     console.log('Auth url: ', authUrl.toString());
     try {
-      // TODO need to cleanup url in the case it has bad stuff
+      // TODO need to sanitize the url in the case it has bad stuff
       console.log('Trying to open browser');
       if (platform().includes('win')) {
         execSync('start "" "' + authUrl.toString() + '"');

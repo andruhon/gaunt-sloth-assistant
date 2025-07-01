@@ -199,6 +199,9 @@ export class Invocation {
           ...server,
           authProvider,
         };
+      } else {
+        // Add non-OAuth servers as-is
+        mcpServers[serverName] = server;
       }
     }
 

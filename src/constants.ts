@@ -1,3 +1,6 @@
+export const GSLOTH_DIR = '.gsloth';
+export const GSLOTH_SETTINGS_DIR = '.gsloth-settings';
+export const GSLOTH_AUTH = '.gsloth-auth';
 export const USER_PROJECT_CONFIG_JS = '.gsloth.config.js';
 export const USER_PROJECT_CONFIG_JSON = '.gsloth.config.json';
 export const USER_PROJECT_CONFIG_MJS = '.gsloth.config.mjs';
