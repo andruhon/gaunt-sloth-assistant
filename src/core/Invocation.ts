@@ -2,7 +2,7 @@ import type { Message } from '#src/modules/types.js';
 import { AIMessage, isAIMessage } from '@langchain/core/messages';
 import { SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
-import { MultiServerMCPClient } from '@langchain/mcp-adapters';
+import { MultiServerMCPClient, StreamableHTTPConnection } from '@langchain/mcp-adapters';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
 import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
@@ -11,6 +11,8 @@ import { ToolCall } from '@langchain/core/messages/tool';
 import { GthCommand, StatusLevel } from '#src/core/types.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import { getDefaultTools } from '#src/builtInToolsConfig.js';
+import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
+import { displayInfo } from '#src/consoleUtils.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -41,7 +43,7 @@ export class Invocation {
 
     // Merge command-specific filesystem config if provided
     this.config = this.getEffectiveConfig(config, command);
-    this.mcpClient = this.getMcpClient(this.config);
+    this.mcpClient = await this.getMcpClient(this.config);
 
     // Get default filesystem tools (filtered based on config)
     const defaultTools = await getDefaultTools(config);
@@ -180,15 +182,27 @@ export class Invocation {
     return {};
   }
 
-  protected getMcpClient(config: SlothConfig) {
+  protected async getMcpClient(config: SlothConfig) {
     const defaultServers = this.getDefaultMcpServers();
 
     // Merge with user's mcpServers
-    const mcpServers = { ...defaultServers, ...(config.mcpServers || {}) };
+    const rawMcpServers = { ...defaultServers, ...(config.mcpServers || {}) };
 
-    // If user provided their own filesystem config, it overrides default
-    if (config.mcpServers?.filesystem) {
-      mcpServers.filesystem = config.mcpServers.filesystem;
+    const mcpServers = {} as Record<string, StreamableHTTPConnection>;
+    for (const serverName of Object.keys(rawMcpServers)) {
+      const server = rawMcpServers[serverName] as StreamableHTTPConnection;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (server.url && server && (server.authProvider as any) === 'OAuth') {
+        displayInfo(`Starting OAuth for for ${server.url}`);
+        const authProvider = await createAuthProviderAndAuthenticate(server);
+        mcpServers[serverName] = {
+          ...server,
+          authProvider,
+        };
+      } else {
+        // Add non-OAuth servers as-is
+        mcpServers[serverName] = server;
+      }
     }
 
     if (Object.keys(mcpServers).length > 0) {
@@ -196,7 +210,7 @@ export class Invocation {
         throwOnLoadError: true,
         prefixToolNameWithServerName: true,
         additionalToolNamePrefix: 'mcp',
-        mcpServers,
+        mcpServers: mcpServers,
       });
     } else {
       return null;

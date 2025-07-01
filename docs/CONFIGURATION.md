@@ -261,8 +261,43 @@ See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/
 
 ## Model Context Protocol (MCP)
 
-Gaunt Sloth Assistant supports the Model Context Protocol (MCP), which provides enhanced context management. 
-The `@modelcontextprotocol/server-filesystem` package is included as a dependency, allowing you to easily configure file system access for your LLM.
+Gaunt Sloth Assistant supports the Model Context Protocol (MCP), which provides enhanced context management. You can connect to various MCP servers, including those requiring OAuth authentication.
+
+### OAuth-enabled MCP Servers
+
+Gaunt Sloth now supports OAuth authentication for MCP servers. This has been tested with the Atlassian Jira MCP server.
+
+#### Example: Atlassian Jira MCP Server
+
+To connect to the Atlassian Jira MCP server using OAuth, add the following to your `.gsloth.config.json`:
+
+```json
+{
+  "llm": {
+    "type": "vertexai",
+    "model": "gemini-2.5-pro",
+    "temperature": 0
+  },
+  "mcpServers": {
+    "jira": {
+      "url": "https://mcp.atlassian.com/v1/sse",
+      "authProvider": "OAuth",
+      "transport": "sse"
+    }
+  }
+}
+```
+
+**OAuth Authentication Flow:**
+1. When you first use a command that requires the MCP server, your browser will open automatically
+2. Complete the OAuth authentication in your browser
+3. The authentication tokens are stored securely in `~/.gsloth/.gsloth-auth/`
+4. Future sessions will use the stored tokens automatically
+
+**Token Storage:**
+- OAuth tokens are stored in JSON files under `~/.gsloth/.gsloth-auth/`
+- Each server's tokens are stored in a separate file named after the server URL
+- The storage location is cross-platform (Windows, macOS, Linux)
 
 ### MCP Filesystem Server Configuration
 

@@ -151,6 +151,13 @@ It is recommended to obtain API key from DeepSeek official website rather than f
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md). 
 
+## MCP (Model Context Protocol) Servers
+
+Gaunt Sloth supports connecting to MCP servers, including those requiring OAuth authentication.
+
+This has been tested with the Atlassian Jira MCP server.  
+See the [MCP configuration section](./docs/CONFIGURATION.md#model-context-protocol-mcp) for detailed setup instructions.
+
 ## Contributing
 Contributors are needed! Feel free to create a PR.
 If you are not sure where to start, look for issues with a "good first issue" label.

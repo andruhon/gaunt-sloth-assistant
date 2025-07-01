@@ -514,7 +514,7 @@ describe('Invocation', () => {
         mcpServers: undefined,
       } as SlothConfig;
 
-      const _result = invocation['getMcpClient'](config);
+      const _result = await invocation['getMcpClient'](config);
 
       expect(_result).toBeNull();
     });
@@ -533,7 +533,7 @@ describe('Invocation', () => {
         },
       };
 
-      const result = invocation['getMcpClient'](config);
+      const result = await invocation['getMcpClient'](config);
 
       expect(multiServerMCPClientMock).toHaveBeenCalledWith({
         throwOnLoadError: true,
@@ -564,7 +564,7 @@ describe('Invocation', () => {
         },
       };
 
-      invocation['getMcpClient'](config);
+      await invocation['getMcpClient'](config);
 
       expect(multiServerMCPClientMock).toHaveBeenCalledWith({
         throwOnLoadError: true,
@@ -594,7 +594,7 @@ describe('Invocation', () => {
         },
       };
 
-      invocation['getMcpClient'](config);
+      await invocation['getMcpClient'](config);
 
       expect(multiServerMCPClientMock).toHaveBeenCalledWith({
         throwOnLoadError: true,
