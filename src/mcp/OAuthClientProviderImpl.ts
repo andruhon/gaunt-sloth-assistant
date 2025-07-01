@@ -12,38 +12,72 @@ import { execSync } from 'node:child_process';
 import { AddressInfo } from 'net';
 import { displayInfo } from '#src/consoleUtils.js';
 import { StreamableHTTPConnection } from '@langchain/mcp-adapters';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { getOAuthStoragePath } from '#src/globalConfigUtils.js';
+import http from 'http';
 
 interface OAuthClientProviderConfig {
   redirectUrl: string;
+  serverUrl: string;
 }
 
-export class OAuthClientProviderImpl implements OAuthClientProvider {
-  // TODO refactor all storage things to be stored on FS in home user dir
-  private tokensStorage?: string;
-  private codeVerifierStorage?: string;
-  // TODO save this one as json
-  private clientInformationStorage?: OAuthClientInformationFull;
+interface OAuthStorageData {
+  tokens?: OAuthTokens;
+  codeVerifier?: string;
+  clientInformation?: OAuthClientInformationFull;
+}
 
+/**
+ * Please note most of these "unused" methods are part of {@link OAuthClientProvider}
+ */
+export class OAuthClientProviderImpl implements OAuthClientProvider {
   private config: OAuthClientProviderConfig;
   private innerState: string;
+  private storagePath: string;
 
   constructor(config: OAuthClientProviderConfig) {
     this.config = config as OAuthClientProviderConfig;
     this.innerState = crypto.randomUUID();
     if (!this.config.redirectUrl) {
-      new Error('No redirect URL provided');
+      throw new Error('No redirect URL provided');
     }
-    displayInfo(`Using redirect URL: ${this.config.redirectUrl}`);
+    if (!this.config.serverUrl) {
+      throw new Error('No server URL provided');
+    }
+    this.storagePath = getOAuthStoragePath(this.config.serverUrl);
+  }
+
+  private loadStorageData(): OAuthStorageData {
+    if (existsSync(this.storagePath)) {
+      try {
+        const data = readFileSync(this.storagePath, 'utf-8');
+        return JSON.parse(data);
+      } catch (error) {
+        displayInfo('Failed to load OAuth storage data:' + error);
+        return {};
+      }
+    }
+    return {};
+  }
+
+  private saveStorageData(data: OAuthStorageData): void {
+    try {
+      writeFileSync(this.storagePath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (error) {
+      console.error('Failed to save OAuth storage data:', error);
+    }
   }
 
   state(): string | Promise<string> {
     return this.innerState;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   get redirectUrl() {
     return this.config.redirectUrl;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   get clientMetadata(): OAuthClientMetadata {
     return {
       redirect_uris: [this.config.redirectUrl],
@@ -57,48 +91,72 @@ export class OAuthClientProviderImpl implements OAuthClientProvider {
     };
   }
 
+  // noinspection JSUnusedGlobalSymbols
   saveClientInformation(clientInformation: OAuthClientInformationFull): Promise<void> {
-    console.log('Saving client information', clientInformation);
-    this.clientInformationStorage = clientInformation;
+    const data = this.loadStorageData();
+    data.clientInformation = clientInformation;
+    this.saveStorageData(data);
     return Promise.resolve();
   }
 
+  // noinspection JSUnusedGlobalSymbols
   async clientInformation(): Promise<OAuthClientInformationFull | undefined> {
-    return Promise.resolve(this.clientInformationStorage);
+    const data = this.loadStorageData();
+    return Promise.resolve(data.clientInformation);
   }
 
+  // noinspection JSUnusedGlobalSymbols
   async saveTokens(tokens: OAuthTokens): Promise<void> {
-    this.tokensStorage = JSON.stringify(tokens);
+    const data = this.loadStorageData();
+    data.tokens = tokens;
+    this.saveStorageData(data);
   }
 
+  // noinspection JSUnusedGlobalSymbols
   tokens(): OAuthTokens | undefined {
-    return this.tokensStorage ? JSON.parse(this.tokensStorage) : undefined;
+    const data = this.loadStorageData();
+    return data.tokens;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   saveCodeVerifier(codeVerifier: string): Promise<void> {
-    this.codeVerifierStorage = codeVerifier;
+    const data = this.loadStorageData();
+    data.codeVerifier = codeVerifier;
+    this.saveStorageData(data);
     return Promise.resolve();
   }
 
+  // noinspection JSUnusedGlobalSymbols
   codeVerifier(): Promise<string> {
-    if (!this.codeVerifierStorage) {
+    const data = this.loadStorageData();
+    if (!data.codeVerifier) {
       throw new Error('No code verifier stored');
     }
-    return Promise.resolve(this.codeVerifierStorage);
+    return Promise.resolve(data.codeVerifier);
   }
 
+  // noinspection JSUnusedGlobalSymbols
   async redirectToAuthorization(authUrl: URL): Promise<void> {
-    console.log('Auth url: ', authUrl.toString());
+    displayInfo('Auth url: ' + authUrl.toString());
     try {
-      // TODO need to sanitize the url in the case it has bad stuff
-      console.log('Trying to open browser');
-      if (platform().includes('win')) {
-        execSync('start "" "' + authUrl.toString() + '"');
+      const url = authUrl.toString();
+      displayInfo('Trying to open browser');
+
+      // Handle different platforms
+      const platformName = platform();
+      if (platformName === 'win32') {
+        // Windows
+        execSync(`start "" "${url}"`);
+      } else if (platformName === 'darwin') {
+        // macOS
+        execSync(`open "${url}"`);
       } else {
-        execSync('open ' + authUrl.toString());
+        // Linux and others
+        execSync(`xdg-open "${url}"`);
       }
-    } catch {
-      console.log(`Failed to open browser please open ${authUrl.toString()} in your browser`);
+    } catch (error) {
+      displayInfo(`Failed to open browser: ${error}`);
+      displayInfo(`Please open ${authUrl.toString()} in your browser`);
     }
   }
 }
@@ -106,15 +164,19 @@ export class OAuthClientProviderImpl implements OAuthClientProvider {
 export async function createAuthProviderAndAuthenticate(
   mcpServer: StreamableHTTPConnection
 ): Promise<OAuthClientProviderImpl> {
-  const { port, codePromise } = await createOAuthRedirectServer('/oauth-callback');
+  const { port, server, codePromise } = await createOAuthRedirectServer('/oauth-callback');
   const authProvider = new OAuthClientProviderImpl({
     redirectUrl: `http://127.0.0.1:${port}/oauth-callback`,
+    serverUrl: mcpServer.url,
   });
   const outcome = await auth(authProvider, { serverUrl: mcpServer.url });
   if (outcome == 'REDIRECT') {
     const authorizationCode = await codePromise;
     await auth(authProvider, { serverUrl: mcpServer.url, authorizationCode });
   } else if (outcome == 'AUTHORIZED') {
+    try {
+      server.close();
+    } catch {}
     displayInfo('Authorized');
   } else {
     throw new Error(`Unexpected Auth outcome: ${outcome}`);
@@ -127,6 +189,7 @@ export function createOAuthRedirectServer(
   portParam: number = 0
 ): Promise<{
   port: number;
+  server: http.Server;
   codePromise: Promise<string>;
 }> {
   const redirectApp = express();
@@ -152,7 +215,7 @@ export function createOAuthRedirectServer(
         </div>`);
         resolveCode(code);
         if (server) {
-          console.log('Cleaning auth redirect server...');
+          displayInfo('Cleaning auth redirect server...');
           server.close();
         }
       });
@@ -162,7 +225,7 @@ export function createOAuthRedirectServer(
       const addressInfo = server.address() as AddressInfo;
       const port = addressInfo.port;
       displayInfo(`OAuth callback server listening at ${port}`);
-      resolve({ port, codePromise });
+      resolve({ port, server, codePromise });
     });
 
     server.on('error', (err) => {
