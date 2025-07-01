@@ -11,6 +11,12 @@ import { ToolCall } from '@langchain/core/messages/tool';
 import { GthCommand, StatusLevel } from '#src/core/types.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import { getDefaultTools } from '#src/builtInToolsConfig.js';
+import {
+  createOAuthRedirectServer,
+  OAuthClientProviderImpl,
+} from '#src/mcp/OAuthClientProviderImpl.js';
+import { auth } from '@modelcontextprotocol/sdk/client/auth.js';
+import { log } from '#src/systemUtils.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -41,7 +47,7 @@ export class Invocation {
 
     // Merge command-specific filesystem config if provided
     this.config = this.getEffectiveConfig(config, command);
-    this.mcpClient = this.getMcpClient(this.config);
+    this.mcpClient = await this.getMcpClient(this.config);
 
     // Get default filesystem tools (filtered based on config)
     const defaultTools = await getDefaultTools(config);
@@ -180,15 +186,37 @@ export class Invocation {
     return {};
   }
 
-  protected getMcpClient(config: SlothConfig) {
+  protected async getMcpClient(config: SlothConfig) {
     const defaultServers = this.getDefaultMcpServers();
 
     // Merge with user's mcpServers
-    const mcpServers = { ...defaultServers, ...(config.mcpServers || {}) };
+    const rawMcpServers = { ...defaultServers, ...(config.mcpServers || {}) };
 
     // If user provided their own filesystem config, it overrides default
     if (config.mcpServers?.filesystem) {
-      mcpServers.filesystem = config.mcpServers.filesystem;
+      rawMcpServers.filesystem = config.mcpServers.filesystem;
+    }
+
+    // TODO extract it into separate file
+    const mcpServers = [];
+    for (const key of Object.keys(rawMcpServers)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const server = rawMcpServers[key] as Record<string, any>;
+      if (server['authProvider'] && server['authProvider'] === 'OAuth') {
+        log(`Starting OAuth for for ${key}`);
+        const authProvider = new OAuthClientProviderImpl({
+          redirectUrl: 'http://127.0.0.1:8787/oauth-callback',
+        });
+        const outcome = await auth(authProvider, { serverUrl: server['url'] });
+        if (outcome == 'REDIRECT') {
+          const authorizationCode = await createOAuthRedirectServer('/oauth-callback', 8787);
+          await auth(authProvider, { serverUrl: server['url'], authorizationCode });
+        }
+        // const code = await waitForCode;
+        // console.log(`Receied code ${code}`);
+        server['authProvider'] = authProvider;
+        mcpServers.push(server);
+      }
     }
 
     if (Object.keys(mcpServers).length > 0) {
@@ -196,7 +224,7 @@ export class Invocation {
         throwOnLoadError: true,
         prefixToolNameWithServerName: true,
         additionalToolNamePrefix: 'mcp',
-        mcpServers,
+        mcpServers: rawMcpServers,
       });
     } else {
       return null;
