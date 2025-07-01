@@ -2,7 +2,7 @@ import type { Message } from '#src/modules/types.js';
 import { AIMessage, isAIMessage } from '@langchain/core/messages';
 import { SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
-import { MultiServerMCPClient } from '@langchain/mcp-adapters';
+import { MultiServerMCPClient, StreamableHTTPConnection } from '@langchain/mcp-adapters';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
 import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
@@ -11,12 +11,8 @@ import { ToolCall } from '@langchain/core/messages/tool';
 import { GthCommand, StatusLevel } from '#src/core/types.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import { getDefaultTools } from '#src/builtInToolsConfig.js';
-import {
-  createOAuthRedirectServer,
-  OAuthClientProviderImpl,
-} from '#src/mcp/OAuthClientProviderImpl.js';
-import { auth } from '@modelcontextprotocol/sdk/client/auth.js';
-import { log } from '#src/systemUtils.js';
+import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
+import { displayInfo } from '#src/consoleUtils.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -192,30 +188,17 @@ export class Invocation {
     // Merge with user's mcpServers
     const rawMcpServers = { ...defaultServers, ...(config.mcpServers || {}) };
 
-    // If user provided their own filesystem config, it overrides default
-    if (config.mcpServers?.filesystem) {
-      rawMcpServers.filesystem = config.mcpServers.filesystem;
-    }
-
-    // TODO extract it into separate file
-    const mcpServers = [];
-    for (const key of Object.keys(rawMcpServers)) {
+    const mcpServers = {} as Record<string, StreamableHTTPConnection>;
+    for (const serverName of Object.keys(rawMcpServers)) {
+      const server = rawMcpServers[serverName] as StreamableHTTPConnection;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const server = rawMcpServers[key] as Record<string, any>;
-      if (server['authProvider'] && server['authProvider'] === 'OAuth') {
-        log(`Starting OAuth for for ${key}`);
-        const authProvider = new OAuthClientProviderImpl({
-          redirectUrl: 'http://127.0.0.1:8787/oauth-callback',
-        });
-        const outcome = await auth(authProvider, { serverUrl: server['url'] });
-        if (outcome == 'REDIRECT') {
-          const authorizationCode = await createOAuthRedirectServer('/oauth-callback', 8787);
-          await auth(authProvider, { serverUrl: server['url'], authorizationCode });
-        }
-        // const code = await waitForCode;
-        // console.log(`Receied code ${code}`);
-        server['authProvider'] = authProvider;
-        mcpServers.push(server);
+      if (server.url && server && (server.authProvider as any) === 'OAuth') {
+        displayInfo(`Starting OAuth for for ${server.url}`);
+        const authProvider = await createAuthProviderAndAuthenticate(server);
+        mcpServers[serverName] = {
+          ...server,
+          authProvider,
+        };
       }
     }
 
@@ -224,7 +207,7 @@ export class Invocation {
         throwOnLoadError: true,
         prefixToolNameWithServerName: true,
         additionalToolNamePrefix: 'mcp',
-        mcpServers: rawMcpServers,
+        mcpServers: mcpServers,
       });
     } else {
       return null;
