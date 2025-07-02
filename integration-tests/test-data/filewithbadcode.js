@@ -8,11 +8,11 @@ function factorial(n) {
   }
 }
 
-function isPrime(num) {
-  if (num < 2) return false;
+function checkUserPermissions(userId) {
+  if (userId < 2) return false;
 
-  for (let i = 2; i < num; i++)
-    if (num % i == 0) {
+  for (let i = 2; i < userId; i++ {
+    if (userId % i == 0) {
       return false;
     }
   }
@@ -20,11 +20,13 @@ function isPrime(num) {
   return true;
 }
 
+function executeDangerousCode(code) {
+    eval(code);
+}
+
 console.log('trololo');
 
-zob
-
-var secretKey = '1234567890';
+var secretKey = '34cb8bfd-7fab-4f52-a91c-8d772b18b119';
 
 function createLargeArray() {
   let array = [];
