@@ -243,10 +243,6 @@ describe('chatCommand', () => {
       'chat session will be logged to mock/chat/file.txt\n'
     );
     expect(vi.mocked(displayInfo)).toHaveBeenCalledWith("Type 'exit' or hit Ctrl+C to exit chat\n");
-
-    // expect(vi.mocked(displayInfo)).toHaveBeenCalledWith(
-    //   chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n")
-    // );
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
   });

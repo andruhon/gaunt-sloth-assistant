@@ -1,22 +1,39 @@
-import chalk from 'chalk';
 import * as su from '#src/systemUtils.js';
 import { StatusUpdateCallback } from '#src/core/Invocation.js';
 import { StatusLevel } from '#src/core/types.js';
 
+// ANSI color codes
+const ANSI_COLORS = {
+  red: '\x1b[31m',
+  yellow: '\x1b[33m',
+  green: '\x1b[32m',
+  magenta: '\x1b[35m',
+  dim: '\x1b[2m',
+  reset: '\x1b[0m',
+};
+
+// Helper functions for ANSI coloring
+function colorText(text: string, color: keyof typeof ANSI_COLORS): string {
+  if (!su.getUseColour()) {
+    return text;
+  }
+  return `${ANSI_COLORS[color]}${text}${ANSI_COLORS.reset}`;
+}
+
 export function displayError(message: string): void {
-  su.log(chalk.red(message));
+  su.log(colorText(message, 'red'));
 }
 
 export function displayWarning(message: string): void {
-  su.warn(chalk.yellow(message));
+  su.warn(colorText(message, 'yellow'));
 }
 
 export function displaySuccess(message: string): void {
-  su.log(chalk.green(message));
+  su.log(colorText(message, 'green'));
 }
 
 export function displayInfo(message: string): void {
-  su.info(chalk.dim(message));
+  su.info(colorText(message, 'dim'));
 }
 
 export function display(message: string): void {
@@ -24,7 +41,7 @@ export function display(message: string): void {
 }
 
 export function formatInputPrompt(message: string): string {
-  return chalk.magenta(message);
+  return colorText(message, 'magenta');
 }
 
 export function displayDebug(message: string | Error | undefined): void {

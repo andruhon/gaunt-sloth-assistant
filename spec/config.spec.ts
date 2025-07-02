@@ -39,6 +39,7 @@ const systemUtilsMock = {
   exit: vi.fn(),
   getCurrentDir: vi.fn(),
   getInstallDir: vi.fn(),
+  setUseColour: vi.fn(),
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
@@ -108,6 +109,7 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
+        useColour: true,
         filesystem: 'read',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
@@ -162,6 +164,7 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
+        useColour: true,
         filesystem: 'read',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
@@ -216,6 +219,7 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
+        useColour: true,
         filesystem: 'read',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
@@ -246,6 +250,89 @@ describe('config', async () => {
       );
 
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('useColour configuration', () => {
+    it('Should set useColour to true by default in config', async () => {
+      // Create a test config
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+        },
+      } as RawSlothConfig;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test
+      const config = await initConfig();
+
+      // Verify that useColour is true by default
+      expect(config.useColour).toBe(true);
+
+      // Verify that setUseColour was called with true
+      expect(systemUtilsMock.setUseColour).toHaveBeenCalledWith(true);
+    });
+
+    it('Should respect useColour setting when explicitly set to true', async () => {
+      // Create a test config with useColour set to true
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+        },
+        useColour: true,
+      } as RawSlothConfig;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test
+      const config = await initConfig();
+
+      // Verify that useColour is true when explicitly set
+      expect(config.useColour).toBe(true);
+
+      // Verify that setUseColour was called with true
+      expect(systemUtilsMock.setUseColour).toHaveBeenCalledWith(true);
     });
   });
 
@@ -288,6 +375,7 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
+        useColour: true,
         filesystem: 'read',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },

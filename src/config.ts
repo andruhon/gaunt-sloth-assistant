@@ -1,7 +1,7 @@
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { error, exit } from '#src/systemUtils.js';
+import { error, exit, setUseColour } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
 import type { Connection } from '@langchain/mcp-adapters';
@@ -22,6 +22,7 @@ export interface SlothConfig extends BaseSlothConfig {
   projectGuidelines: string;
   projectReviewInstructions: string;
   streamOutput: boolean;
+  useColour: boolean;
   filesystem: string[] | 'all' | 'read' | 'none';
   builtInTools?: string[];
   tools?: StructuredToolInterface[] | BaseToolkit[];
@@ -44,6 +45,7 @@ interface BaseSlothConfig {
   projectGuidelines?: string;
   projectReviewInstructions?: string;
   streamOutput?: boolean;
+  useColour?: boolean;
   filesystem?: string[] | 'all' | 'read' | 'none';
   prebuiltToolsConfig?: PreBuiltToolsConfig;
   customToolsConfig?: CustomToolsConfig;
@@ -100,6 +102,7 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   streamOutput: true,
+  useColour: true,
   filesystem: 'read',
   commands: {
     pr: {
@@ -305,11 +308,16 @@ Important! You are likely to be dealing with git diff below, please don't confus
  */
 function mergeConfig(partialConfig: Partial<SlothConfig>): SlothConfig {
   const config = partialConfig as SlothConfig;
-  return {
+  const mergedConfig = {
     ...DEFAULT_CONFIG,
     ...config,
     commands: { ...DEFAULT_CONFIG.commands, ...(config?.commands ?? {}) },
   };
+
+  // Set the useColour value in systemUtils
+  setUseColour(mergedConfig.useColour);
+
+  return mergedConfig;
 }
 
 /**
