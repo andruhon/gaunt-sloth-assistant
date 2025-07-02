@@ -49,7 +49,6 @@ const gthFileSystemToolkitGetToolsMock = vi.fn();
 vi.mock('#src/tools/GthFileSystemToolkit.js', () => {
   const GthFileSystemToolkit = vi.fn();
   GthFileSystemToolkit.prototype.getTools = gthFileSystemToolkitGetToolsMock;
-  console.log('GthFileSystemToolkit');
   return {
     default: GthFileSystemToolkit,
   };
