@@ -1,7 +1,11 @@
 import { initConfig } from '#src/config.js';
-import { defaultStatusCallbacks, display } from '#src/consoleUtils.js';
+import {
+  defaultStatusCallbacks,
+  display,
+  displayInfo,
+  formatInputPrompt,
+} from '#src/consoleUtils.js';
 import * as crypto from 'crypto';
-import chalk from 'chalk';
 import { MemorySaver } from '@langchain/langgraph';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import {
@@ -41,7 +45,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       generateStandardFileName(sessionConfig.mode.toUpperCase())
     );
 
-    display(chalk.dim(`${sessionConfig.mode} session will be logged to ${logFileName}\n`));
+    displayInfo(`${sessionConfig.mode} session will be logged to ${logFileName}\n`);
 
     const processMessage = async (userInput: string) => {
       const messages: BaseMessage[] = [];
@@ -72,7 +76,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
     };
 
     const askQuestion = () => {
-      rl.question(chalk.magenta('  > '), async (userInput) => {
+      rl.question(formatInputPrompt('  > '), async (userInput) => {
         if (!userInput.trim()) {
           rl.close(); // This is not the end of the loop, simply skipping inference if no input
           return;
@@ -85,7 +89,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
         }
         await processMessage(userInput);
         display('\n\n');
-        display(chalk.dim(sessionConfig.exitMessage));
+        displayInfo(sessionConfig.exitMessage);
         if (!shouldExit) askQuestion();
       });
     };
@@ -94,7 +98,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       await processMessage(message);
     } else {
       display(sessionConfig.readyMessage);
-      display(chalk.dim(sessionConfig.exitMessage));
+      displayInfo(sessionConfig.exitMessage);
     }
     if (!shouldExit) askQuestion();
   } catch (err) {

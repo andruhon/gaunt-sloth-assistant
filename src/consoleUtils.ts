@@ -23,6 +23,10 @@ export function display(message: string): void {
   su.log(message);
 }
 
+export function formatInputPrompt(message: string): string {
+  return chalk.magenta(message);
+}
+
 export function displayDebug(message: string | Error | undefined): void {
   // TODO make it controlled by config
   if (message instanceof Error) {

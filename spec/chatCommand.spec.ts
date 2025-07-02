@@ -1,13 +1,12 @@
 import { Command } from 'commander';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { display } from '#src/consoleUtils.js';
+import { display, displayInfo } from '#src/consoleUtils.js';
 import { invoke } from '#src/llmUtils.js';
 import type { Interface as ReadlineInterface } from 'node:readline';
 import { createInterface } from 'node:readline';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
-import chalk from 'chalk';
 import { appendToFile } from '#src/utils.js';
 
 // Mock modules
@@ -33,6 +32,7 @@ vi.mock('#src/consoleUtils.js', () => ({
   displayWarning: vi.fn(),
   displayDebug: vi.fn(),
   defaultStatusCallbacks: vi.fn(),
+  formatInputPrompt: vi.fn().mockImplementation((v) => v),
 }));
 
 vi.mock('#src/filePathUtils.js', () => ({
@@ -239,9 +239,14 @@ describe('chatCommand', () => {
     expect(vi.mocked(display)).toHaveBeenCalledWith(
       '\nGaunt Sloth is ready to chat. Type your prompt.'
     );
-    expect(vi.mocked(display)).toHaveBeenCalledWith(
-      chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n")
+    expect(vi.mocked(displayInfo)).toHaveBeenCalledWith(
+      'chat session will be logged to mock/chat/file.txt\n'
     );
+    expect(vi.mocked(displayInfo)).toHaveBeenCalledWith("Type 'exit' or hit Ctrl+C to exit chat\n");
+
+    // expect(vi.mocked(displayInfo)).toHaveBeenCalledWith(
+    //   chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n")
+    // );
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
   });

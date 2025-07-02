@@ -1,7 +1,6 @@
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import chalk from 'chalk';
-import { display } from '#src/consoleUtils.js';
+import { displayInfo } from '#src/consoleUtils.js';
 import { SlothConfig } from '#src/config.js';
 
 const toolDefinition = {
@@ -10,7 +9,7 @@ const toolDefinition = {
   schema: z.string(),
 };
 const toolImpl = (s: string): void => {
-  display(chalk.grey(s));
+  displayInfo(s);
 };
 
 export function get(_: SlothConfig) {
