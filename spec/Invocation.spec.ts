@@ -45,18 +45,15 @@ vi.mock('@langchain/mcp-adapters', () => ({
   MultiServerMCPClient: multiServerMCPClientMock,
 }));
 
-const gthFileSystemToolkitMock = {
-  getTools: vi.fn(() => []),
-};
-const GthFileSystemToolkitConstructorMock = vi.fn();
-GthFileSystemToolkitConstructorMock.mockImplementation(() => {
-  const instance = Object.create({});
-  instance.getTools = gthFileSystemToolkitMock.getTools;
-  return instance;
+const gthFileSystemToolkitGetToolsMock = vi.fn();
+vi.mock('#src/tools/GthFileSystemToolkit.js', () => {
+  const GthFileSystemToolkit = vi.fn();
+  GthFileSystemToolkit.prototype.getTools = gthFileSystemToolkitGetToolsMock;
+  console.log('GthFileSystemToolkit');
+  return {
+    default: GthFileSystemToolkit,
+  };
 });
-vi.mock('#src/tools/GthFileSystemToolkit.js', () => ({
-  default: GthFileSystemToolkitConstructorMock,
-}));
 
 describe('Invocation', () => {
   let Invocation: typeof import('#src/core/Invocation.js').Invocation;
@@ -69,7 +66,7 @@ describe('Invocation', () => {
     systemUtilsMock.getCurrentDir.mockReturnValue('/test/dir');
     multiServerMCPClientMock.mockImplementation(() => mcpClientInstanceMock);
     progressIndicatorMock.mockImplementation(() => progressIndicatorInstanceMock);
-    gthFileSystemToolkitMock.getTools.mockReturnValue([]);
+    gthFileSystemToolkitGetToolsMock.mockReturnValue([]);
 
     // Setup config mocks
     configMock.getDefaultTools.mockResolvedValue([]);
@@ -198,7 +195,6 @@ describe('Invocation', () => {
       } as SlothConfig;
 
       // Reset default toolkit mock to return empty for this test since filesystem is 'none'
-      gthFileSystemToolkitMock.getTools.mockReturnValue([]);
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
       await invocation.init(undefined, configWithTools);
@@ -216,7 +212,6 @@ describe('Invocation', () => {
       } as SlothConfig;
 
       // Reset default toolkit mock to return empty for this test since filesystem is 'none'
-      gthFileSystemToolkitMock.getTools.mockReturnValue([]);
       const mcpTools = [{ name: 'mcp__filesystem__list_directory' } as StructuredToolInterface];
       mcpClientInstanceMock.getTools.mockResolvedValue(mcpTools);
 

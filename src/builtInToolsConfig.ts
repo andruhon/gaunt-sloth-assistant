@@ -59,6 +59,7 @@ function filterFilesystemTools(
   const allowedToolNames = new Set(
     filesystemConfig.filter((name) => name !== 'read' && name !== 'all')
   );
+  console.log(toolkit);
   const specificNamedTools = toolkit.getTools().filter((tool) => {
     return tool.name && allowedToolNames.has(tool.name);
   });

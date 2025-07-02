@@ -15,6 +15,8 @@ describe('Chat Command Integration Tests', () => {
     // Check that the response mentions the file path
     expect(checkOutputForExpectedContent(output, 'gth_')).toBe(true);
     expect(checkOutputForExpectedContent(output, '_CHAT.md')).toBe(true);
+    expect(checkOutputForExpectedContent(output, 'write_file')).toBe(false);
+    expect(checkOutputForExpectedContent(output, 'edit_file')).toBe(false);
   });
 
   it('should start interactive session without initial message', async () => {
@@ -24,5 +26,8 @@ describe('Chat Command Integration Tests', () => {
     expect(
       checkOutputForExpectedContent(output, 'Gaunt Sloth is ready to chat. Type your prompt.')
     ).toBe(true);
+
+    expect(checkOutputForExpectedContent(output, 'write_file')).toBe(false);
+    expect(checkOutputForExpectedContent(output, 'edit_file')).toBe(false);
   });
 });

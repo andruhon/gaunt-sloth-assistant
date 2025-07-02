@@ -34,19 +34,19 @@ export class Invocation {
 
   async init(
     command: GthCommand | undefined,
-    config: SlothConfig,
+    configIn: SlothConfig,
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void> {
     if (this.verbose) {
-      config.llm.verbose = true;
+      configIn.llm.verbose = true;
     }
 
     // Merge command-specific filesystem config if provided
-    this.config = this.getEffectiveConfig(config, command);
+    this.config = this.getEffectiveConfig(configIn, command);
     this.mcpClient = await this.getMcpClient(this.config);
 
     // Get default filesystem tools (filtered based on config)
-    const defaultTools = await getDefaultTools(config);
+    const defaultTools = await getDefaultTools(this.config);
 
     // Get user config tools
     const flattenedConfigTools = this.extractAndFlattenTools(this.config.tools || []);
