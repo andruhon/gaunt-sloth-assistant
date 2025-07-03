@@ -77,7 +77,7 @@ export const setEntryPoint = (indexJs: string): void => {
  */
 export function readStdin(program: Command): Promise<void> {
   return new Promise((resolvePromise) => {
-    if (stdin.isTTY) {
+    if (stdin.isTTY || program.getOptionValue('nopipe')) {
       program.parseAsync().then(() => resolvePromise());
     } else {
       // Support piping diff into gsloth

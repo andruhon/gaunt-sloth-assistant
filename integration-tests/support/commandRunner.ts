@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import path from 'path';
 import { platform } from 'node:os';
+import type { ChildProcess } from 'node:child_process';
 
 /**
  * Runs a command in the integration-tests directory using spawn
@@ -51,4 +52,38 @@ export async function runCommandWithArgs(
       }
     });
   });
+}
+
+export function startChildProcess(command: string, args: string[], stdin: 'ignore' | 'pipe') {
+  const testDir = path.resolve('./integration-tests');
+  const childProcess = spawn(command, args, {
+    cwd: testDir,
+    env: {
+      ...process.env,
+    },
+    shell: platform().includes('win'),
+    // Explicitly ignore stdin, otherwise the app switches to pipe mode
+    stdio: [stdin, 'pipe', 'pipe'],
+  });
+  return childProcess;
+}
+
+export function waitForCursor(child: ChildProcess): Promise<string> {
+  return new Promise((resolve, _reject) => {
+    let inputPromptListener = getInputPromptListener(child, resolve);
+    child.stdout.on('data', inputPromptListener);
+  });
+}
+
+export function getInputPromptListener(child, resolve) {
+  let acc = '';
+  const inputPromptListener = (data) => {
+    acc += data.toString();
+    if (data.toString().includes('>')) {
+      resolve(acc);
+      child.stdout.removeListener('data', inputPromptListener);
+      return;
+    }
+  };
+  return inputPromptListener;
 }

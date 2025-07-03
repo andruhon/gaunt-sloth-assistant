@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { runCommandWithArgs } from './support/commandRunner';
+import { runCommandWithArgs, startChildProcess, waitForCursor } from './support/commandRunner';
 import { checkOutputForExpectedContent } from './support/outputChecker';
 
 describe('Chat Command Integration Tests', () => {
@@ -29,5 +29,26 @@ describe('Chat Command Integration Tests', () => {
 
     expect(checkOutputForExpectedContent(output, 'write_file')).toBe(false);
     expect(checkOutputForExpectedContent(output, 'edit_file')).toBe(false);
+  });
+
+  it('should answer to users questions, should have memory', async () => {
+    const child = startChildProcess('npx', ['gth', '--nopipe', 'chat'], 'pipe');
+
+    child.stderr.on('data', (data) => {
+      throw new Error(data.toString());
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        new Error(`Command failed with code ${code}`);
+      }
+    });
+
+    await waitForCursor(child);
+    child.stdin.write('Hi! I want to talk about JavaScript.\n');
+    await waitForCursor(child);
+    child.stdin.write('What was that we were talking about?\n');
+    const output = await waitForCursor(child);
+    expect(output.toLowerCase()).toContain('javascript');
   });
 });
