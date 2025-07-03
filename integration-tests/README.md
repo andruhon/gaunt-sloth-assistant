@@ -14,6 +14,7 @@ The tests are organized as follows:
 - **Support Files**:
     - `support/commandRunner.ts`: Helper function to run commands in the test directory
     - `support/outputChecker.ts`: Helper function to check command output
+    - `support/reviewScoreExtractor.ts`: Helper function to extract review score
 
 - **Configuration**:
     - `.gsloth.config.json`: Claude-based configuration for testing
@@ -27,28 +28,31 @@ The tests are organized as follows:
 
 To run the integration tests:
 
-1. Make sure you have an Anthropic API key set in your environment:
+1. Make sure you have an Anthropic, VertexAI or Groq API key set in your environment:
    ```
    export ANTHROPIC_API_KEY=your-api-key
    ```
 
-2. Build and install globally
+2. Build
 
   ```
   npm run build
-  npm install ./ -g
   ```
 
 3. Navigate to the project root directory and run:
    ```
-   npm run it
+   npm run it anthropic
    ```
+
+Or `npm run it vertexai` or `npm run it groq`,
+please note if you are on free tier of Groq review and PR tests are likely to fail,
+because tokens limit has been hit.
 
    Or run a specific test file:
    ```
-   npm run it askCommand.it.ts
-   npm run it reviewCommand.it.ts
-   npm run it prCommand.it.ts
+   npm run it anthropic askCommand.it.ts
+   npm run it anthropic reviewCommand.it.ts
+   npm run it anthropic prCommand.it.ts
    ```
 
 ## Notes

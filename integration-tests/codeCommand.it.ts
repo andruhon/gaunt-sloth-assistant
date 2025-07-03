@@ -16,6 +16,8 @@ describe('Code Command Integration Tests', () => {
     // Check that the response mentions the file path
     expect(checkOutputForExpectedContent(output, 'gth_')).toBe(true);
     expect(checkOutputForExpectedContent(output, '_CODE.md')).toBe(true);
+    expect(checkOutputForExpectedContent(output, 'write_file')).toBe(true);
+    expect(checkOutputForExpectedContent(output, 'edit_file')).toBe(true);
   });
 
   it('should start interactive session without initial message', async () => {
@@ -24,5 +26,7 @@ describe('Code Command Integration Tests', () => {
     // Check for expected content in the response
     expect(checkOutputForExpectedContent(output, 'ready to code')).toBe(true);
     expect(checkOutputForExpectedContent(output, 'Type')).toBe(true);
+    expect(checkOutputForExpectedContent(output, 'write_file')).toBe(true);
+    expect(checkOutputForExpectedContent(output, 'edit_file')).toBe(true);
   });
 });

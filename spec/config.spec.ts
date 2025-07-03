@@ -39,6 +39,7 @@ const systemUtilsMock = {
   exit: vi.fn(),
   getCurrentDir: vi.fn(),
   getInstallDir: vi.fn(),
+  setUseColour: vi.fn(),
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
@@ -83,7 +84,7 @@ describe('config', async () => {
       });
 
       // Mock the vertexai config module to process the config
-      vi.doMock('#src/configs/vertexai.js', () => ({
+      vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
       }));
 
@@ -108,15 +109,8 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
-        filesystem: [
-          'read_file',
-          'read_multiple_files',
-          'list_directory',
-          'directory_tree',
-          'search_files',
-          'get_file_info',
-          'list_allowed_directories',
-        ],
+        useColour: true,
+        filesystem: 'read',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -170,15 +164,8 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
-        filesystem: [
-          'read_file',
-          'read_multiple_files',
-          'list_directory',
-          'directory_tree',
-          'search_files',
-          'get_file_info',
-          'list_allowed_directories',
-        ],
+        useColour: true,
+        filesystem: 'read',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -232,15 +219,8 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
-        filesystem: [
-          'read_file',
-          'read_multiple_files',
-          'list_directory',
-          'directory_tree',
-          'search_files',
-          'get_file_info',
-          'list_allowed_directories',
-        ],
+        useColour: true,
+        filesystem: 'read',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -273,6 +253,89 @@ describe('config', async () => {
     });
   });
 
+  describe('useColour configuration', () => {
+    it('Should set useColour to true by default in config', async () => {
+      // Create a test config
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+        },
+      } as RawSlothConfig;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test
+      const config = await initConfig();
+
+      // Verify that useColour is true by default
+      expect(config.useColour).toBe(true);
+
+      // Verify that setUseColour was called with true
+      expect(systemUtilsMock.setUseColour).toHaveBeenCalledWith(true);
+    });
+
+    it('Should respect useColour setting when explicitly set to true', async () => {
+      // Create a test config with useColour set to true
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+        },
+        useColour: true,
+      } as RawSlothConfig;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test
+      const config = await initConfig();
+
+      // Verify that useColour is true when explicitly set
+      expect(config.useColour).toBe(true);
+
+      // Verify that setUseColour was called with true
+      expect(systemUtilsMock.setUseColour).toHaveBeenCalledWith(true);
+    });
+  });
+
   describe('processJsonLlmConfig', () => {
     it('Should process valid LLM type', async () => {
       // Create a test config
@@ -288,7 +351,7 @@ describe('config', async () => {
         type: 'vertexai',
         model: 'test-model',
       };
-      vi.doMock('#src/configs/vertexai.js', () => ({
+      vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue(mockLlm),
       }));
 
@@ -312,15 +375,8 @@ describe('config', async () => {
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
         streamOutput: true,
-        filesystem: [
-          'read_file',
-          'read_multiple_files',
-          'list_directory',
-          'directory_tree',
-          'search_files',
-          'get_file_info',
-          'list_allowed_directories',
-        ],
+        useColour: true,
+        filesystem: 'read',
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -337,7 +393,7 @@ describe('config', async () => {
       } as RawSlothConfig;
 
       // When importing a non-existent config module, it should throw
-      vi.doMock('#src/configs/unsupported.js', () => {
+      vi.doMock('#src/presets/unsupported.js', () => {
         throw new Error('Cannot find module');
       });
 
@@ -354,7 +410,7 @@ describe('config', async () => {
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Error processing LLM config: Unknown variable dynamic import: ./configs/unsupported.js'
+        'Error processing LLM config: Unknown variable dynamic import: ./presets/unsupported.js'
       );
       expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
       expect(consoleUtilsMock.display).not.toHaveBeenCalled();
@@ -373,7 +429,7 @@ describe('config', async () => {
       } as RawSlothConfig;
 
       // When importing a non-existent config module, it should throw
-      vi.doMock('#src/configs/test.js', () => {
+      vi.doMock('#src/presets/test.js', () => {
         throw new Error('Cannot find module');
       });
 
@@ -390,7 +446,7 @@ describe('config', async () => {
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Error processing LLM config: Unknown variable dynamic import: ./configs/test.js'
+        'Error processing LLM config: Unknown variable dynamic import: ./presets/test.js'
       );
       expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
       expect(consoleUtilsMock.display).not.toHaveBeenCalled();
@@ -410,7 +466,7 @@ describe('config', async () => {
       } as RawSlothConfig;
 
       // Mock a config module without processJsonConfig
-      vi.doMock('#src/configs/badconfig.js', () => ({
+      vi.doMock('#src/presets/badconfig.js', () => ({
         // No processJsonConfig function
       }));
 
@@ -425,7 +481,7 @@ describe('config', async () => {
       }
 
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Error processing LLM config: Unknown variable dynamic import: ./configs/badconfig.js'
+        'Error processing LLM config: Unknown variable dynamic import: ./presets/badconfig.js'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
@@ -482,7 +538,7 @@ describe('config', async () => {
       const mockInit = vi.fn();
 
       // Mock the vertexai config module
-      vi.doMock('#src/configs/vertexai.js', () => ({
+      vi.doMock('#src/presets/vertexai.js', () => ({
         init: mockInit,
       }));
 
@@ -535,7 +591,7 @@ describe('config', async () => {
       }
 
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq'
+        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq, deepseek'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
@@ -545,7 +601,7 @@ describe('config', async () => {
       const mockInit = vi.fn();
 
       // Mock the anthropic config module
-      vi.doMock('#src/configs/anthropic.js', () => ({
+      vi.doMock('#src/presets/anthropic.js', () => ({
         init: mockInit,
       }));
 
@@ -569,7 +625,7 @@ describe('config', async () => {
       const mockInit = vi.fn();
 
       // Mock the groq config module
-      vi.doMock('#src/configs/groq.js', () => ({
+      vi.doMock('#src/presets/groq.js', () => ({
         init: mockInit,
       }));
 

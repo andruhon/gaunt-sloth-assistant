@@ -230,4 +230,102 @@ describe('prCommand', () => {
     expect(testOutput.text).toContain('--requirements-provider <requirementsProvider>');
     expect(testOutput.text).toContain('(choices: "jira-legacy", "jira", "github", "text", "file")');
   });
+
+  it('Should call pr command with message parameter', async () => {
+    // Setup specific config for this test
+    const testConfig = {
+      ...mockConfig,
+      contentProvider: 'text',
+      requirementsProvider: 'text',
+      commands: {
+        pr: {
+          contentProvider: 'github',
+          requirementsProvider: 'text',
+        },
+        review: {
+          requirementsProvider: 'text',
+          contentProvider: 'text',
+        },
+      },
+      streamOutput: false,
+    };
+    configMock.initConfig.mockResolvedValue(testConfig);
+
+    const { prCommand } = await import('#src/commands/prCommand.js');
+    const program = new Command();
+
+    // Mock the gh provider
+    const ghProvider = vi.fn().mockResolvedValue('PR Diff Content');
+    vi.doMock('#src/providers/ghPrDiffProvider.js', () => ({
+      get: ghProvider,
+    }));
+
+    prCommand(program);
+    await program.parseAsync([
+      'na',
+      'na',
+      'pr',
+      '123',
+      '-m',
+      'Please pay attention to security issues',
+    ]);
+
+    expect(review).toHaveBeenCalledWith(
+      'PR-123',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
+      'PR Diff Content\nPlease pay attention to security issues',
+      expect.objectContaining({
+        contentProvider: 'text',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+      }),
+      'pr'
+    );
+  });
+
+  it('Should call pr command with message and requirements', async () => {
+    // Setup specific config for this test
+    const testConfig = {
+      ...mockConfig,
+      requirementsProvider: 'text',
+      commands: {
+        pr: {
+          contentProvider: 'github',
+          requirementsProvider: 'text',
+        },
+        review: {},
+      },
+      streamOutput: false,
+    };
+    configMock.initConfig.mockResolvedValue(testConfig);
+
+    const { prCommand } = await import('#src/commands/prCommand.js');
+    const program = new Command();
+
+    // Mock the gh provider
+    const ghProvider = vi.fn().mockResolvedValue('PR Diff Content');
+    vi.doMock('#src/providers/ghPrDiffProvider.js', () => ({
+      get: ghProvider,
+    }));
+
+    // Mock the text provider for requirements
+    const textProvider = vi.fn().mockResolvedValue('Requirements content');
+    vi.doMock('#src/providers/text.js', () => ({
+      get: textProvider,
+    }));
+
+    prCommand(program);
+    await program.parseAsync(['na', 'na', 'pr', '123', 'req-456', '-m', 'Focus on performance']);
+
+    expect(review).toHaveBeenCalledWith(
+      'PR-123',
+      'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
+      'Requirements content\nPR Diff Content\nFocus on performance',
+      expect.objectContaining({
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+      }),
+      'pr'
+    );
+  });
 });

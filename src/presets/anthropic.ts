@@ -22,21 +22,6 @@ export async function processJsonConfig(
   });
 }
 
-const jsContent = `/* eslint-disable */
-export async function configure(importFunction, global) {
-    // this is going to be imported from sloth dependencies,
-    // but can potentially be pulled from global node modules or from this project
-    // At a moment only google-vertexai and anthropic packaged with Sloth, but you can install support for any other langchain llms
-    const anthropic = await importFunction('@langchain/anthropic');
-    return {
-        llm: new anthropic.ChatAnthropic({
-            apiKey: process.env.ANTHROPIC_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
-            model: "claude-sonnet-4-20250514" // Don't forget to check new models availability.
-        })
-    };
-}
-`;
-
 const jsonContent = `{
   "llm": {
     "type": "anthropic",
@@ -49,8 +34,13 @@ export function init(configFileName: string): void {
   path.join(currentDir, configFileName);
 
   // Determine which content to use based on file extension
-  const content = configFileName.endsWith('.json') ? jsonContent : jsContent;
+  if (!configFileName.endsWith('.json')) {
+    throw new Error('Only JSON config is supported.');
+  }
 
-  writeFileIfNotExistsWithMessages(configFileName, content);
-  displayWarning(`You need to update your ${configFileName} to add your Anthropic API key.`);
+  writeFileIfNotExistsWithMessages(configFileName, jsonContent);
+  displayWarning(
+    `You need to update your ${configFileName} to add your Anthropic API key, ` +
+      'or define ANTHROPIC_API_KEY environment variable.'
+  );
 }

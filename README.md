@@ -1,5 +1,5 @@
 # Gaunt Sloth Assistant
-[![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml)
+[![Tests and Lint](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/ci.yml) [![Integration Tests (Anthropic)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/it.yml/badge.svg?event=push)](https://github.com/andruhon/gaunt-sloth-assistant/actions/workflows/it.yml)
 
 Gaunt GSloth Assistant is a lightweight **command line AI assistant**
 built with TypeScript (JavaScript) and distributed via NPM with minimum dependencies.
@@ -49,7 +49,8 @@ The promise of Gaunt Sloth:
 
 - Google Vertex AI;
 - Anthropic;
-- Groq.
+- Groq;
+- DeepSeek.
 
 `*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#JavaScript-Configuration).
 
@@ -111,7 +112,7 @@ npm install gaunt-sloth-assistant -g
 > Global configuration to invoke gsloth anywhere is in [ROADMAP](ROADMAP.md).
 
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, vertexai, anthropic and groq can be configured with `gsloth init [vendor]`.
+Currently, vertexai, anthropic, groq and deepseek can be configured with `gsloth init [vendor]`.
 
 More detailed information on configuration can be found in [CONFIGURATION.md](./docs/CONFIGURATION.md)
 
@@ -139,8 +140,23 @@ gsloth init groq
 ```
 Make sure you either define `GROQ_API_KEY` environment variable or edit your configuration file and set up your key.
 
+### DeepSeek
+```shell
+cd ./your-project
+gsloth init deepseek
+```
+Make sure you either define `DEEPSEEK_API_KEY` environment variable or edit your configuration file and set up your key.
+It is recommended to obtain API key from DeepSeek official website rather than from a reseller.
+
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md). 
+
+## MCP (Model Context Protocol) Servers
+
+Gaunt Sloth supports connecting to MCP servers, including those requiring OAuth authentication.
+
+This has been tested with the Atlassian Jira MCP server.  
+See the [MCP configuration section](./docs/CONFIGURATION.md#model-context-protocol-mcp) for detailed setup instructions.
 
 ## Contributing
 Contributors are needed! Feel free to create a PR.

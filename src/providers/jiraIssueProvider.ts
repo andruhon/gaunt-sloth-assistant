@@ -1,7 +1,6 @@
 import { display, displayError, displayWarning } from '#src/consoleUtils.js';
-import { env } from '#src/systemUtils.js';
 import type { JiraConfig } from './types.js';
-import { ProgressIndicator } from '#src/utils.js';
+import { getJiraCredentials, jiraRequest } from '#src/helpers/jira/jiraClient.js';
 
 interface JiraIssueResponse {
   fields: {
@@ -35,40 +34,10 @@ export async function get(
     return null;
   }
 
-  // Get username from environment variable or config
-  const username = env.JIRA_USERNAME || config.username;
-  if (!username) {
-    throw new Error(
-      'Missing JIRA username. The username can be defined as JIRA_USERNAME environment variable or as "username" in config.'
-    );
-  }
-
-  // Get token from environment variable or config
-  const token = env.JIRA_API_PAT_TOKEN || config.token;
-  if (!token) {
-    throw new Error(
-      'Missing JIRA PAT token. The token can be defined as JIRA_API_PAT_TOKEN environment variable or as "token" in config.'
-    );
-  }
-
-  // Get cloud ID from environment variable or config
-  const cloudId = env.JIRA_CLOUD_ID || config.cloudId;
-  if (!cloudId) {
-    throw new Error(
-      'Missing JIRA Cloud ID. The Cloud ID can be defined as JIRA_CLOUD_ID environment variable or as "cloudId" in config.'
-    );
-  }
+  const credentials = getJiraCredentials(config);
 
   try {
-    const issue = await getJiraIssue(
-      {
-        ...config,
-        username,
-        token,
-        cloudId,
-      },
-      issueId
-    );
+    const issue = await getJiraIssue(credentials, issueId);
     if (!issue) {
       return null;
     }
@@ -95,52 +64,26 @@ export async function get(
  * @param jiraKey Jira issue ID
  * @returns Jira issue response
  */
-async function getJiraIssue(config: JiraConfig, jiraKey: string): Promise<JiraIssueResponse> {
+async function getJiraIssue(
+  credentials: { username: string; token: string; cloudId: string; displayUrl?: string },
+  jiraKey: string
+): Promise<JiraIssueResponse> {
   // Jira Cloud ID can be found by authenticated user at https://company.atlassian.net/_edge/tenant_info
 
   // According to doc https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get permissions to read this resource:
   // https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues/#api-rest-api-2-issue-issueidorkey-get
   // either Classic (RECOMMENDED) read:jira-work
-  // or Granular read:issue-meta:jira, read:issue-security-level:jira, read:issue.vote:jira, read:issue.changelog:jira, read:avatar:jira, read:issue:jira, read:status:jira, read:user:jira, read:field-configuration:jira
-  const apiUrl = `https://api.atlassian.com/ex/jira/${config.cloudId}/rest/api/2/issue/${jiraKey}`;
-  if (config.displayUrl) {
-    display(`Loading Jira issue ${config.displayUrl}${jiraKey}`);
+  // or Granular read:issue-meta:jira, read:issue-security-level:jira, read:issue.vote:jira, read:issue.changelog:jira,
+  // read:avatar:jira, read:issue:jira, read:status:jira, read:user:jira, read:field-configuration:jira
+
+  if (credentials.displayUrl) {
+    display(`Loading Jira issue ${credentials.displayUrl}${jiraKey}`);
   }
 
   // This filter will be necessary for V3: `&expand=renderedFields` to convert ADF to HTML
   const filters = '?fields=summary,description'; // Limit JSON to summary and description
 
-  // Encode credentials for Basic Authentication header
-  const credentials = `${config.username}:${config.token}`;
-  const encodedCredentials = Buffer.from(credentials).toString('base64');
-  const authHeader = `Basic ${encodedCredentials}`;
-
-  // Define request headers
-  const headers = {
-    Authorization: authHeader,
-    Accept: 'application/json; charset=utf-8',
-    'Accept-Language': 'en-US,en;q=0.9', // Prevents errors in other languages
-  };
-
-  const progressIndicator = new ProgressIndicator(
-    `Retrieving jira from api ${apiUrl.replace(/^https?:\/\//, '')}`
-  );
-  const response = await fetch(apiUrl + filters, {
+  return jiraRequest<JiraIssueResponse>(credentials, `/rest/api/2/issue/${jiraKey}${filters}`, {
     method: 'GET',
-    headers: headers,
   });
-  progressIndicator.stop();
-
-  if (!response?.ok) {
-    try {
-      const errorData = await response.json();
-      throw new Error(
-        `Failed to fetch Jira issue: ${response.statusText} - ${JSON.stringify(errorData)}`
-      );
-    } catch (_e) {
-      throw new Error(`Failed to fetch Jira issue: ${response?.statusText}`);
-    }
-  }
-
-  return response.json();
 }

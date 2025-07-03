@@ -32,7 +32,7 @@ export function askCommand(program: Command): void {
       if (options.file) {
         content.push(readMultipleFilesFromCurrentDir(options.file));
       }
-      let stringFromStdin = getStringFromStdin();
+      const stringFromStdin = getStringFromStdin();
       if (stringFromStdin) {
         content.push(stringFromStdin);
       }

@@ -16,11 +16,13 @@ import { createInterface, type Interface as ReadLineInterface } from 'node:readl
 interface InnerState {
   installDir: string | null | undefined;
   stringFromStdin: string;
+  useColour: boolean;
 }
 
 const innerState: InnerState = {
   installDir: undefined,
   stringFromStdin: '',
+  useColour: false,
 };
 
 // Process-related functions and objects
@@ -36,6 +38,18 @@ export const getInstallDir = (): string => {
  */
 export const getStringFromStdin = (): string => {
   return innerState.stringFromStdin;
+};
+/**
+ * Get the current useColour setting.
+ */
+export const getUseColour = (): boolean => {
+  return innerState.useColour;
+};
+/**
+ * Set the useColour setting.
+ */
+export const setUseColour = (useColour: boolean): void => {
+  innerState.useColour = useColour;
 };
 export const exit = (code?: number): never => process.exit(code || 0);
 export const stdin = process.stdin;

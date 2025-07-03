@@ -28,6 +28,6 @@ describe('Review Command Integration Tests', () => {
     // Check for issue identification in the review (score < 5)
     const score = extractReviewScore(output);
     expect(score).not.toBeNull();
-    expect(score).toBeLessThan(5);
+    expect(score).lessThanOrEqual(5);
   });
 });

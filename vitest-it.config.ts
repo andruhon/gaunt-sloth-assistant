@@ -5,7 +5,7 @@ export default defineConfig({
     include: ['integration-tests/**/*.it.ts'],
     environment: 'node',
     globals: true,
-    testTimeout: 1000 * 60 * 2,
+    testTimeout: 1000 * 60 * 5,
     maxWorkers: 1,
     fileParallelism: false,
   },

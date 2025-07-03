@@ -1,7 +1,11 @@
 import { initConfig } from '#src/config.js';
-import { defaultStatusCallbacks, display } from '#src/consoleUtils.js';
+import {
+  defaultStatusCallbacks,
+  display,
+  displayInfo,
+  formatInputPrompt,
+} from '#src/consoleUtils.js';
 import * as crypto from 'crypto';
-import chalk from 'chalk';
 import { MemorySaver } from '@langchain/langgraph';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import {
@@ -26,7 +30,7 @@ export interface SessionConfig {
 }
 
 export async function createInteractiveSession(sessionConfig: SessionConfig, message?: string) {
-  const config = { ...(await initConfig()), streamOutput: false };
+  const config = { ...(await initConfig()) };
   const checkpointSaver = new MemorySaver();
   // Initialize Invocation once
   const invocation = new Invocation(defaultStatusCallbacks);
@@ -41,7 +45,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       generateStandardFileName(sessionConfig.mode.toUpperCase())
     );
 
-    display(chalk.gray(`${sessionConfig.mode} session will be logged to ${logFileName}\n`));
+    displayInfo(`${sessionConfig.mode} session will be logged to ${logFileName}\n`);
 
     const processMessage = async (userInput: string) => {
       const messages: BaseMessage[] = [];
@@ -72,7 +76,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
     };
 
     const askQuestion = () => {
-      rl.question(chalk.magenta('  > '), async (userInput) => {
+      rl.question(formatInputPrompt('  > '), async (userInput) => {
         if (!userInput.trim()) {
           rl.close(); // This is not the end of the loop, simply skipping inference if no input
           return;
@@ -84,7 +88,8 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
           return;
         }
         await processMessage(userInput);
-        display(chalk.gray(sessionConfig.exitMessage));
+        display('\n\n');
+        displayInfo(sessionConfig.exitMessage);
         if (!shouldExit) askQuestion();
       });
     };
@@ -93,7 +98,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       await processMessage(message);
     } else {
       display(sessionConfig.readyMessage);
-      display(chalk.gray(sessionConfig.exitMessage));
+      displayInfo(sessionConfig.exitMessage);
     }
     if (!shouldExit) askQuestion();
   } catch (err) {

@@ -1,17 +1,19 @@
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { error, exit } from '#src/systemUtils.js';
+import { error, exit, setUseColour } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
 import type { Connection } from '@langchain/mcp-adapters';
+import type { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import {
+  PROJECT_GUIDELINES,
+  PROJECT_REVIEW_INSTRUCTIONS,
   USER_PROJECT_CONFIG_JS,
   USER_PROJECT_CONFIG_JSON,
   USER_PROJECT_CONFIG_MJS,
-  PROJECT_GUIDELINES,
-  PROJECT_REVIEW_INSTRUCTIONS,
 } from '#src/constants.js';
+import { JiraConfig } from '#src/providers/types.js';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -20,7 +22,10 @@ export interface SlothConfig extends BaseSlothConfig {
   projectGuidelines: string;
   projectReviewInstructions: string;
   streamOutput: boolean;
-  filesystem: string[] | 'all' | 'none';
+  useColour: boolean;
+  filesystem: string[] | 'all' | 'read' | 'none';
+  builtInTools?: string[];
+  tools?: StructuredToolInterface[] | BaseToolkit[];
 }
 
 /**
@@ -40,39 +45,54 @@ interface BaseSlothConfig {
   projectGuidelines?: string;
   projectReviewInstructions?: string;
   streamOutput?: boolean;
-  filesystem?: string[] | 'all' | 'none';
+  useColour?: boolean;
+  filesystem?: string[] | 'all' | 'read' | 'none';
+  prebuiltToolsConfig?: PreBuiltToolsConfig;
+  customToolsConfig?: CustomToolsConfig;
+  requirementsProviderConfig?: Record<string, unknown>;
+  contentProviderConfig?: Record<string, unknown>;
+  mcpServers?: Record<string, Connection>;
+  builtInTools?: string[];
   commands?: {
     pr?: {
       contentProvider?: string;
       requirementsProvider?: string;
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
+      logWorkForReviewInSeconds?: number;
     };
     review?: {
       requirementsProvider?: string;
       contentProvider?: string;
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
     };
     ask?: {
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
     };
     chat?: {
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
     };
     code?: {
-      filesystem?: string[] | 'all' | 'none';
+      filesystem?: string[] | 'all' | 'read' | 'none';
+      builtInTools?: string[];
     };
   };
-  requirementsProviderConfig?: Record<string, unknown>;
-  contentProviderConfig?: Record<string, unknown>;
-  mcpServers?: Record<string, Connection>;
 }
+
+export type CustomToolsConfig = Record<string, object>;
+export type PreBuiltToolsConfig = {
+  jira: JiraConfig;
+};
 
 export interface LLMConfig extends Record<string, unknown> {
   type: string;
   model: string;
 }
 
-export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq'] as const;
+export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq', 'deepseek'] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
 export const DEFAULT_CONFIG: Partial<SlothConfig> = {
@@ -82,15 +102,8 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   streamOutput: true,
-  filesystem: [
-    'read_file',
-    'read_multiple_files',
-    'list_directory',
-    'directory_tree',
-    'search_files',
-    'get_file_info',
-    'list_allowed_directories',
-  ],
+  useColour: true,
+  filesystem: 'read',
   commands: {
     pr: {
       contentProvider: 'github', // gh pr diff NN
@@ -122,6 +135,7 @@ export async function initConfig(): Promise<SlothConfig> {
         exit(1);
         // noinspection ExceptionCaughtLocallyJS
         // This throw is unreachable due to exit(1) above, but satisfies TS type analysis and prevents tests from exiting
+        // noinspection ExceptionCaughtLocallyJS
         throw new Error('Unexpected error occurred.');
       }
     } catch (e) {
@@ -144,7 +158,7 @@ async function tryJsConfig(): Promise<SlothConfig> {
   if (existsSync(jsConfigPath)) {
     try {
       const i = await importExternalFile(jsConfigPath);
-      const customConfig = await i.configure(jsConfigPath);
+      const customConfig = await i.configure();
       return mergeConfig(customConfig) as SlothConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
@@ -164,7 +178,7 @@ async function tryMjsConfig(): Promise<SlothConfig> {
   if (existsSync(mjsConfigPath)) {
     try {
       const i = await importExternalFile(mjsConfigPath);
-      const customConfig = await i.configure(mjsConfigPath);
+      const customConfig = await i.configure();
       return mergeConfig(customConfig) as SlothConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
@@ -203,7 +217,7 @@ export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<SlothCo
       // Get the configuration for the specific LLM type
       const llmConfig = jsonConfig.llm;
       // Import the appropriate config module
-      const configModule = await import(`./configs/${llmType}.js`);
+      const configModule = await import(`./presets/${llmType}.js`);
       if (configModule.processJsonConfig) {
         const llm = (await configModule.processJsonConfig(llmConfig)) as BaseChatModel;
         return mergeRawConfig(jsonConfig, llm);
@@ -241,7 +255,7 @@ export async function createProjectConfig(configType: string): Promise<void> {
   displayWarning(`Make sure you add as much detail as possible to your ${PROJECT_GUIDELINES}.\n`);
 
   displayInfo(`Creating project config for ${configType}`);
-  const vendorConfig = await import(`./configs/${configType}.js`);
+  const vendorConfig = await import(`./presets/${configType}.js`);
   vendorConfig.init(getGslothConfigWritePath(USER_PROJECT_CONFIG_JSON));
 }
 
@@ -294,11 +308,16 @@ Important! You are likely to be dealing with git diff below, please don't confus
  */
 function mergeConfig(partialConfig: Partial<SlothConfig>): SlothConfig {
   const config = partialConfig as SlothConfig;
-  return {
+  const mergedConfig = {
     ...DEFAULT_CONFIG,
     ...config,
     commands: { ...DEFAULT_CONFIG.commands, ...(config?.commands ?? {}) },
   };
+
+  // Set the useColour value in systemUtils
+  setUseColour(mergedConfig.useColour);
+
+  return mergedConfig;
 }
 
 /**

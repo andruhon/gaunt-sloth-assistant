@@ -9,5 +9,4 @@
 .claude
 CLAUDE.md
 gaunt-sloth-assistant.iml
-/.gsloth.config.j*
-/.gsloth.config.mjs
+/.gsloth.config*

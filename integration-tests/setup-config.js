@@ -7,12 +7,14 @@ const __dirname = path.dirname(__filename);
 
 const configName = process.argv[2];
 
+const validConfigs = ['groq', 'anthropic', 'vertexai', 'deepseek'];
+
+console.log(`Provided config "${configName}"`);
 if (!configName) {
-  console.error('Please provide a config name: groq, anthropic, or vertexai');
+  console.error(`Please provide a config name: ${validConfigs.join(', ')}`);
   process.exit(1);
 }
 
-const validConfigs = ['groq', 'anthropic', 'vertexai'];
 if (!validConfigs.includes(configName)) {
   console.error(`Invalid config name. Must be one of: ${validConfigs.join(', ')}`);
   process.exit(1);

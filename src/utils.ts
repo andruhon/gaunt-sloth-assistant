@@ -1,7 +1,7 @@
-import { display, displayError, displaySuccess, displayWarning } from '#src/consoleUtils.js';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { displayError, displayInfo, displaySuccess, displayWarning } from '#src/consoleUtils.js';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { SlothConfig } from '#src/config.js';
-import { resolve, dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentDir, getInstallDir, stdout } from '#src/systemUtils.js';
 import url from 'node:url';
@@ -43,7 +43,7 @@ export function generateStandardFileName(command: string): string {
 export function readFileFromCurrentDir(fileName: string): string {
   const currentDir = getCurrentDir();
   const filePath = resolve(currentDir, fileName);
-  display(`Reading file ${filePath}...`);
+  displayInfo(`Reading file ${filePath}...`);
   return readFileSyncWithMessages(filePath);
 }
 
@@ -51,14 +51,16 @@ export function readFileFromCurrentOrInstallDir(filePath: string, silentCurrent?
   const currentDir = getCurrentDir();
   const currentFilePath = resolve(currentDir, filePath);
   if (!silentCurrent) {
-    display(`Reading file ${currentFilePath}...`);
+    displayInfo(`Reading file ${currentFilePath}...`);
   }
 
   try {
     return readFileSync(currentFilePath, { encoding: 'utf8' });
   } catch (_error) {
     if (!silentCurrent) {
-      display(`The ${currentFilePath} not found or can\'t be read, trying install directory...`);
+      displayWarning(
+        `The ${currentFilePath} not found or can\'t be read, trying install directory...`
+      );
     }
     const installDir = getInstallDir();
     const installFilePath = resolve(installDir, filePath);
@@ -72,7 +74,7 @@ export function readFileFromCurrentOrInstallDir(filePath: string, silentCurrent?
 }
 
 export function writeFileIfNotExistsWithMessages(filePath: string, content: string): void {
-  display(`checking ${filePath} existence`);
+  displayInfo(`checking ${filePath} existence`);
   if (!existsSync(filePath)) {
     // Create parent directories if they don't exist
     const parentDir = dirname(filePath);
@@ -149,7 +151,7 @@ export async function spawnCommand(
 
     spawned.on('close', (code) => {
       if (code === 0) {
-        display(successMessage);
+        displaySuccess(successMessage);
         resolve(out.stdout);
       } else {
         displayError(`Failed to spawn command with code ${code}`);
@@ -196,6 +198,67 @@ export class ProgressIndicator {
   }
 }
 
+// Tool formatting utilities
+
+/**
+ * Truncate a string to a maximum length with ellipsis
+ */
+export function truncateString(str: string, maxLength: number): string {
+  if (str.length <= maxLength) {
+    return str;
+  }
+  return str.slice(0, maxLength - 3) + '...';
+}
+
+/**
+ * Format tool call arguments in a human-readable way
+ */
+export function formatToolCallArgs(args: Record<string, unknown>): string {
+  return Object.entries(args)
+    .map(([key, value]) => {
+      let displayValue: string;
+      if (typeof value === 'string') {
+        displayValue = value;
+      } else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+        displayValue = JSON.stringify(value);
+      } else {
+        displayValue = String(value);
+      }
+      return `${key}: ${truncateString(displayValue, 50)}`;
+    })
+    .join(', ');
+}
+
+/**
+ * Format a single tool call with name and arguments
+ */
+export function formatToolCall(
+  toolName: string,
+  args: Record<string, unknown>,
+  prefix = ''
+): string {
+  const formattedArgs = formatToolCallArgs(args);
+  return `${prefix}${toolName}(${formattedArgs})`;
+}
+
+/**
+ * Format multiple tool calls for display (matches Invocation.ts behavior)
+ */
+export function formatToolCalls(
+  toolCalls: Array<{ name: string; args?: Record<string, unknown> }>,
+  maxLength = 255
+): string {
+  const formatted = toolCalls
+    .map((toolCall) => {
+      const formattedArgs = formatToolCallArgs(toolCall.args || {});
+      return `${toolCall.name}(${formattedArgs})`;
+    })
+    .join(', ');
+
+  // Truncate to maxLength characters if needed
+  return formatted.length > maxLength ? formatted.slice(0, maxLength - 3) + '...' : formatted;
+}
+
 interface LLMOutput {
   messages: Array<{
     content: string;
@@ -216,12 +279,11 @@ export function extractLastMessageContent(output: LLMOutput): string {
 
 /**
  * Dynamically imports a module from a file path from the outside of the installation dir
- * @param filePath - The path to the file to import
  * @returns A promise that resolves to the imported module
  */
 export function importExternalFile(
   filePath: string
-): Promise<{ configure: (module: string) => Promise<Partial<SlothConfig>> }> {
+): Promise<{ configure: () => Promise<Partial<SlothConfig>> }> {
   const configFileUrl = url.pathToFileURL(filePath).toString();
   return import(configFileUrl);
 }
