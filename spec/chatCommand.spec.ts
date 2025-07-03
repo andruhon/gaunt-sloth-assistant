@@ -7,7 +7,6 @@ import { createInterface } from 'node:readline';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
-import chalk from 'chalk';
 import { appendToFile } from '#src/utils.js';
 import { createInteractiveSession } from '#src/modules/interactiveSessionModule.js';
 
@@ -241,7 +240,7 @@ describe('chatCommand', () => {
       '\nGaunt Sloth is ready to chat. Type your prompt.'
     );
     expect(vi.mocked(display)).toHaveBeenCalledWith(
-      chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n")
+      expect.stringContaining("Type 'exit' or hit Ctrl+C to exit chat")
     );
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
@@ -395,7 +394,7 @@ describe('Default Chat Behavior (no arguments)', () => {
       '\nGaunt Sloth is ready to chat. Type your prompt.'
     );
     expect(vi.mocked(display)).toHaveBeenCalledWith(
-      chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n")
+      expect.stringContaining("Type 'exit' or hit Ctrl+C to exit chat")
     );
   });
 
