@@ -1,0 +1,10 @@
+{
+  "llm": {
+    "type": "openai",
+    "model": "mercury-coder",
+    "apiKeyEnvironmentVariable": "INCEPTION_API_KEY",
+    "configuration": {
+      "baseURL": "https://api.inceptionlabs.ai/v1"
+    }
+  }
+}

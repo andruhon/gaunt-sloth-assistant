@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 const configName = process.argv[2];
 
-const validConfigs = ['groq', 'anthropic', 'vertexai', 'deepseek'];
+const validConfigs = ['groq', 'anthropic', 'vertexai', 'deepseek', 'openai', 'inception'];
 
 console.log(`Provided config "${configName}"`);
 if (!configName) {

@@ -42,7 +42,7 @@ It is always worth checking sourcecode in [config.ts](../src/config.ts) for more
 | Parameter                                | Required                          | Default Value | Description                                                                                                                                                                                                                                               |
 |------------------------------------------|-----------------------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `llm`                                    | Required                          | -             | An object configuring LLM. In JS config could be actual instance of LangChainJS [BaseChatModel](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html), allowing to use LLMs which do not have a preset. |
-| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq`, `vertexai` and `deepseek`. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
+| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq`, `vertexai`, `deepseek` and `openai`. For providers using OpenAI format (like Inception), use `openai` type with custom configuration. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
 | `llm.model`                              | Optional                          | -             | Particular LLM model string (Check in your provider documentation).                                                                                                                                                                                       |
 | `llm.apiKey`                             | Optional                          | -             | API key for the LLM provider. You can either use this parameter or use environment variable.                                                                                                                                                              |
 | `contentProvider`                        | Optional                          | `file`        | Default content provider used to get content for review. Options available are `github`, `file` and `text` (`text` provides text as it is).                                                                                                               |
@@ -83,7 +83,8 @@ It is always worth checking sourcecode in [config.ts](../src/config.ts) for more
 
 ## Config initialization
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, vertexai, anthropic, groq and deepseek can be configured with `gsloth init [vendor]`.
+Currently, vertexai, anthropic, groq, deepseek and openai can be configured with `gsloth init [vendor]`.
+For providers using OpenAI format (like Inception), use `gsloth init openai` and then modify the configuration.
 
 ### Google Vertex AI
 ```shell
@@ -114,6 +115,34 @@ gsloth init deepseek
 ```
 Make sure you either define `DEEPSEEK_API_KEY` environment variable or edit your configuration file and set up your key.
 (note this meant to be an API key from deepseek.com, rather than from a distributor like TogetherAI)
+
+### OpenAI
+```shell
+cd ./your-project
+gsloth init openai
+```
+Make sure you either define `OPENAI_API_KEY` environment variable or edit your configuration file and set up your key.
+
+### OpenAI-compatible providers (Inception, etc.)
+For providers that use OpenAI-compatible APIs:
+```shell
+cd ./your-project
+gsloth init openai
+```
+Then edit your configuration file to add the custom base URL and API key. For example, for Inception:
+```json
+{
+  "llm": {
+    "type": "openai",
+    "model": "mercury-coder",
+    "apiKeyEnvironmentVariable": "INCEPTION_API_KEY",
+    "configuration": {
+      "baseURL": "https://api.inceptionlabs.ai/v1"
+    }
+  }
+}
+```
+* apiKeyEnvironmentVariable property can be used to point to the correct API key environment variable.
 
 ## Examples of configuration for different providers 
 
@@ -161,6 +190,31 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
     "type": "deepseek",
     "model": "deepseek-reasoner",
     "apiKey": "your-api-key-here"
+  }
+}
+```
+
+**Example of .gsloth.config.json for OpenAI**
+```json
+{
+  "llm": {
+    "type": "openai",
+    "model": "gpt-4o",
+    "apiKey": "your-api-key-here"
+  }
+}
+```
+
+**Example of .gsloth.config.json for Inception (OpenAI-compatible)**
+```json
+{
+  "llm": {
+    "type": "openai",
+    "model": "mercury-coder",
+    "apiKeyEnvironmentVariable": "INCEPTION_API_KEY",
+    "configuration": {
+      "baseURL": "https://api.inceptionlabs.ai/v1"
+    }
   }
 }
 ```
@@ -249,6 +303,35 @@ export async function configure() {
         llm: new deepseek.ChatDeepSeek({
             model: 'deepseek-reasoner',
             apiKey: process.env.DEEPSEEK_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
+        })
+    };
+}
+```
+
+**Example of .gsloth.config.js for OpenAI**
+```javascript
+export async function configure() {
+    const openai = await import('@langchain/openai');
+    return {
+        llm: new openai.ChatOpenAI({
+            model: 'gpt-4o',
+            apiKey: process.env.OPENAI_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
+        })
+    };
+}
+```
+
+**Example of .gsloth.config.js for Inception (OpenAI-compatible)**
+```javascript
+export async function configure() {
+    const openai = await import('@langchain/openai');
+    return {
+        llm: new openai.ChatOpenAI({
+            model: 'mercury-coder',
+            apiKey: process.env.INCEPTION_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
+            configuration: {
+                baseURL: 'https://api.inceptionlabs.ai/v1',
+            },
         })
     };
 }
