@@ -9,6 +9,7 @@ import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import chalk from 'chalk';
 import { appendToFile } from '#src/utils.js';
+import { createInteractiveSession } from '#src/modules/interactiveSessionModule.js';
 
 // Mock modules
 vi.mock('#src/prompt.js', () => ({
@@ -317,6 +318,128 @@ describe('chatCommand', () => {
     expect(vi.mocked(appendToFile)).toHaveBeenCalledWith(
       'mock/chat/file.txt',
       '## User\n\nfirst message\n\n## Assistant\n\nMock response\n\n'
+    );
+  });
+});
+
+describe('Default Chat Behavior (no arguments)', () => {
+  let mockReadline: ReadlineInterface;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mockReadline = {
+      question: vi.fn().mockImplementation((prompt, callback) => {
+        callback('exit'); // Default to exit
+      }),
+      close: vi.fn(),
+      terminal: true,
+      line: '',
+      cursor: 0,
+      getPrompt: vi.fn(),
+      setPrompt: vi.fn(),
+      prompt: vi.fn(),
+      pause: vi.fn(),
+      resume: vi.fn(),
+      write: vi.fn(),
+      addListener: vi.fn(),
+      emit: vi.fn(),
+      on: vi.fn(),
+      once: vi.fn(),
+      prependListener: vi.fn(),
+      prependOnceListener: vi.fn(),
+      removeListener: vi.fn(),
+      off: vi.fn(),
+      removeAllListeners: vi.fn(),
+      setMaxListeners: vi.fn(),
+      getMaxListeners: vi.fn(),
+      listeners: vi.fn(),
+      rawListeners: vi.fn(),
+      eventNames: vi.fn(),
+      listenerCount: vi.fn(),
+    } as unknown as ReadlineInterface;
+
+    vi.mocked(createInterface).mockReturnValue(mockReadline);
+  });
+
+  it('Should start chat session when called directly via createInteractiveSession', async () => {
+    const sessionConfig = {
+      mode: 'chat' as const,
+      readModePrompt: vi.fn().mockReturnValue('Mock chat prompt'),
+      description: 'Start an interactive chat session with Gaunt Sloth',
+      readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
+      exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
+    };
+
+    await createInteractiveSession(sessionConfig);
+
+    expect(invocationInstance.init).toHaveBeenCalledWith(
+      'chat',
+      expect.any(Object),
+      expect.any(MemorySaver)
+    );
+  });
+
+  it('Should display welcome message when no initial message provided', async () => {
+    const sessionConfig = {
+      mode: 'chat' as const,
+      readModePrompt: vi.fn().mockReturnValue('Mock chat prompt'),
+      description: 'Start an interactive chat session with Gaunt Sloth',
+      readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
+      exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
+    };
+
+    await createInteractiveSession(sessionConfig);
+
+    expect(vi.mocked(display)).toHaveBeenCalledWith(
+      '\nGaunt Sloth is ready to chat. Type your prompt.'
+    );
+    expect(vi.mocked(display)).toHaveBeenCalledWith(
+      chalk.gray("Type 'exit' or hit Ctrl+C to exit chat\n")
+    );
+  });
+
+  it('Should create session config with correct mode and prompts', async () => {
+    const { readChatPrompt } = await import('#src/prompt.js');
+
+    const sessionConfig = {
+      mode: 'chat' as const,
+      readModePrompt: readChatPrompt,
+      description: 'Start an interactive chat session with Gaunt Sloth',
+      readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
+      exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
+    };
+
+    expect(sessionConfig.mode).toBe('chat');
+    expect(sessionConfig.readModePrompt).toBe(readChatPrompt);
+    expect(sessionConfig.description).toBe('Start an interactive chat session with Gaunt Sloth');
+    expect(sessionConfig.readyMessage).toBe('\nGaunt Sloth is ready to chat. Type your prompt.');
+    expect(sessionConfig.exitMessage).toBe("Type 'exit' or hit Ctrl+C to exit chat\n");
+  });
+
+  it('Should handle createInteractiveSession with initial message', async () => {
+    const sessionConfig = {
+      mode: 'chat' as const,
+      readModePrompt: vi.fn().mockReturnValue('Mock chat prompt'),
+      description: 'Start an interactive chat session with Gaunt Sloth',
+      readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
+      exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
+    };
+
+    await createInteractiveSession(sessionConfig, 'initial message');
+
+    expect(invocationInstance.init).toHaveBeenCalledWith(
+      'chat',
+      expect.any(Object),
+      expect.any(MemorySaver)
+    );
+
+    expect(invocationInstance.invoke).toHaveBeenCalledWith(
+      [
+        new SystemMessage('Mock backstory\nMock guidelines\nMock chat prompt\nMock system prompt'),
+        new HumanMessage('initial message'),
+      ],
+      expect.any(Object)
     );
   });
 });
