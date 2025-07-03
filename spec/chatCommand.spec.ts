@@ -395,7 +395,7 @@ describe('Default Chat Behavior (no arguments)', () => {
     expect(vi.mocked(display)).toHaveBeenCalledWith(
       '\nGaunt Sloth is ready to chat. Type your prompt.'
     );
-    expect(vi.mocked(display)).toHaveBeenCalledWith(
+    expect(vi.mocked(displayInfo)).toHaveBeenCalledWith(
       expect.stringContaining("Type 'exit' or hit Ctrl+C to exit chat")
     );
   });
