@@ -90,9 +90,17 @@ export type PreBuiltToolsConfig = {
 export interface LLMConfig extends Record<string, unknown> {
   type: string;
   model: string;
+  configuration: Record<string, unknown>;
+  apiKeyEnvironmentVariable?: string;
 }
 
-export const availableDefaultConfigs = ['vertexai', 'anthropic', 'groq', 'deepseek'] as const;
+export const availableDefaultConfigs = [
+  'vertexai',
+  'anthropic',
+  'groq',
+  'deepseek',
+  'openai',
+] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
 export const DEFAULT_CONFIG: Partial<SlothConfig> = {

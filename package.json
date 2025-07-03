@@ -31,6 +31,7 @@
     "@langchain/groq": "^0.2.3",
     "@langchain/langgraph": "^0.3.6",
     "@langchain/mcp-adapters": "^0.5.2",
+    "@langchain/openai": "^0.5.16",
     "commander": "^14.0.0",
     "diff": "^8.0.2",
     "express": "^5.1.0",

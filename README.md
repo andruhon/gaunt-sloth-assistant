@@ -50,7 +50,8 @@ The promise of Gaunt Sloth:
 - Google Vertex AI;
 - Anthropic;
 - Groq;
-- DeepSeek.
+- DeepSeek;
+- OpenAI (and other providers using OpenAI format, such as Inception).
 
 `*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#JavaScript-Configuration).
 
@@ -112,7 +113,8 @@ npm install gaunt-sloth-assistant -g
 > Global configuration to invoke gsloth anywhere is in [ROADMAP](ROADMAP.md).
 
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, vertexai, anthropic, groq and deepseek can be configured with `gsloth init [vendor]`.
+Currently, vertexai, anthropic, groq, deepseek and openai can be configured with `gsloth init [vendor]`.
+For OpenAI-compatible providers like Inception, use `gsloth init openai` and modify the configuration.
 
 More detailed information on configuration can be found in [CONFIGURATION.md](./docs/CONFIGURATION.md)
 
@@ -147,6 +149,21 @@ gsloth init deepseek
 ```
 Make sure you either define `DEEPSEEK_API_KEY` environment variable or edit your configuration file and set up your key.
 It is recommended to obtain API key from DeepSeek official website rather than from a reseller.
+
+### OpenAI
+```shell
+cd ./your-project
+gsloth init openai
+```
+Make sure you either define `OPENAI_API_KEY` environment variable or edit your configuration file and set up your key.
+
+### OpenAI-compatible providers (Inception, etc.)
+For providers using OpenAI-compatible APIs:
+```shell
+cd ./your-project
+gsloth init openai
+```
+Then edit your configuration to add custom base URL and API key. See [CONFIGURATION.md](./docs/CONFIGURATION.md) for examples.
 
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md). 

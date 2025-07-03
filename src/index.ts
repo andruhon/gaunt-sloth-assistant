@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { askCommand } from '#src/commands/askCommand.js';
 import { initCommand } from '#src/commands/initCommand.js';
 import { reviewCommand } from '#src/commands/reviewCommand.js';
@@ -15,7 +15,8 @@ program
   .name('gsloth')
   .description('Gaunt Sloth Assistant reviewing your PRs')
   .version(getSlothVersion())
-  .option('--verbose', 'Print entire prompt sent to LLM.');
+  .option('--verbose', 'Print entire prompt sent to LLM.')
+  .addOption(new Option('--nopipe').hideHelp(true));
 
 // Parse global options before binding any commands
 program.parseOptions(argv);
