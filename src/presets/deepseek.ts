@@ -13,8 +13,8 @@ export async function processJsonConfig(
   llmConfig: ChatDeepSeekInput & BaseChatModelParams
 ): Promise<BaseChatModel> {
   const deepseek = await import('@langchain/deepseek');
-  // Use environment variable if available, otherwise use the config value
-  const deepseekApiKey = env.DEEPSEEK_API_KEY || llmConfig.apiKey;
+  // Use config apiKey if available, otherwise use the environment variable
+  const deepseekApiKey = llmConfig.apiKey || env.DEEPSEEK_API_KEY;
   return new deepseek.ChatDeepSeek({
     ...llmConfig,
     apiKey: deepseekApiKey,

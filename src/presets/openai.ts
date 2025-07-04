@@ -33,7 +33,7 @@ function getApiKey(llmConfig: OpenAIChatInput & ChatOpenAIFields & BaseChatModel
   if (conf.apiKeyEnvironmentVariable && env[conf.apiKeyEnvironmentVariable]) {
     return env[conf.apiKeyEnvironmentVariable];
   } else {
-    return env.OPENAI_API_KEY || llmConfig.apiKey;
+    return llmConfig.apiKey || env.OPENAI_API_KEY;
   }
 }
 

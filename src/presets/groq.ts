@@ -8,8 +8,8 @@ import { ChatGroqInput } from '@langchain/groq';
 // Function to process JSON config and create Groq LLM instance
 export async function processJsonConfig(llmConfig: ChatGroqInput): Promise<BaseChatModel> {
   const groq = await import('@langchain/groq');
-  // Use environment variable if available, otherwise use the config value
-  const groqApiKey = env.GROQ_API_KEY || llmConfig.apiKey;
+  // Use config value if available, otherwise use the environment variable
+  const groqApiKey = llmConfig.apiKey || env.GROQ_API_KEY;
   return new groq.ChatGroq({
     ...llmConfig,
     apiKey: groqApiKey,

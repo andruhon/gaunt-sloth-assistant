@@ -13,8 +13,8 @@ export async function processJsonConfig(
   llmConfig: AnthropicInput & BaseChatModelParams
 ): Promise<BaseChatModel> {
   const anthropic = await import('@langchain/anthropic');
-  // Use environment variable if available, otherwise use the config value
-  const anthropicApiKey = env.ANTHROPIC_API_KEY || llmConfig.apiKey;
+  // Use config value if available, otherwise use the environment variable
+  const anthropicApiKey = llmConfig.apiKey || env.ANTHROPIC_API_KEY;
   return new anthropic.ChatAnthropic({
     ...llmConfig,
     apiKey: anthropicApiKey,
