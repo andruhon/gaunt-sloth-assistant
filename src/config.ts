@@ -116,6 +116,7 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
     pr: {
       contentProvider: 'github', // gh pr diff NN
       requirementsProvider: 'github', // gh issue view NN
+      builtInTools: ['gth_request_changes'],
     },
     code: {
       filesystem: 'all',
