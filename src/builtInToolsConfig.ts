@@ -7,7 +7,7 @@ import { getCurrentDir } from '#src/systemUtils.js';
 const AVAILABLE_BUILT_IN_TOOLS = {
   gth_status_update: '#src/tools/gthStatusUpdateTool.js',
   gth_jira_log_work: '#src/tools/gthJiraLogWorkTool.js',
-  gth_request_changes: '#src/tools/gthReject.js',
+  gth_request_changes: '#src/tools/gthRequestChanges.js',
 };
 
 /**
