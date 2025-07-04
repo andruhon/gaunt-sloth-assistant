@@ -24,7 +24,6 @@ export async function processJsonConfig(
   };
   delete (configFields as any).type;
   delete (configFields as any).apiKeyEnvironmentVariable;
-  console.log(configFields);
   return new ChatOpenAI(configFields);
 }
 
