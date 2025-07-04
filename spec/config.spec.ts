@@ -112,7 +112,11 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         commands: {
-          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          pr: {
+            builtInTools: ['gth_request_changes'],
+            contentProvider: 'github',
+            requirementsProvider: 'github',
+          },
           code: { filesystem: 'all' },
         },
       });
@@ -167,7 +171,11 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         commands: {
-          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          pr: {
+            builtInTools: ['gth_request_changes'],
+            contentProvider: 'github',
+            requirementsProvider: 'github',
+          },
           code: { filesystem: 'all' },
         },
       });
@@ -222,7 +230,11 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         commands: {
-          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          pr: {
+            builtInTools: ['gth_request_changes'],
+            contentProvider: 'github',
+            requirementsProvider: 'github',
+          },
           code: { filesystem: 'all' },
         },
       });
@@ -378,7 +390,11 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         commands: {
-          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          pr: {
+            builtInTools: ['gth_request_changes'],
+            contentProvider: 'github',
+            requirementsProvider: 'github',
+          },
           code: { filesystem: 'all' },
         },
       });
