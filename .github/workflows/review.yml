@@ -43,3 +43,5 @@ jobs:
     - name: Leave Comment
       if: always()
       run: gh pr comment -b "test comment"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
