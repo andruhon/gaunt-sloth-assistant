@@ -42,4 +42,4 @@ jobs:
 
     - name: Leave Comment
       if: always()
-      run: gh pr comment "test comment"
+      run: gh pr comment -b "test comment"
