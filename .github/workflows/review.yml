@@ -25,4 +25,4 @@ jobs:
       run: npm i gaunt-sloth-assistant@0.8.3
     
     - name: Perform code review
-      run: cat test-file.txt
+      run: ls
