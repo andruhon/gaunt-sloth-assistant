@@ -15,7 +15,6 @@ import {
 } from './commandUtils.js';
 import jiraLogWork from '#src/helpers/jira/jiraLogWork.js';
 import { JiraConfig } from '#src/providers/types.js';
-import process from 'node:process';
 
 interface PrCommandOptions {
   file?: string[];
@@ -48,10 +47,6 @@ export function prCommand(program: Command): void {
     )
     .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
-      console.log('1111');
-      console.log('lngth', process.env.TEST_SECRET?.length);
-      console.log(process.env.TEST_SECRET);
-      console.log('1111');
       const { initConfig } = await import('#src/config.js');
       const config = await initConfig(); // Initialize and get config
 
