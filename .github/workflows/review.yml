@@ -1,8 +1,10 @@
 name: AI Review (Anthropic)
 
 on:
-  pull_request:
-    branches: [ "main" ]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches:
+      - 'main'
 
 jobs:
   ai-code-review:
@@ -22,7 +24,7 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm i gaunt-sloth-assistant@0.8.3
+      run: npm i gaunt-sloth-assistant@0.8.3 -g && gth --version
     
     - name: Perform code review
-      run: cat test-file.txt
+      run: echo test
