@@ -42,4 +42,4 @@ jobs:
 
     - name: Leave Comment
       if: always()
-      run: gh pr comment ${{ github.event.pull_request.number }} -b ${{join(steps.review_step.outputs.*, '\n')}}
+      run: gh pr comment "test comment"
