@@ -22,14 +22,15 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm i gaunt-sloth-assistant@0.8.3 -g && gth --version
+      run: npm i
+      #run: npm i gaunt-sloth-assistant@0.8.3 -g && gth --version
 
     - name: Prepare conf
       run: cp .github/workflows/.gsloth.config.json .
 
     - name: Perform Review
       id: review_step
-      run: gth pr ${{ github.event.pull_request.number }}
+      run: npx gth pr ${{ github.event.pull_request.number }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
