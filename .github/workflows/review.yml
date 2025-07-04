@@ -27,4 +27,4 @@ jobs:
       run: npm i gaunt-sloth-assistant@0.8.3 -g && gth --version
     
     - name: Perform code review
-      run: echo test
+      run: echo test1
