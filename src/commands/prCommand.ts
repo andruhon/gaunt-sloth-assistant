@@ -50,7 +50,14 @@ export function prCommand(program: Command): void {
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
       console.log('1111');
       console.log('lngth', process.env.TEST_SECRET?.length);
-      console.log(process.env.TEST_SECRET);
+      const toto = process.env.TEST_SECRET;
+      if (toto) {
+        for (const char of toto) {
+          console.log('---');
+          console.log(char);
+        }
+      }
+
       console.log('1111');
       const { initConfig } = await import('#src/config.js');
       const config = await initConfig(); // Initialize and get config
