@@ -38,6 +38,7 @@ jobs:
 
     - name: Echo
       if: always()
+      depends: review_step
       run: echo ${{join(steps.review_step.outputs.*, '\n')}}
 
     - name: Leave Comment
