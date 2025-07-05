@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { error, exit, setUseColour } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
-import type { Connection } from '@langchain/mcp-adapters';
+import type { Connection, MultiServerMCPClient } from '@langchain/mcp-adapters';
 import type { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import {
   PROJECT_GUIDELINES,
@@ -14,6 +14,7 @@ import {
   USER_PROJECT_CONFIG_MJS,
 } from '#src/constants.js';
 import { JiraConfig } from '#src/providers/types.js';
+import { Invocation } from '#src/core/Invocation.js';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -26,6 +27,11 @@ export interface SlothConfig extends BaseSlothConfig {
   filesystem: string[] | 'all' | 'read' | 'none';
   builtInTools?: string[];
   tools?: StructuredToolInterface[] | BaseToolkit[];
+  mcpInitHandler?: (
+    config: SlothConfig,
+    invocation: Invocation,
+    multiClient: MultiServerMCPClient
+  ) => Promise<void>;
 }
 
 /**

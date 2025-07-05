@@ -75,23 +75,24 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       isFirstMessage = false;
     };
 
-    const askQuestion = () => {
-      rl.question(formatInputPrompt('  > '), async (userInput) => {
-        if (!userInput.trim()) {
-          rl.close(); // This is not the end of the loop, simply skipping inference if no input
-          return;
-        }
-        if (userInput.toLowerCase() === 'exit') {
-          rl.close();
-          shouldExit = true;
-          await invocation.cleanup();
-          return;
-        }
-        await processMessage(userInput);
-        display('\n\n');
-        displayInfo(sessionConfig.exitMessage);
-        if (!shouldExit) askQuestion();
-      });
+    // setInterval(() => process.stdout.write('.'), 3000);
+
+    const askQuestion = async () => {
+      const userInput = await rl.question(formatInputPrompt('  > '));
+      if (!userInput.trim()) {
+        rl.close(); // This is not the end of the loop, simply skipping inference if no input
+        return;
+      }
+      if (userInput.toLowerCase() === 'exit') {
+        rl.close();
+        shouldExit = true;
+        await invocation.cleanup();
+        return;
+      }
+      await processMessage(userInput);
+      display('\n\n');
+      displayInfo(sessionConfig.exitMessage);
+      if (!shouldExit) await askQuestion();
     };
 
     if (message) {
@@ -100,7 +101,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       display(sessionConfig.readyMessage);
       displayInfo(sessionConfig.exitMessage);
     }
-    if (!shouldExit) askQuestion();
+    if (!shouldExit) await askQuestion();
   } catch (err) {
     await invocation.cleanup();
     error(`Error in ${sessionConfig.mode} command: ${err}`);

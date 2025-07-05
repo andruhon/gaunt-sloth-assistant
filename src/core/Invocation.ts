@@ -24,6 +24,11 @@ export class Invocation {
   private agent: CompiledStateGraph<any, any> | null = null;
   private config: SlothConfig | null = null;
 
+  /**
+   * FIXME this is bad stuff, and should not end up on master
+   */
+  private cachedRunnableConfig: RunnableConfig | undefined = undefined;
+
   constructor(statusUpdate: StatusUpdateCallback) {
     this.statusUpdate = statusUpdate;
   }
@@ -44,6 +49,12 @@ export class Invocation {
     // Merge command-specific filesystem config if provided
     this.config = this.getEffectiveConfig(configIn, command);
     this.mcpClient = await this.getMcpClient(this.config);
+    if (this.config.mcpInitHandler && this.mcpClient) {
+      await this.config.mcpInitHandler(this.config, this, this.mcpClient);
+      console.log('MCP handler initialized');
+      // await this.mcpClient.close();
+      // await this.mcpClient?.initializeConnections();
+    }
 
     // Get default filesystem tools (filtered based on config)
     const defaultTools = await getDefaultTools(this.config);
@@ -95,6 +106,9 @@ export class Invocation {
     if (!this.agent || !this.config) {
       throw new Error('Invocation not initialized. Call init() first.');
     }
+    if (runConfig) {
+      this.cachedRunnableConfig = runConfig;
+    }
 
     // Run the agent
     try {
@@ -104,7 +118,7 @@ export class Invocation {
         this.statusUpdate('info', '\nThinking...\n');
         const stream = await this.agent.stream(
           { messages },
-          { ...runConfig, streamMode: 'messages' }
+          { ...this.cachedRunnableConfig, streamMode: 'messages' }
         );
 
         for await (const [chunk, _metadata] of stream) {
@@ -121,7 +135,7 @@ export class Invocation {
         // Not streaming output
         const progress = new ProgressIndicator('Thinking.');
         try {
-          const response = await this.agent.invoke({ messages }, runConfig);
+          const response = await this.agent.invoke({ messages }, this.cachedRunnableConfig);
           output.aiMessage = response.messages[response.messages.length - 1].content as string;
           const toolCalls = response.messages
             .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)

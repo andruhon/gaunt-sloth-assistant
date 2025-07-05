@@ -2,7 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'url';
 import { Command } from 'commander';
 import { ProgressIndicator } from '#src/utils.js';
-import { createInterface, type Interface as ReadLineInterface } from 'node:readline';
+import { createInterface, type Interface as ReadLineInterface } from 'node:readline/promises';
 
 /**
  * This file contains all system functions and objects that are globally available
