@@ -1,5 +1,6 @@
-name: AI Review (Anthropic)
+name: AI PR Review (Anthropic)
 
+# The pull_request_target is an important feature. It is running on files from `main`.
 on:
   pull_request_target:
     types: [ opened, synchronize, reopened ]
@@ -23,16 +24,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: check dir contents
-        run: ls src/tools
-
-      - name: check file contents
-        run: cat review.md
-
       - name: Install dependencies
         run: npm i gaunt-sloth-assistant@0.8.3 -g && gth --version
 
-      - name: Prepare conf
+      - name: Prepare gsloth conf
         run: cp .github/workflows/.gsloth.config.json .
 
       - name: Perform code review
