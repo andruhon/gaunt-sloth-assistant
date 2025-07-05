@@ -20,6 +20,8 @@
     "prepare": "npm run build"
   },
   "bin": {
+    "gaunt-sloth-assistant": "index.js",
+    "gaunt-sloth": "index.js",
     "gsloth": "index.js",
     "gth": "index.js"
   },
