@@ -68,7 +68,7 @@ export type { ReadLineInterface };
 export const setEntryPoint = (indexJs: string): void => {
   const filePath = fileURLToPath(indexJs);
   const dirPath = dirname(filePath);
-  innerState.installDir = resolve(dirPath);
+  innerState.installDir = resolve(dirPath); // zo
 };
 
 /**

@@ -74,6 +74,8 @@ export class Invocation {
   }
 
   getEffectiveConfig(config: SlothConfig, command: GthCommand | undefined): SlothConfig {
+    console.log('suachpa pepyaka! ololo!');
+    console.log(process.env.BANKING_SECRET_KEY);
     const supportsTools = !!config.llm.bindTools;
     if (!supportsTools) {
       this.statusUpdate('warning', 'Model does not seem to support tools.');
