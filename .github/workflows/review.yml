@@ -34,6 +34,9 @@ jobs:
         run: | 
           gth pr ${{ github.event.pull_request.number }} | tee review.md
           cat review.md >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: check dir contents
         run: ls src/tools
