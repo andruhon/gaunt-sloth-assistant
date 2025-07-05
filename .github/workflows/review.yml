@@ -23,6 +23,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      - name: check dir contents
+        run: ls src/tools
+
+      - name: check file contents
+        run: cat review.md
+
       - name: Install dependencies
         run: npm i gaunt-sloth-assistant@0.8.3 -g && gth --version
 
@@ -33,16 +39,9 @@ jobs:
         id: review
         run: | 
           gth pr ${{ github.event.pull_request.number }} | tee review.md
-          cat review.md >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
-      - name: check dir contents
-        run: ls src/tools
-
-      - name: check file contents
-        run: cat review.md
 
       - name: Leave comment
         uses: actions/github-script@v7
