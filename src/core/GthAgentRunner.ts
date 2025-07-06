@@ -33,9 +33,7 @@ export class GthAgentRunner {
     }
 
     // Initialize the agent if it has an init method
-    if ('init' in this.agent && typeof this.agent.init === 'function') {
-      await this.agent.init(command, configIn, checkpointSaver);
-    }
+    await this.agent.init(command, configIn, checkpointSaver);
 
     // Set verbose if applicable
     if (this.verbose && 'setVerbose' in this.agent && typeof this.agent.setVerbose === 'function') {
