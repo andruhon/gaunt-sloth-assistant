@@ -65,6 +65,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
 
       const runConfig = {
         configurable: { thread_id },
+        recursionLimit: 250,
       } as RunnableConfig;
 
       const aiResponse = await invocation.invoke(messages, runConfig);
