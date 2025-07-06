@@ -53,6 +53,10 @@ vi.mock('node:fs', () => ({
 
 vi.mock('#src/llmUtils.js', () => ({
   invoke: vi.fn().mockResolvedValue('Mock response'),
+  getNewRunnableConfig: vi.fn().mockReturnValue({
+    recursionLimit: 250,
+    configurable: { thread_id: 'test-thread-id' },
+  }),
 }));
 
 vi.mock('#src/core/GthAgentRunner.js', () => ({

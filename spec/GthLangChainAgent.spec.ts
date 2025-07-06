@@ -174,7 +174,6 @@ describe('GthLangChainAgent', () => {
       await agent.init(undefined, mockConfig, checkpointSaver);
     });
 
-    // FIXME this test does not do anything with toolkits
     it('should flatten toolkits into individual tools', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
       // Toolkit has one single method - getTools
@@ -217,7 +216,10 @@ describe('GthLangChainAgent', () => {
   describe('invoke', () => {
     it('should throw error if not initialized', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
 
       await expect(agent.invoke('test', runConfig)).rejects.toThrow(
         'Agent not initialized. Call init() first.'
@@ -237,7 +239,10 @@ describe('GthLangChainAgent', () => {
       };
       await agent.init(undefined, config);
 
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
       const result = await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith('display', 'test response');
@@ -265,7 +270,10 @@ describe('GthLangChainAgent', () => {
       };
       await agent.init(undefined, config);
 
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
       await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
@@ -288,7 +296,10 @@ describe('GthLangChainAgent', () => {
       };
       await agent.init(undefined, config);
 
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
       const result = await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
@@ -300,76 +311,74 @@ describe('GthLangChainAgent', () => {
       expect(result).toBe('');
     });
 
-    it('should invoke agent in streaming mode', async () => {
+    it('should invoke agent in non-streaming mode only', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
-      const fakeStreamingChatModel = new FakeStreamingChatModel({
-        chunks: [
-          new AIMessageChunk({ content: 'chunk1' }),
-          new AIMessageChunk({ content: 'chunk2' }),
-        ],
+      const fakeListChatModel = new FakeListChatModel({
+        responses: ['test response'],
       });
-      fakeStreamingChatModel.bindTools = vi.fn().mockReturnValue(fakeStreamingChatModel);
+      fakeListChatModel.bindTools = vi.fn().mockReturnValue(fakeListChatModel);
 
-      const streamConfig = {
+      const config = {
         ...mockConfig,
-        llm: fakeStreamingChatModel,
-        streamOutput: true,
+        llm: fakeListChatModel,
+        streamOutput: true, // This should be ignored by invoke method
       };
-      await agent.init(undefined, streamConfig);
+      await agent.init(undefined, config);
 
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
       const result = await agent.invoke('test message', runConfig);
 
-      expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'chunk1');
-      expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'chunk2');
-      expect(result).toBe('chunk1chunk2');
+      expect(statusUpdateCallback).toHaveBeenCalledWith('display', 'test response');
+      expect(result).toBe('test response');
     });
 
-    it('should display tool usage in streaming mode', async () => {
+    it('should display tool usage in non-streaming mode', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
-      const fakeStreamingChatModel = new FakeStreamingChatModel({
-        chunks: [
-          new AIMessageChunk({
-            content: 'response',
+      // Use FakeListChatModel to simulate a response with tool calls
+      const fakeListChatModel = new FakeListChatModel({
+        responses: [
+          new AIMessage({
+            content: 'response done',
             tool_calls: [{ name: 'read_file', args: {}, id: '1' }],
-          }),
-          new AIMessageChunk({
-            content: ' done',
-          }),
+          }) as any as string,
         ],
       });
-      fakeStreamingChatModel.bindTools = vi.fn().mockReturnValue(fakeStreamingChatModel);
+      fakeListChatModel.bindTools = vi.fn().mockReturnValue(fakeListChatModel);
 
-      const streamConfig = {
+      const config = {
         ...mockConfig,
-        llm: fakeStreamingChatModel,
-        streamOutput: true,
+        llm: fakeListChatModel,
+        streamOutput: false,
       };
-      await agent.init(undefined, streamConfig);
+      await agent.init(undefined, config);
 
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
       await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nUsed tools: read_file()');
     });
 
-    it('should handle multiple tool calls in streaming mode', async () => {
+    it('should handle multiple tool calls in non-streaming mode', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
-      const fakeStreamingChatModel = new FakeStreamingChatModel({
-        chunks: [
-          new AIMessageChunk({
-            content: 'chunk content',
+      // Use FakeListChatModel to simulate a response with multiple tool calls
+      const fakeListChatModel = new FakeListChatModel({
+        responses: [
+          new AIMessage({
+            content: 'chunk content bye',
             tool_calls: [
               { name: 'read_file', args: {}, id: '1' },
               { name: 'write_file', args: {}, id: '2' },
             ],
-          }),
-          new AIMessageChunk({
-            content: 'bye',
-          }),
+          }) as any as string,
         ],
       });
-      fakeStreamingChatModel.bindTools = vi.fn().mockReturnValue(fakeStreamingChatModel);
+      fakeListChatModel.bindTools = vi.fn().mockReturnValue(fakeListChatModel);
 
       const mockTools = [
         {
@@ -384,15 +393,18 @@ describe('GthLangChainAgent', () => {
         } as Partial<StructuredToolInterface>,
       ];
 
-      const streamConfig = {
+      const config = {
         ...mockConfig,
-        llm: fakeStreamingChatModel,
-        streamOutput: true,
+        llm: fakeListChatModel,
+        streamOutput: false,
         tools: mockTools,
       } as SlothConfig;
-      await agent.init(undefined, streamConfig);
+      await agent.init(undefined, config);
 
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
       await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
@@ -401,32 +413,34 @@ describe('GthLangChainAgent', () => {
       );
     });
 
-    it('should handle ToolException errors in streaming mode', async () => {
+    it('should handle ToolException errors in non-streaming mode', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
       const error = new Error('Tool failed');
       error.name = 'ToolException';
 
-      const fakeStreamingChatModel = new FakeStreamingChatModel({
-        chunks: [new AIMessageChunk({ content: 'test' })],
+      const fakeListChatModel = new FakeListChatModel({
+        responses: ['test response'],
       });
-      fakeStreamingChatModel.bindTools = vi.fn().mockReturnValue(fakeStreamingChatModel);
+      fakeListChatModel.bindTools = vi.fn().mockReturnValue(fakeListChatModel);
 
-      const streamConfig = {
+      const config = {
         ...mockConfig,
-        llm: fakeStreamingChatModel,
-        streamOutput: true,
+        llm: fakeListChatModel,
+        streamOutput: false,
       };
-      await agent.init(undefined, streamConfig);
+      await agent.init(undefined, config);
 
       const reactAgent = agent['agent'];
       if (reactAgent) {
-        reactAgent.stream = vi.fn().mockImplementation(async function* () {
-          throw error;
-        });
+        reactAgent.invoke = vi.fn().mockRejectedValue(error);
       }
 
-      const runConfig: RunnableConfig = {};
-      await expect(agent.invoke('test message', runConfig)).rejects.toThrow(error);
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
+      const result = await agent.invoke('test message', runConfig);
+      expect(result).toBe('Tool execution failed: Tool failed');
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'error',
         'Tool execution failed: Tool failed'
@@ -446,7 +460,10 @@ describe('GthLangChainAgent', () => {
       };
       await agent.init(undefined, config);
 
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
       const result = await agent.invoke('test message', runConfig);
 
       expect(result).toBe('test response');
@@ -456,7 +473,10 @@ describe('GthLangChainAgent', () => {
   describe('stream', () => {
     it('should throw error if not initialized', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
 
       await expect(agent.stream('test', runConfig)).rejects.toThrow(
         'Agent not initialized. Call init() first.'
@@ -480,7 +500,10 @@ describe('GthLangChainAgent', () => {
       };
       await agent.init(undefined, streamConfig);
 
-      const runConfig: RunnableConfig = {};
+      const runConfig: RunnableConfig = {
+        recursionLimit: 250,
+        configurable: { thread_id: 'test-thread-id' },
+      };
       const stream = await agent.stream('test message', runConfig);
 
       const chunks = [];

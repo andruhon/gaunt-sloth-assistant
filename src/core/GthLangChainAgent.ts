@@ -73,6 +73,12 @@ export class GthLangChainAgent implements GthAgentInterface {
     });
   }
 
+  /**
+   * Invoke LLM with a message and runnable config.
+   * For streaming use {@link #stream} method, streaming is preferred if model API supports it.
+   * Please note that this when tools are involved, this method will anyway do multiple LLM
+   * calls within LangChain dependency.
+   */
   async invoke(message: string, runConfig: RunnableConfig): Promise<string> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');
@@ -96,6 +102,9 @@ export class GthLangChainAgent implements GthAgentInterface {
         this.statusUpdate('display', aiMessage);
         return aiMessage;
       } catch (e) {
+        if (e instanceof Error && e?.name === 'ToolException') {
+          throw e; // Re-throw ToolException to be handled by outer catch
+        }
         this.statusUpdate('warning', `Something went wrong ${(e as Error).message}`);
         return '';
       } finally {
@@ -112,6 +121,10 @@ export class GthLangChainAgent implements GthAgentInterface {
     }
   }
 
+  /**
+   * Induce LLM to stream AI messages with a user message and runnable config.
+   * When stream is not appropriate use {@link invoke}.
+   */
   async stream(
     message: string,
     runConfig: RunnableConfig
@@ -148,6 +161,7 @@ export class GthLangChainAgent implements GthAgentInterface {
               statusUpdate('error', `Tool execution failed: ${error?.message}`);
             }
           }
+          controller.error(error);
         }
       },
     });
