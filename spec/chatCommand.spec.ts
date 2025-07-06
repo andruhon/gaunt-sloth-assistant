@@ -52,15 +52,6 @@ const llmUtilsMock = {
 };
 vi.mock('#src/llmUtils.js', () => llmUtilsMock);
 
-const invocationInstanceMock = {
-  init: vi.fn(),
-  invoke: vi.fn(),
-  cleanup: vi.fn(),
-};
-vi.mock('#src/core/Invocation.js', () => ({
-  Invocation: vi.fn().mockImplementation(() => invocationInstanceMock),
-}));
-
 const readlineMock = {
   createInterface: vi.fn(),
 };
@@ -102,10 +93,6 @@ describe('chatCommand', () => {
     fsMock.existsSync.mockReturnValue(true);
 
     llmUtilsMock.invoke.mockResolvedValue('Mock response');
-
-    invocationInstanceMock.init.mockResolvedValue(undefined);
-    invocationInstanceMock.invoke.mockResolvedValue('Mock response');
-    invocationInstanceMock.cleanup.mockResolvedValue(undefined);
   });
 
   it('Should display help correctly', async () => {
@@ -225,10 +212,6 @@ describe('Default Chat Behavior (no arguments)', () => {
     fsMock.existsSync.mockReturnValue(true);
 
     llmUtilsMock.invoke.mockResolvedValue('Mock response');
-
-    invocationInstanceMock.init.mockResolvedValue(undefined);
-    invocationInstanceMock.invoke.mockResolvedValue('Mock response');
-    invocationInstanceMock.cleanup.mockResolvedValue(undefined);
   });
 
   it('Should start chat session when called directly via createInteractiveSession', async () => {

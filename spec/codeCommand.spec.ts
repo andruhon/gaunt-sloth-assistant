@@ -8,6 +8,7 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import { appendToFile } from '#src/utils.js';
+import type { SlothConfig } from '#src/config.js';
 
 // Mock modules
 vi.mock('#src/prompt.js', () => ({
@@ -261,9 +262,9 @@ describe('codeCommand', () => {
       requirementsProvider: 'file',
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none' as const,
-    };
+    } as Partial<SlothConfig>;
     const { initConfig } = await import('#src/config.js');
-    vi.mocked(initConfig).mockResolvedValue(mockConfig);
+    vi.mocked(initConfig).mockResolvedValue(mockConfig as SlothConfig);
 
     let messageHandler: (_message: string) => Promise<void> = async () => {};
     const mockReadline = {
@@ -308,9 +309,9 @@ describe('codeCommand', () => {
       requirementsProvider: 'file',
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none' as const,
-    };
+    } as Partial<SlothConfig>;
     const { initConfig } = await import('#src/config.js');
-    vi.mocked(initConfig).mockResolvedValue(mockConfig);
+    vi.mocked(initConfig).mockResolvedValue(mockConfig as SlothConfig);
     vi.mocked(invoke).mockResolvedValue('Mock response');
     let messageHandler: (_message: string) => Promise<void> = async () => {};
     const mockReadline = {
