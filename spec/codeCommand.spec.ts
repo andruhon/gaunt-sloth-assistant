@@ -60,12 +60,14 @@ vi.mock('#src/llmUtils.js', () => ({
   }),
 }));
 
+const gthAgentRunnerMock = vi.fn();
+const gthAgentRunnerInstanceMock = {
+  init: vi.fn(),
+  processMessages: vi.fn(),
+  cleanup: vi.fn(),
+};
 vi.mock('#src/core/GthAgentRunner.js', () => ({
-  GthAgentRunner: vi.fn().mockImplementation(() => ({
-    init: vi.fn().mockResolvedValue(undefined),
-    processMessages: vi.fn().mockResolvedValue('Mock response'),
-    cleanup: vi.fn().mockResolvedValue(undefined),
-  })),
+  GthAgentRunner: gthAgentRunnerMock,
 }));
 
 vi.mock('node:readline', () => ({
@@ -82,6 +84,12 @@ describe('codeCommand', () => {
     program = new Command();
     vi.mocked(invoke).mockReset();
     vi.clearAllMocks();
+
+    // Set up GthAgentRunner mock implementation
+    gthAgentRunnerMock.mockImplementation(() => gthAgentRunnerInstanceMock);
+    gthAgentRunnerInstanceMock.init.mockResolvedValue(undefined);
+    gthAgentRunnerInstanceMock.processMessages.mockResolvedValue('Mock response');
+    gthAgentRunnerInstanceMock.cleanup.mockResolvedValue(undefined);
   });
 
   beforeAll(async () => {
@@ -132,16 +140,13 @@ describe('codeCommand', () => {
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code', 'test message']);
 
-    const AgentRunnerMock = vi.mocked(await import('#src/core/GthAgentRunner.js')).GthAgentRunner;
-    const agentRunnerInstance = AgentRunnerMock.mock.results[0].value;
-
-    expect(agentRunnerInstance.init).toHaveBeenCalledWith(
+    expect(gthAgentRunnerInstanceMock.init).toHaveBeenCalledWith(
       'code',
       expect.any(Object),
       expect.any(MemorySaver)
     );
 
-    expect(agentRunnerInstance.processMessages).toHaveBeenCalledWith(
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith(
       [
         new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
         new HumanMessage('test message'),
@@ -281,11 +286,8 @@ describe('codeCommand', () => {
     await messageHandler('first message');
     await messageHandler('second message');
 
-    const AgentRunnerMock = vi.mocked(await import('#src/core/GthAgentRunner.js')).GthAgentRunner;
-    const agentRunnerInstance = AgentRunnerMock.mock.results[0].value;
-
-    expect(agentRunnerInstance.processMessages).toHaveBeenCalledTimes(2);
-    expect(agentRunnerInstance.processMessages).toHaveBeenNthCalledWith(
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledTimes(2);
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(
       1,
       [
         new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
@@ -293,7 +295,7 @@ describe('codeCommand', () => {
       ],
       expect.any(Object)
     );
-    expect(agentRunnerInstance.processMessages).toHaveBeenNthCalledWith(
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(
       2,
       [new HumanMessage('second message')],
       expect.any(Object)
