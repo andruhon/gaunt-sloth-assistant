@@ -41,7 +41,7 @@ export class GthAgentRunner {
     }
   }
 
-  async processMessages(messages: Message[], runConfig?: RunnableConfig): Promise<string> {
+  async processMessages(messages: Message[], runConfig: RunnableConfig): Promise<string> {
     if (!this.agent || !this.config) {
       throw new Error('AgentRunner not initialized. Call init() first.');
     }

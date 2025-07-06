@@ -19,6 +19,7 @@ import { appendToFile, generateStandardFileName } from '#src/utils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import { RunnableConfig } from '@langchain/core/runnables';
+import { getNewRunnableConfig } from '#src/llmUtils.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -34,6 +35,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
   // Initialize Invocation once
   const invocation = new GthAgentRunner(defaultStatusCallbacks);
   await invocation.init(sessionConfig.mode, config, checkpointSaver);
+  const runConfig: RunnableConfig = getNewRunnableConfig();
 
   try {
     const rl = createInterface({ input, output });
@@ -60,10 +62,6 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
         messages.push(new SystemMessage(systemPromptParts.join('\n')));
       }
       messages.push(new HumanMessage(userInput));
-
-      const runConfig: RunnableConfig = {
-        recursionLimit: 250,
-      };
 
       const aiResponse = await invocation.processMessages(messages, runConfig);
 

@@ -73,7 +73,7 @@ export class GthLangChainAgent implements GthAgentInterface {
     });
   }
 
-  async invoke(message: string, runConfig?: RunnableConfig): Promise<string> {
+  async invoke(message: string, runConfig: RunnableConfig): Promise<string> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');
     }
@@ -105,6 +105,7 @@ export class GthLangChainAgent implements GthAgentInterface {
       if (error instanceof Error) {
         if (error?.name === 'ToolException') {
           this.statusUpdate('error', `Tool execution failed: ${error?.message}`);
+          return `Tool execution failed: ${error?.message}`;
         }
       }
       throw error;
@@ -113,7 +114,7 @@ export class GthLangChainAgent implements GthAgentInterface {
 
   async stream(
     message: string,
-    runConfig?: RunnableConfig
+    runConfig: RunnableConfig
   ): Promise<IterableReadableStream<string>> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');

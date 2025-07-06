@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { AIMessage, AIMessageChunk } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import type { SlothConfig } from '#src/config.js';
-import type { StatusUpdateCallback } from '#src/core/GthReactAgent.js';
-import type { StructuredToolInterface } from '@langchain/core/tools';
+import type { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import {
   FakeChatInput,
   FakeListChatModel,
   FakeStreamingChatModel,
 } from '@langchain/core/utils/testing';
-import { RunnableConfig } from '@langchain/core/runnables';
+import type { RunnableConfig } from '@langchain/core/runnables';
+import type { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 
 const systemUtilsMock = {
   getCurrentDir: vi.fn(),
@@ -51,8 +51,8 @@ const consoleUtilsMock = {
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
-describe('GthReactAgent', () => {
-  let GthReactAgent: typeof import('#src/core/GthReactAgent.js').GthReactAgent;
+describe('GthLangChainAgent', () => {
+  let GthLangChainAgent: typeof import('#src/core/GthLangChainAgent.ts').GthLangChainAgent;
   let statusUpdateCallback: Mock<StatusUpdateCallback>;
   let mockConfig: SlothConfig;
 
@@ -80,27 +80,28 @@ describe('GthReactAgent', () => {
       requirementsProvider: 'file',
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none',
+      useColour: false,
     };
 
-    ({ GthReactAgent } = await import('#src/core/GthReactAgent.js'));
+    ({ GthLangChainAgent } = await import('#src/core/GthLangChainAgent.js'));
   });
 
   describe('constructor', () => {
     it('should initialize with status update callback', () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       expect(agent).toBeDefined();
     });
   });
 
   describe('setVerbose', () => {
     it('should set verbose mode', () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       agent.setVerbose(true);
       expect(agent['verbose']).toBe(true);
     });
 
     it('should unset verbose mode', () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       agent.setVerbose(true);
       agent.setVerbose(false);
       expect(agent['verbose']).toBe(false);
@@ -109,14 +110,14 @@ describe('GthReactAgent', () => {
 
   describe('init', () => {
     it('should initialize with basic configuration', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
       await agent.init(undefined, mockConfig);
     });
 
     it('should set verbose on LLM when verbose mode is enabled', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       agent.setVerbose(true);
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
@@ -126,7 +127,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should use command-specific filesystem config', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const configWithCommands = {
         ...mockConfig,
         commands: {
@@ -142,7 +143,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should display loaded tools as comma-separated list', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const mockTools = [
         { name: 'custom_tool_1', invoke: vi.fn(), description: 'Test tool 1' },
         { name: 'custom_tool_2', invoke: vi.fn(), description: 'Test tool 2' },
@@ -166,7 +167,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should initialize with checkpoint saver', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const checkpointSaver = new MemorySaver();
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
@@ -175,13 +176,14 @@ describe('GthReactAgent', () => {
 
     // FIXME this test does not do anything with toolkits
     it('should flatten toolkits into individual tools', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
+      // Toolkit has one single method - getTools
       const mockToolkit = {
         getTools: () => [
           { name: 'custom_tool_1' } as StructuredToolInterface,
           { name: 'custom_tool_2' } as StructuredToolInterface,
         ],
-      };
+      } as BaseToolkit;
       const mockTool = { name: 'gth_status_update' } as StructuredToolInterface;
 
       const configWithTools = {
@@ -195,7 +197,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should combine toolkit tools with MCP tools', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const mockToolkit = {
         getTools: () => [{ name: 'custom_tool' } as StructuredToolInterface],
       };
@@ -214,7 +216,7 @@ describe('GthReactAgent', () => {
 
   describe('invoke', () => {
     it('should throw error if not initialized', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const runConfig: RunnableConfig = {};
 
       await expect(agent.invoke('test', runConfig)).rejects.toThrow(
@@ -223,7 +225,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should invoke agent in non-streaming mode', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const fakeListChatModel = new FakeListChatModel({
         responses: ['test response'],
       });
@@ -243,7 +245,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should display tool usage in non-streaming mode', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const fakeListChatModel = new FakeListChatModel({
         responses: [
           new AIMessage({
@@ -273,7 +275,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should handle errors in non-streaming mode', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const fakeListChatModel = new FakeListChatModel({
         responses: [],
         simulateError: true,
@@ -299,7 +301,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should invoke agent in streaming mode', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const fakeStreamingChatModel = new FakeStreamingChatModel({
         chunks: [
           new AIMessageChunk({ content: 'chunk1' }),
@@ -324,7 +326,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should display tool usage in streaming mode', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const fakeStreamingChatModel = new FakeStreamingChatModel({
         chunks: [
           new AIMessageChunk({
@@ -352,7 +354,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should handle multiple tool calls in streaming mode', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const fakeStreamingChatModel = new FakeStreamingChatModel({
         chunks: [
           new AIMessageChunk({
@@ -400,7 +402,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should handle ToolException errors in streaming mode', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const error = new Error('Tool failed');
       error.name = 'ToolException';
 
@@ -432,7 +434,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should pass run config to agent', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const fakeListChatModel = new FakeListChatModel({
         responses: ['test response'],
       });
@@ -453,7 +455,7 @@ describe('GthReactAgent', () => {
 
   describe('stream', () => {
     it('should throw error if not initialized', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const runConfig: RunnableConfig = {};
 
       await expect(agent.stream('test', runConfig)).rejects.toThrow(
@@ -462,7 +464,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should stream agent responses', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const fakeStreamingChatModel = new FakeStreamingChatModel({
         chunks: [
           new AIMessageChunk({ content: 'chunk1' }),
@@ -492,7 +494,7 @@ describe('GthReactAgent', () => {
 
   describe('cleanup', () => {
     it('should cleanup MCP client and reset state', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const configWithMcp = {
         ...mockConfig,
         mcpServers: {
@@ -515,7 +517,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should handle cleanup when not initialized', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
 
       await expect(agent.cleanup()).resolves.not.toThrow();
     });
@@ -523,7 +525,7 @@ describe('GthReactAgent', () => {
 
   describe('getMcpClient', () => {
     it('should return null when no MCP servers configured', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const config = {
         ...mockConfig,
         filesystem: 'none',
@@ -536,7 +538,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should create MCP client with custom server', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const config = {
         ...mockConfig,
         filesystem: 'all' as const,
@@ -567,7 +569,7 @@ describe('GthReactAgent', () => {
     });
 
     it('should handle OAuth authentication', async () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const mockAuthProvider = { token: 'test-token' };
       createAuthProviderAndAuthenticateMock.mockResolvedValue(mockAuthProvider);
 
@@ -579,7 +581,7 @@ describe('GthReactAgent', () => {
             authProvider: 'OAuth',
           },
         },
-      };
+      } as any as SlothConfig;
 
       await agent['getMcpClient'](config);
 
@@ -595,7 +597,7 @@ describe('GthReactAgent', () => {
 
   describe('getEffectiveConfig', () => {
     it('should merge command-specific config', () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const config = {
         ...mockConfig,
         filesystem: 'read',
@@ -606,7 +608,7 @@ describe('GthReactAgent', () => {
             builtInTools: ['specific'],
           },
         },
-      };
+      } as SlothConfig;
 
       const result = agent.getEffectiveConfig(config, 'code');
 
@@ -615,12 +617,12 @@ describe('GthReactAgent', () => {
     });
 
     it('should use default config when no command-specific config', () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const config = {
         ...mockConfig,
         filesystem: 'read',
         builtInTools: ['general'],
-      };
+      } as SlothConfig;
 
       const result = agent.getEffectiveConfig(config, 'code');
 
@@ -629,14 +631,14 @@ describe('GthReactAgent', () => {
     });
 
     it('should warn when model does not support tools', () => {
-      const agent = new GthReactAgent(statusUpdateCallback);
+      const agent = new GthLangChainAgent(statusUpdateCallback);
       const config = {
         ...mockConfig,
         llm: {
           ...mockConfig.llm,
           bindTools: undefined,
         },
-      };
+      } as SlothConfig;
 
       agent.getEffectiveConfig(config, undefined);
 

@@ -4,11 +4,16 @@ import { display, displayError, displayInfo, displayWarning } from '#src/console
 import { stdout } from '#src/systemUtils.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import { StatusLevel } from '#src/core/types.js';
+import { randomUUID } from 'crypto';
+import { RunnableConfig } from '@langchain/core/runnables';
 
 const llmGlobalSettings = {
   verbose: false,
 };
 
+/**
+ * @deprecated prefer using src/core/GthAgentRunner.ts directly
+ */
 export async function invoke(
   command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined,
   messages: Message[],
@@ -42,12 +47,26 @@ export async function invoke(
 
   try {
     await invocation.init(command, config);
-    return await invocation.processMessages(messages);
+    return await invocation.processMessages(messages, getNewRunnableConfig());
   } finally {
     await invocation.cleanup();
   }
 }
 
+// TODO make sure that it still works after refactoring
 export function setVerbose(debug: boolean) {
   llmGlobalSettings.verbose = debug;
+}
+
+/**
+ * Creates new runnable config.
+ * configurable.thread_id is an important part of that because it helps to distinguish different chat sessions.
+ * We normally do not have multiple sessions in the terminal, but I had bad stuff happening in tests
+ * and in another prototype project where I was importing Gaunt Sloth.
+ */
+export function getNewRunnableConfig(): RunnableConfig {
+  return {
+    recursionLimit: 250,
+    configurable: { thread_id: randomUUID() },
+  };
 }
