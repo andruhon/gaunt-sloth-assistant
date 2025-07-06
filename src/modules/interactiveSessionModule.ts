@@ -5,7 +5,6 @@ import {
   displayInfo,
   formatInputPrompt,
 } from '#src/consoleUtils.js';
-import * as crypto from 'crypto';
 import { MemorySaver } from '@langchain/langgraph';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import {
@@ -15,11 +14,11 @@ import {
   stdin as input,
   stdout as output,
 } from '#src/systemUtils.js';
-import { RunnableConfig } from '@langchain/core/runnables';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { appendToFile, generateStandardFileName } from '#src/utils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
+import { RunnableConfig } from '@langchain/core/runnables';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -40,7 +39,6 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
     const rl = createInterface({ input, output });
     let isFirstMessage = true;
     let shouldExit = false;
-    const thread_id = crypto.randomUUID();
     const logFileName = getGslothFilePath(
       generateStandardFileName(sessionConfig.mode.toUpperCase())
     );
@@ -63,10 +61,9 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       }
       messages.push(new HumanMessage(userInput));
 
-      const runConfig = {
-        configurable: { thread_id },
+      const runConfig: RunnableConfig = {
         recursionLimit: 250,
-      } as RunnableConfig;
+      };
 
       const aiResponse = await invocation.processMessages(messages, runConfig);
 

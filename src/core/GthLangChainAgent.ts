@@ -6,12 +6,13 @@ import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
 import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
 import { ToolCall } from '@langchain/core/messages/tool';
-import { GthAgentInterface, GthCommand, GthRunConfig, StatusLevel } from '#src/core/types.js';
+import { GthAgentInterface, GthCommand, StatusLevel } from '#src/core/types.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import { getDefaultTools } from '#src/builtInToolsConfig.js';
 import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
 import { displayInfo } from '#src/consoleUtils.js';
 import { IterableReadableStream } from '@langchain/core/utils/stream';
+import { RunnableConfig } from '@langchain/core/runnables';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -72,7 +73,7 @@ export class GthLangChainAgent implements GthAgentInterface {
     });
   }
 
-  async invoke(message: string, runConfig: GthRunConfig): Promise<string> {
+  async invoke(message: string, runConfig?: RunnableConfig): Promise<string> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');
     }
@@ -81,47 +82,25 @@ export class GthLangChainAgent implements GthAgentInterface {
     const messages = [{ role: 'user', content: message }];
 
     try {
-      const output = { aiMessage: '' };
-      if (this.config.streamOutput) {
-        // Streaming output
-        this.statusUpdate('info', '\nThinking...\n');
-        const stream = await this.agent.stream(
-          { messages },
-          { ...runConfig.runnableConfig, streamMode: 'messages' }
-        );
-
-        for await (const [chunk, _metadata] of stream) {
-          if (isAIMessage(chunk)) {
-            this.statusUpdate('stream', chunk.text as string);
-            output.aiMessage += chunk.text;
-            const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
-            if (toolCalls && toolCalls.length > 0) {
-              this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
-            }
-          }
+      const progress = new ProgressIndicator('Thinking.');
+      try {
+        const response = await this.agent.invoke({ messages }, runConfig);
+        const aiMessage = response.messages[response.messages.length - 1].content as string;
+        const toolCalls = response.messages
+          .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
+          .flatMap((msg: AIMessage) => msg.tool_calls ?? [])
+          .filter((tc: ToolCall) => tc.name);
+        if (toolCalls.length > 0) {
+          this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
         }
-      } else {
-        // Not streaming output
-        const progress = new ProgressIndicator('Thinking.');
-        try {
-          const response = await this.agent.invoke({ messages }, runConfig.runnableConfig);
-          output.aiMessage = response.messages[response.messages.length - 1].content as string;
-          const toolCalls = response.messages
-            .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
-            .flatMap((msg: AIMessage) => msg.tool_calls ?? [])
-            .filter((tc: ToolCall) => tc.name);
-          if (toolCalls.length > 0) {
-            this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
-          }
-        } catch (e) {
-          this.statusUpdate('warning', `Something went wrong ${(e as Error).message}`);
-        } finally {
-          progress.stop();
-        }
-        this.statusUpdate('display', output.aiMessage);
+        this.statusUpdate('display', aiMessage);
+        return aiMessage;
+      } catch (e) {
+        this.statusUpdate('warning', `Something went wrong ${(e as Error).message}`);
+        return '';
+      } finally {
+        progress.stop();
       }
-
-      return output.aiMessage;
     } catch (error) {
       if (error instanceof Error) {
         if (error?.name === 'ToolException') {
@@ -132,7 +111,10 @@ export class GthLangChainAgent implements GthAgentInterface {
     }
   }
 
-  async stream(message: string, runConfig: GthRunConfig): Promise<IterableReadableStream<string>> {
+  async stream(
+    message: string,
+    runConfig?: RunnableConfig
+  ): Promise<IterableReadableStream<string>> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');
     }
@@ -140,22 +122,31 @@ export class GthLangChainAgent implements GthAgentInterface {
     // Convert string to Message format expected by the agent
     const messages = [{ role: 'user', content: message }];
 
-    const stream = await this.agent.stream(
-      { messages },
-      { ...runConfig.runnableConfig, streamMode: 'messages' }
-    );
+    this.statusUpdate('info', '\nThinking...\n');
+    const stream = await this.agent.stream({ messages }, { ...runConfig, streamMode: 'messages' });
 
+    const statusUpdate = this.statusUpdate;
     return new IterableReadableStream({
       async start(controller) {
         try {
           for await (const [chunk, _metadata] of stream) {
             if (isAIMessage(chunk)) {
-              controller.enqueue(chunk.text as string);
+              const text = chunk.text as string;
+              statusUpdate('stream', text);
+              controller.enqueue(text);
+              const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
+              if (toolCalls && toolCalls.length > 0) {
+                statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
+              }
             }
           }
           controller.close();
         } catch (error) {
-          controller.error(error);
+          if (error instanceof Error) {
+            if (error?.name === 'ToolException') {
+              statusUpdate('error', `Tool execution failed: ${error?.message}`);
+            }
+          }
         }
       },
     });

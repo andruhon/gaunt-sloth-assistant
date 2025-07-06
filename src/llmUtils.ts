@@ -2,8 +2,6 @@ import type { Message } from '#src/modules/types.js';
 import { SlothConfig } from '#src/config.js';
 import { display, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { stdout } from '#src/systemUtils.js';
-import { type RunnableConfig } from '@langchain/core/runnables';
-import { BaseCheckpointSaver } from '@langchain/langgraph';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import { StatusLevel } from '#src/core/types.js';
 
@@ -14,9 +12,7 @@ const llmGlobalSettings = {
 export async function invoke(
   command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined,
   messages: Message[],
-  config: SlothConfig,
-  runConfig?: RunnableConfig,
-  checkpointSaver?: BaseCheckpointSaver | undefined
+  config: SlothConfig
 ): Promise<string> {
   const statusUpdate = (level: StatusLevel, message: string) => {
     switch (level) {
@@ -45,8 +41,8 @@ export async function invoke(
   invocation.setVerbose(llmGlobalSettings.verbose);
 
   try {
-    await invocation.init(command, config, checkpointSaver);
-    return await invocation.processMessages(messages, runConfig);
+    await invocation.init(command, config);
+    return await invocation.processMessages(messages);
   } finally {
     await invocation.cleanup();
   }

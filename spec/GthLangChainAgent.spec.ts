@@ -4,12 +4,12 @@ import { MemorySaver } from '@langchain/langgraph';
 import type { SlothConfig } from '#src/config.js';
 import type { StatusUpdateCallback } from '#src/core/GthReactAgent.js';
 import type { StructuredToolInterface } from '@langchain/core/tools';
-import { GthRunConfig } from '#src/core/types.js';
 import {
   FakeChatInput,
   FakeListChatModel,
   FakeStreamingChatModel,
 } from '@langchain/core/utils/testing';
+import { RunnableConfig } from '@langchain/core/runnables';
 
 const systemUtilsMock = {
   getCurrentDir: vi.fn(),
@@ -215,7 +215,7 @@ describe('GthReactAgent', () => {
   describe('invoke', () => {
     it('should throw error if not initialized', async () => {
       const agent = new GthReactAgent(statusUpdateCallback);
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
 
       await expect(agent.invoke('test', runConfig)).rejects.toThrow(
         'Agent not initialized. Call init() first.'
@@ -235,7 +235,7 @@ describe('GthReactAgent', () => {
       };
       await agent.init(undefined, config);
 
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
       const result = await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith('display', 'test response');
@@ -263,7 +263,7 @@ describe('GthReactAgent', () => {
       };
       await agent.init(undefined, config);
 
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
       await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
@@ -286,7 +286,7 @@ describe('GthReactAgent', () => {
       };
       await agent.init(undefined, config);
 
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
       const result = await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
@@ -315,7 +315,7 @@ describe('GthReactAgent', () => {
       };
       await agent.init(undefined, streamConfig);
 
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
       const result = await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'chunk1');
@@ -345,7 +345,7 @@ describe('GthReactAgent', () => {
       };
       await agent.init(undefined, streamConfig);
 
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
       await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nUsed tools: read_file()');
@@ -390,7 +390,7 @@ describe('GthReactAgent', () => {
       } as SlothConfig;
       await agent.init(undefined, streamConfig);
 
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
       await agent.invoke('test message', runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
@@ -423,7 +423,7 @@ describe('GthReactAgent', () => {
         });
       }
 
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
       await expect(agent.invoke('test message', runConfig)).rejects.toThrow(error);
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'error',
@@ -444,9 +444,7 @@ describe('GthReactAgent', () => {
       };
       await agent.init(undefined, config);
 
-      const runConfig: GthRunConfig = {
-        runnableConfig: { configurable: { thread_id: 'test' } },
-      };
+      const runConfig: RunnableConfig = {};
       const result = await agent.invoke('test message', runConfig);
 
       expect(result).toBe('test response');
@@ -456,7 +454,7 @@ describe('GthReactAgent', () => {
   describe('stream', () => {
     it('should throw error if not initialized', async () => {
       const agent = new GthReactAgent(statusUpdateCallback);
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
 
       await expect(agent.stream('test', runConfig)).rejects.toThrow(
         'Agent not initialized. Call init() first.'
@@ -480,7 +478,7 @@ describe('GthReactAgent', () => {
       };
       await agent.init(undefined, streamConfig);
 
-      const runConfig: GthRunConfig = {};
+      const runConfig: RunnableConfig = {};
       const stream = await agent.stream('test message', runConfig);
 
       const chunks = [];

@@ -51,8 +51,8 @@ describe('llmUtils', () => {
 
     expect(AgentRunnerConstructor).toHaveBeenCalledWith(expect.any(Function));
     expect(agentRunnerMock.setVerbose).toHaveBeenCalledWith(false);
-    expect(agentRunnerMock.init).toHaveBeenCalledWith('review', mockConfig, undefined);
-    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages, undefined);
+    expect(agentRunnerMock.init).toHaveBeenCalledWith('review', mockConfig);
+    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages);
     expect(agentRunnerMock.cleanup).toHaveBeenCalled();
     expect(result).toBe('Test response');
   });
@@ -68,13 +68,10 @@ describe('llmUtils', () => {
       filesystem: 'all',
     } as SlothConfig;
     const messages = [{ role: 'system', content: 'system message' }] as any;
-    const runConfig = { configurable: { thread_id: 'test-thread' } };
-    const checkpointSaver = {} as any;
+    const result = await invoke('chat', messages, mockConfig);
 
-    const result = await invoke('chat', messages, mockConfig, runConfig, checkpointSaver);
-
-    expect(agentRunnerMock.init).toHaveBeenCalledWith('chat', mockConfig, checkpointSaver);
-    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages, runConfig);
+    expect(agentRunnerMock.init).toHaveBeenCalledWith('chat', mockConfig);
+    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages);
     expect(result).toBe('Another response');
   });
 
