@@ -3,9 +3,9 @@ import { SlothConfig } from '#src/config.js';
 import { BaseCheckpointSaver } from '@langchain/langgraph';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { GthAgentInterface, GthCommand, GthRunConfig } from '#src/core/types.js';
-import { GthReactAgent, StatusUpdateCallback } from '#src/core/GthReactAgent.js';
+import { GthLangChainAgent, StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 
-export class Invocation {
+export class GthAgentRunner {
   private statusUpdate: StatusUpdateCallback;
   private verbose: boolean = false;
   private agent: GthAgentInterface | null = null;
@@ -29,7 +29,7 @@ export class Invocation {
 
     // Create default agent if none provided
     if (!this.agent) {
-      this.agent = new GthReactAgent(this.statusUpdate);
+      this.agent = new GthLangChainAgent(this.statusUpdate);
     }
 
     // Initialize the agent if it has an init method
@@ -43,7 +43,7 @@ export class Invocation {
     }
   }
 
-  async invoke(messages: Message[], runConfig?: RunnableConfig): Promise<string> {
+  async processMessages(messages: Message[], runConfig?: RunnableConfig): Promise<string> {
     if (!this.agent || !this.config) {
       throw new Error('Invocation not initialized. Call init() first.');
     }

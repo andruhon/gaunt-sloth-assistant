@@ -15,7 +15,7 @@ import { IterableReadableStream } from '@langchain/core/utils/stream';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
-export class GthReactAgent implements GthAgentInterface {
+export class GthLangChainAgent implements GthAgentInterface {
   private statusUpdate: StatusUpdateCallback;
   private verbose: boolean = false;
   private mcpClient: MultiServerMCPClient | null = null;

@@ -4,7 +4,7 @@ import { display, displayError, displayInfo, displayWarning } from '#src/console
 import { stdout } from '#src/systemUtils.js';
 import { type RunnableConfig } from '@langchain/core/runnables';
 import { BaseCheckpointSaver } from '@langchain/langgraph';
-import { Invocation } from '#src/core/Invocation.js';
+import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import { StatusLevel } from '#src/core/types.js';
 
 const llmGlobalSettings = {
@@ -41,12 +41,12 @@ export async function invoke(
     }
   };
 
-  const invocation = new Invocation(statusUpdate);
+  const invocation = new GthAgentRunner(statusUpdate);
   invocation.setVerbose(llmGlobalSettings.verbose);
 
   try {
     await invocation.init(command, config, checkpointSaver);
-    return await invocation.invoke(messages, runConfig);
+    return await invocation.processMessages(messages, runConfig);
   } finally {
     await invocation.cleanup();
   }

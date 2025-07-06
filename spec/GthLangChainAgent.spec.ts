@@ -173,6 +173,7 @@ describe('GthReactAgent', () => {
       await agent.init(undefined, mockConfig, checkpointSaver);
     });
 
+    // FIXME this test does not do anything with toolkits
     it('should flatten toolkits into individual tools', async () => {
       const agent = new GthReactAgent(statusUpdateCallback);
       const mockToolkit = {

@@ -55,10 +55,10 @@ vi.mock('#src/llmUtils.js', () => ({
   invoke: vi.fn().mockResolvedValue('Mock response'),
 }));
 
-vi.mock('#src/core/Invocation.js', () => ({
-  Invocation: vi.fn().mockImplementation(() => ({
+vi.mock('#src/core/GthAgentRunner.js', () => ({
+  GthAgentRunner: vi.fn().mockImplementation(() => ({
     init: vi.fn().mockResolvedValue(undefined),
-    invoke: vi.fn().mockResolvedValue('Mock response'),
+    processMessages: vi.fn().mockResolvedValue('Mock response'),
     cleanup: vi.fn().mockResolvedValue(undefined),
   })),
 }));
@@ -127,16 +127,16 @@ describe('codeCommand', () => {
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code', 'test message']);
 
-    const InvocationMock = vi.mocked(await import('#src/core/Invocation.js')).Invocation;
-    const invocationInstance = InvocationMock.mock.results[0].value;
+    const AgentRunnerMock = vi.mocked(await import('#src/core/GthAgentRunner.js')).GthAgentRunner;
+    const agentRunnerInstance = AgentRunnerMock.mock.results[0].value;
 
-    expect(invocationInstance.init).toHaveBeenCalledWith(
+    expect(agentRunnerInstance.init).toHaveBeenCalledWith(
       'code',
       expect.any(Object),
       expect.any(MemorySaver)
     );
 
-    expect(invocationInstance.invoke).toHaveBeenCalledWith(
+    expect(agentRunnerInstance.processMessages).toHaveBeenCalledWith(
       [
         new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
         new HumanMessage('test message'),
@@ -276,11 +276,11 @@ describe('codeCommand', () => {
     await messageHandler('first message');
     await messageHandler('second message');
 
-    const InvocationMock = vi.mocked(await import('#src/core/Invocation.js')).Invocation;
-    const invocationInstance = InvocationMock.mock.results[0].value;
+    const AgentRunnerMock = vi.mocked(await import('#src/core/GthAgentRunner.js')).GthAgentRunner;
+    const agentRunnerInstance = AgentRunnerMock.mock.results[0].value;
 
-    expect(invocationInstance.invoke).toHaveBeenCalledTimes(2);
-    expect(invocationInstance.invoke).toHaveBeenNthCalledWith(
+    expect(agentRunnerInstance.processMessages).toHaveBeenCalledTimes(2);
+    expect(agentRunnerInstance.processMessages).toHaveBeenNthCalledWith(
       1,
       [
         new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
@@ -288,7 +288,7 @@ describe('codeCommand', () => {
       ],
       expect.any(Object)
     );
-    expect(invocationInstance.invoke).toHaveBeenNthCalledWith(
+    expect(agentRunnerInstance.processMessages).toHaveBeenNthCalledWith(
       2,
       [new HumanMessage('second message')],
       expect.any(Object)

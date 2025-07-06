@@ -1,5 +1,5 @@
 import * as su from '#src/systemUtils.js';
-import { StatusUpdateCallback } from '#src/core/GthReactAgent.js';
+import { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 import { StatusLevel } from '#src/core/types.js';
 
 // ANSI color codes

@@ -19,7 +19,7 @@ import { RunnableConfig } from '@langchain/core/runnables';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { appendToFile, generateStandardFileName } from '#src/utils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
-import { Invocation } from '#src/core/Invocation.js';
+import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -33,7 +33,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
   const config = { ...(await initConfig()) };
   const checkpointSaver = new MemorySaver();
   // Initialize Invocation once
-  const invocation = new Invocation(defaultStatusCallbacks);
+  const invocation = new GthAgentRunner(defaultStatusCallbacks);
   await invocation.init(sessionConfig.mode, config, checkpointSaver);
 
   try {
@@ -68,7 +68,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
         recursionLimit: 250,
       } as RunnableConfig;
 
-      const aiResponse = await invocation.invoke(messages, runConfig);
+      const aiResponse = await invocation.processMessages(messages, runConfig);
 
       const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n${aiResponse}\n\n`;
       appendToFile(logFileName, logEntry);
