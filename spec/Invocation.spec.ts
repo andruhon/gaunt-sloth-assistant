@@ -1,58 +1,27 @@
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { AIMessage, AIMessageChunk, HumanMessage } from '@langchain/core/messages';
+import { HumanMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import type { SlothConfig } from '#src/config.js';
-import type { StatusUpdateCallback } from '#src/core/Invocation.js';
-import type { StructuredToolInterface } from '@langchain/core/tools';
+import type { StatusUpdateCallback } from '#src/core/GthReactAgent.js';
 import type { RunnableConfig } from '@langchain/core/runnables';
-import {
-  FakeChatInput,
-  FakeListChatModel,
-  FakeStreamingChatModel,
-} from '@langchain/core/utils/testing';
+import type { GthAgentInterface } from '#src/core/types.js';
 
-const systemUtilsMock = {
-  getCurrentDir: vi.fn(),
+// Mock the GthReactAgent - using a simplified approach
+const mockAgent = {
+  init: vi.fn(),
+  setVerbose: vi.fn(),
+  invoke: vi.fn(),
+  cleanup: vi.fn(),
 };
-vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
-const configMock = {
-  getDefaultTools: vi.fn(),
-};
-vi.mock('#src/config.js', async () => {
-  const actual = await vi.importActual('#src/config.js');
-  return {
-    ...actual,
-    getDefaultTools: configMock.getDefaultTools,
-  };
-});
-
-const progressIndicatorInstanceMock = {
-  stop: vi.fn(),
-};
-const progressIndicatorMock = vi.fn().mockImplementation(() => progressIndicatorInstanceMock);
-vi.mock('#src/utils.js', () => ({
-  ProgressIndicator: progressIndicatorMock,
-  formatToolCalls: vi.fn((toolCalls) => toolCalls.map((tc: any) => `${tc.name}()`).join(', ')),
+vi.mock('#src/core/GthReactAgent.js', () => ({
+  GthReactAgent: class MockGthReactAgent {
+    constructor() {
+      return mockAgent;
+    }
+  },
+  StatusUpdateCallback: vi.fn(),
 }));
-
-const multiServerMCPClientMock = vi.fn();
-const mcpClientInstanceMock = {
-  getTools: vi.fn(),
-  close: vi.fn(),
-};
-vi.mock('@langchain/mcp-adapters', () => ({
-  MultiServerMCPClient: multiServerMCPClientMock,
-}));
-
-const gthFileSystemToolkitGetToolsMock = vi.fn();
-vi.mock('#src/tools/GthFileSystemToolkit.js', () => {
-  const GthFileSystemToolkit = vi.fn();
-  GthFileSystemToolkit.prototype.getTools = gthFileSystemToolkitGetToolsMock;
-  return {
-    default: GthFileSystemToolkit,
-  };
-});
 
 describe('Invocation', () => {
   let Invocation: typeof import('#src/core/Invocation.js').Invocation;
@@ -62,13 +31,11 @@ describe('Invocation', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
 
-    systemUtilsMock.getCurrentDir.mockReturnValue('/test/dir');
-    multiServerMCPClientMock.mockImplementation(() => mcpClientInstanceMock);
-    progressIndicatorMock.mockImplementation(() => progressIndicatorInstanceMock);
-    gthFileSystemToolkitGetToolsMock.mockReturnValue([]);
-
-    // Setup config mocks
-    configMock.getDefaultTools.mockResolvedValue([]);
+    // Reset mock implementations
+    mockAgent.init.mockClear();
+    mockAgent.setVerbose.mockClear();
+    mockAgent.invoke.mockClear();
+    mockAgent.cleanup.mockClear();
 
     statusUpdateCallback = vi.fn();
 
@@ -93,6 +60,16 @@ describe('Invocation', () => {
       const invocation = new Invocation(statusUpdateCallback);
       expect(invocation).toBeDefined();
     });
+
+    it('should initialize with custom agent', () => {
+      const customAgent: GthAgentInterface = {
+        invoke: vi.fn(),
+        stream: vi.fn(),
+      };
+      const invocation = new Invocation(statusUpdateCallback, customAgent);
+      expect(invocation).toBeDefined();
+      expect(invocation['agent']).toBe(customAgent);
+    });
   });
 
   describe('setVerbose', () => {
@@ -113,108 +90,57 @@ describe('Invocation', () => {
   describe('init', () => {
     it('should initialize with basic configuration', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
       await invocation.init(undefined, mockConfig);
+
+      expect(mockAgent.init).toHaveBeenCalledWith(undefined, mockConfig, undefined);
     });
 
-    it('should set verbose on LLM when verbose mode is enabled', async () => {
+    it('should set verbose on agent when verbose mode is enabled', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       invocation.setVerbose(true);
-      mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
       await invocation.init(undefined, mockConfig);
 
-      expect(mockConfig.llm.verbose).toBe(true);
-    });
-
-    it('should use command-specific filesystem config', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const configWithCommands = {
-        ...mockConfig,
-        commands: {
-          code: {
-            filesystem: ['read_file', 'write_file'],
-          },
-        },
-      };
-
-      await invocation.init('code', configWithCommands);
-
-      expect(invocation['config']?.filesystem).toEqual(['read_file', 'write_file']);
-    });
-
-    it('should display loaded tools as comma-separated list', async () => {
-      // Create a simple config with custom tools to test the message format
-      const invocation = new Invocation(statusUpdateCallback);
-      const mockTools = [
-        { name: 'custom_tool_1', invoke: vi.fn(), description: 'Test tool 1' },
-        { name: 'custom_tool_2', invoke: vi.fn(), description: 'Test tool 2' },
-        { name: 'custom_tool_3', invoke: vi.fn(), description: 'Test tool 3' },
-      ] as Partial<StructuredToolInterface>[];
-
-      const configWithTools = {
-        ...mockConfig,
-        tools: mockTools,
-        filesystem: 'none', // Disable filesystem tools to simplify test
-      } as SlothConfig;
-
-      mcpClientInstanceMock.getTools.mockResolvedValue([]);
-
-      await invocation.init(undefined, configWithTools);
-
-      // Should display comma-separated list of tool names
-      expect(statusUpdateCallback).toHaveBeenCalledWith(
-        'info',
-        'Loaded tools: custom_tool_1, custom_tool_2, custom_tool_3'
-      );
+      expect(mockAgent.setVerbose).toHaveBeenCalledWith(true);
     });
 
     it('should initialize with checkpoint saver', async () => {
       const invocation = new Invocation(statusUpdateCallback);
       const checkpointSaver = new MemorySaver();
-      mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
       await invocation.init(undefined, mockConfig, checkpointSaver);
+
+      expect(mockAgent.init).toHaveBeenCalledWith(undefined, mockConfig, checkpointSaver);
     });
 
-    it('should flatten toolkits into individual tools', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const mockToolkit = {
-        getTools: () => [
-          { name: 'custom_tool_1' } as StructuredToolInterface,
-          { name: 'custom_tool_2' } as StructuredToolInterface,
-        ],
+    it('should use custom agent if provided', async () => {
+      const customAgent: GthAgentInterface = {
+        invoke: vi.fn(),
+        stream: vi.fn(),
       };
-      const mockTool = { name: 'gth_status_update' } as StructuredToolInterface;
+      const invocation = new Invocation(statusUpdateCallback, customAgent);
 
-      const configWithTools = {
-        ...mockConfig,
-        tools: [mockToolkit, mockTool],
-      } as SlothConfig;
+      await invocation.init(undefined, mockConfig);
 
-      // Reset default toolkit mock to return empty for this test since filesystem is 'none'
-      mcpClientInstanceMock.getTools.mockResolvedValue([]);
-
-      await invocation.init(undefined, configWithTools);
+      // Should not create a new agent since custom one was provided
+      expect(mockAgent.init).not.toHaveBeenCalled();
+      expect(invocation['agent']).toBe(customAgent);
     });
 
-    it('should combine toolkit tools with MCP tools', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const mockToolkit = {
-        getTools: () => [{ name: 'custom_tool' } as StructuredToolInterface],
+    it('should initialize custom agent with init method', async () => {
+      const customAgent: GthAgentInterface & {
+        init: (_cmd: any, _config: any, _saver: any) => void;
+      } = {
+        invoke: vi.fn(),
+        stream: vi.fn(),
+        init: vi.fn(),
       };
+      const invocation = new Invocation(statusUpdateCallback, customAgent);
 
-      const configWithTools = {
-        ...mockConfig,
-        tools: [mockToolkit],
-      } as SlothConfig;
+      await invocation.init(undefined, mockConfig);
 
-      // Reset default toolkit mock to return empty for this test since filesystem is 'none'
-      const mcpTools = [{ name: 'mcp__filesystem__list_directory' } as StructuredToolInterface];
-      mcpClientInstanceMock.getTools.mockResolvedValue(mcpTools);
-
-      await invocation.init(undefined, configWithTools);
+      expect(customAgent.init).toHaveBeenCalledWith(undefined, mockConfig, undefined);
     });
   });
 
@@ -227,267 +153,76 @@ describe('Invocation', () => {
       );
     });
 
-    it('should invoke agent in non-streaming mode', async () => {
+    it('should delegate to agent invoke method', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      const fakeListChatModel = new FakeListChatModel({
-        responses: ['test response'],
-      });
-      fakeListChatModel.bindTools = vi.fn().mockReturnValue(fakeListChatModel);
+      mockAgent.invoke.mockResolvedValue('test response');
 
-      const config = {
-        ...mockConfig,
-        llm: fakeListChatModel,
-      };
-      await invocation.init(undefined, config);
+      await invocation.init(undefined, mockConfig);
 
       const messages = [new HumanMessage('test message')];
-
       const result = await invocation.invoke(messages);
 
-      expect(statusUpdateCallback).toHaveBeenCalledWith('display', 'test response');
+      expect(mockAgent.invoke).toHaveBeenCalledWith('test message', { runnableConfig: undefined });
       expect(result).toBe('test response');
     });
 
-    it('should display tool usage in non-streaming mode', async () => {
+    it('should handle multiple messages', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      const fakeListChatModel = new FakeListChatModel({
-        responses: [
-          new AIMessage({
-            content: 'test response',
-            tool_calls: [
-              { name: 'read_file', args: {}, id: '1' },
-              { name: 'write_file', args: {}, id: '2' },
-            ],
-          }) as any as string,
-        ],
-      });
-      fakeListChatModel.bindTools = vi.fn().mockReturnValue(fakeListChatModel);
+      mockAgent.invoke.mockResolvedValue('combined response');
 
-      const config = {
-        ...mockConfig,
-        llm: fakeListChatModel,
-      };
-      await invocation.init(undefined, config);
+      await invocation.init(undefined, mockConfig);
 
-      const messages = [new HumanMessage('test message')];
-
-      await invocation.invoke(messages);
-
-      expect(statusUpdateCallback).toHaveBeenCalledWith(
-        'info',
-        '\nUsed tools: read_file(), write_file()'
-      );
-    });
-
-    it('should handle errors in non-streaming mode', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const fakeListChatModel = new FakeListChatModel({
-        responses: [],
-        simulateError: true,
-      } as FakeChatInput);
-      fakeListChatModel.bindTools = vi.fn().mockReturnValue(fakeListChatModel);
-
-      const config = {
-        ...mockConfig,
-        llm: fakeListChatModel,
-      };
-      await invocation.init(undefined, config);
-
-      const messages = [new HumanMessage('test message')];
-
+      const messages = [new HumanMessage('first message'), new HumanMessage('second message')];
       const result = await invocation.invoke(messages);
 
-      expect(statusUpdateCallback).toHaveBeenCalledWith(
-        'warning',
-        expect.stringContaining('Something went wrong')
-      );
-      expect(progressIndicatorMock).toHaveBeenCalled();
-      expect(progressIndicatorInstanceMock.stop).toHaveBeenCalled();
-      expect(result).toBe('');
-    });
-
-    it('should invoke agent in streaming mode', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const fakeStreamingChatModel = new FakeStreamingChatModel({
-        chunks: [
-          new AIMessageChunk({ content: 'chunk1' }),
-          new AIMessageChunk({ content: 'chunk2' }),
-        ],
+      expect(mockAgent.invoke).toHaveBeenCalledWith('first message\nsecond message', {
+        runnableConfig: undefined,
       });
-      fakeStreamingChatModel.bindTools = vi.fn().mockReturnValue(fakeStreamingChatModel);
-
-      const streamConfig = {
-        ...mockConfig,
-        llm: fakeStreamingChatModel,
-        streamOutput: true,
-      };
-      await invocation.init(undefined, streamConfig);
-
-      const messages = [new HumanMessage('test message')];
-
-      const result = await invocation.invoke(messages);
-
-      expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'chunk1');
-      expect(statusUpdateCallback).toHaveBeenCalledWith('stream', 'chunk2');
-      expect(result).toBe('chunk1chunk2');
-    });
-
-    it('should display tool usage in streaming mode', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const fakeStreamingChatModel = new FakeStreamingChatModel({
-        chunks: [
-          new AIMessageChunk({
-            content: 'response',
-            tool_calls: [{ name: 'read_file', args: {}, id: '1' }],
-          }),
-          new AIMessageChunk({
-            content: ' done', // Add a final chunk without tool calls to end the agent loop
-          }),
-        ],
-      });
-      fakeStreamingChatModel.bindTools = vi.fn().mockReturnValue(fakeStreamingChatModel);
-
-      const streamConfig = {
-        ...mockConfig,
-        llm: fakeStreamingChatModel,
-        streamOutput: true,
-      };
-      await invocation.init(undefined, streamConfig);
-
-      const messages = [new HumanMessage('test message')];
-
-      await invocation.invoke(messages);
-
-      expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nUsed tools: read_file()');
-    });
-
-    it('should handle multiple tool calls in streaming mode', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const fakeStreamingChatModel = new FakeStreamingChatModel({
-        chunks: [
-          new AIMessageChunk({
-            content: 'chunk content',
-            tool_calls: [
-              { name: 'read_file', args: {}, id: '1' },
-              { name: 'write_file', args: {}, id: '2' },
-            ],
-          }),
-          new AIMessageChunk({
-            content: 'bye', // If the tool calls is the last one, the reactor will continue
-          }),
-        ],
-      });
-      fakeStreamingChatModel.bindTools = vi.fn().mockReturnValue(fakeStreamingChatModel);
-
-      // Create mock tools to prevent recursion
-      const mockTools = [
-        {
-          name: 'read_file',
-          description: 'Mock read file tool',
-          invoke: vi.fn().mockResolvedValue('file content'),
-        } as Partial<StructuredToolInterface>,
-        {
-          name: 'write_file',
-          description: 'Mock write file tool',
-          invoke: vi.fn().mockResolvedValue('write success'),
-        } as Partial<StructuredToolInterface>,
-      ];
-
-      const streamConfig = {
-        ...mockConfig,
-        llm: fakeStreamingChatModel,
-        streamOutput: true,
-        tools: mockTools,
-      } as SlothConfig;
-      await invocation.init(undefined, streamConfig);
-
-      const messages = [new HumanMessage('test message')];
-
-      await invocation.invoke(messages);
-
-      expect(statusUpdateCallback).toHaveBeenCalledWith(
-        'info',
-        '\nUsed tools: read_file(), write_file()'
-      );
-    });
-
-    it('should handle ToolException errors in streaming mode', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const error = new Error('Tool failed');
-      error.name = 'ToolException';
-
-      // Create a simple streaming model that will throw when streamed
-      const fakeStreamingChatModel = new FakeStreamingChatModel({
-        chunks: [new AIMessageChunk({ content: 'test' })],
-      });
-      fakeStreamingChatModel.bindTools = vi.fn().mockReturnValue(fakeStreamingChatModel);
-
-      const streamConfig = {
-        ...mockConfig,
-        llm: fakeStreamingChatModel,
-        streamOutput: true,
-      };
-      await invocation.init(undefined, streamConfig);
-
-      // Mock the agent's stream method to throw the ToolException
-      const agent = invocation['agent'];
-      if (agent) {
-        agent.stream = vi.fn().mockImplementation(async function* () {
-          throw error;
-        });
-      }
-
-      const messages = [new HumanMessage('test message')];
-
-      await expect(invocation.invoke(messages)).rejects.toThrow(error);
-      expect(statusUpdateCallback).toHaveBeenCalledWith(
-        'error',
-        'Tool execution failed: Tool failed'
-      );
+      expect(result).toBe('combined response');
     });
 
     it('should pass run config to agent', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      const fakeListChatModel = new FakeListChatModel({
-        responses: ['test response'],
-      });
-      fakeListChatModel.bindTools = vi.fn().mockReturnValue(fakeListChatModel);
+      mockAgent.invoke.mockResolvedValue('test response');
 
-      const config = {
-        ...mockConfig,
-        llm: fakeListChatModel,
-      };
-      await invocation.init(undefined, config);
+      await invocation.init(undefined, mockConfig);
 
       const messages = [new HumanMessage('test message')];
       const runConfig: RunnableConfig = { configurable: { thread_id: 'test' } };
 
       const result = await invocation.invoke(messages, runConfig);
 
+      expect(mockAgent.invoke).toHaveBeenCalledWith('test message', { runnableConfig: runConfig });
       expect(result).toBe('test response');
+    });
+
+    it('should work with custom agent', async () => {
+      const customAgent: GthAgentInterface = {
+        invoke: vi.fn().mockResolvedValue('custom response'),
+        stream: vi.fn(),
+      };
+      const invocation = new Invocation(statusUpdateCallback, customAgent);
+
+      await invocation.init(undefined, mockConfig);
+
+      const messages = [new HumanMessage('test message')];
+      const result = await invocation.invoke(messages);
+
+      expect(customAgent.invoke).toHaveBeenCalledWith('test message', {
+        runnableConfig: undefined,
+      });
+      expect(result).toBe('custom response');
     });
   });
 
   describe('cleanup', () => {
-    it('should cleanup MCP client and reset state', async () => {
+    it('should delegate to agent cleanup and reset state', async () => {
       const invocation = new Invocation(statusUpdateCallback);
-      const configWithMcp = {
-        ...mockConfig,
-        mcpServers: {
-          custom: {
-            transport: 'stdio' as const,
-            command: 'custom-server',
-            args: [],
-          },
-        },
-      } as SlothConfig;
-      mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
-      await invocation.init(undefined, configWithMcp);
+      await invocation.init(undefined, mockConfig);
       await invocation.cleanup();
 
-      expect(mcpClientInstanceMock.close).toHaveBeenCalled();
-      expect(invocation['mcpClient']).toBeNull();
+      expect(mockAgent.cleanup).toHaveBeenCalled();
       expect(invocation['agent']).toBeNull();
       expect(invocation['config']).toBeNull();
     });
@@ -497,111 +232,35 @@ describe('Invocation', () => {
 
       await expect(invocation.cleanup()).resolves.not.toThrow();
     });
-  });
 
-  describe('getMcpClient', () => {
-    it('should return null when no filesystem or MCP servers configured', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const config = {
-        ...mockConfig,
-        filesystem: 'none',
-        mcpServers: undefined,
-      } as SlothConfig;
+    it('should handle cleanup with custom agent', async () => {
+      const customAgent: GthAgentInterface & { cleanup: () => void } = {
+        invoke: vi.fn(),
+        stream: vi.fn(),
+        cleanup: vi.fn(),
+      };
+      const invocation = new Invocation(statusUpdateCallback, customAgent);
 
-      const _result = await invocation['getMcpClient'](config);
+      await invocation.init(undefined, mockConfig);
+      await invocation.cleanup();
 
-      expect(_result).toBeNull();
+      expect(customAgent.cleanup).toHaveBeenCalled();
+      expect(invocation['agent']).toBeNull();
+      expect(invocation['config']).toBeNull();
     });
 
-    it('should create MCP client with custom server', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const config = {
-        ...mockConfig,
-        filesystem: 'all' as const,
-        mcpServers: {
-          custom: {
-            transport: 'stdio' as const,
-            command: 'custom-server',
-            args: ['--arg'],
-          },
-        },
+    it('should handle cleanup with custom agent without cleanup method', async () => {
+      const customAgent: GthAgentInterface = {
+        invoke: vi.fn(),
+        stream: vi.fn(),
       };
+      const invocation = new Invocation(statusUpdateCallback, customAgent);
 
-      const result = await invocation['getMcpClient'](config);
+      await invocation.init(undefined, mockConfig);
 
-      expect(multiServerMCPClientMock).toHaveBeenCalledWith({
-        throwOnLoadError: true,
-        prefixToolNameWithServerName: true,
-        additionalToolNamePrefix: 'mcp',
-        mcpServers: {
-          custom: {
-            transport: 'stdio',
-            command: 'custom-server',
-            args: ['--arg'],
-          },
-        },
-      });
-      expect(result).toBe(mcpClientInstanceMock);
-    });
-
-    it('should combine default servers with user config', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const config = {
-        ...mockConfig,
-        filesystem: 'all' as const,
-        mcpServers: {
-          custom: {
-            transport: 'stdio' as const,
-            command: 'custom-server',
-            args: ['--custom'],
-          },
-        },
-      };
-
-      await invocation['getMcpClient'](config);
-
-      expect(multiServerMCPClientMock).toHaveBeenCalledWith({
-        throwOnLoadError: true,
-        prefixToolNameWithServerName: true,
-        additionalToolNamePrefix: 'mcp',
-        mcpServers: {
-          custom: {
-            transport: 'stdio',
-            command: 'custom-server',
-            args: ['--custom'],
-          },
-        },
-      });
-    });
-
-    it('should create MCP client with only user servers when no filesystem', async () => {
-      const invocation = new Invocation(statusUpdateCallback);
-      const config = {
-        ...mockConfig,
-        filesystem: 'none' as const,
-        mcpServers: {
-          custom: {
-            transport: 'stdio' as const,
-            command: 'custom-server',
-            args: [],
-          },
-        },
-      };
-
-      await invocation['getMcpClient'](config);
-
-      expect(multiServerMCPClientMock).toHaveBeenCalledWith({
-        throwOnLoadError: true,
-        prefixToolNameWithServerName: true,
-        additionalToolNamePrefix: 'mcp',
-        mcpServers: {
-          custom: {
-            transport: 'stdio',
-            command: 'custom-server',
-            args: [],
-          },
-        },
-      });
+      await expect(invocation.cleanup()).resolves.not.toThrow();
+      expect(invocation['agent']).toBeNull();
+      expect(invocation['config']).toBeNull();
     });
   });
 });
