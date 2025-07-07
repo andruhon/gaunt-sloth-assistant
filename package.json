@@ -1,6 +1,6 @@
 {
   "name": "gaunt-sloth-assistant",
-  "version": "0.8.5",
+  "version": "0.8.4",
   "description": "",
   "license": "MIT",
   "author": "Andrew Kondratev",
@@ -29,6 +29,7 @@
     "@langchain/anthropic": "^0.3.23",
     "@langchain/core": "^0.3.61",
     "@langchain/deepseek": "^0.0.2",
+    "@langchain/google-genai": "^0.2.14",
     "@langchain/google-vertexai": "^0.2.14",
     "@langchain/groq": "^0.2.3",
     "@langchain/langgraph": "^0.3.6",
