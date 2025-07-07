@@ -1,4 +1,3 @@
-import type { Message } from '#src/modules/types.js';
 import { AIMessage, isAIMessage } from '@langchain/core/messages';
 import { SlothConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
@@ -6,17 +5,18 @@ import { MultiServerMCPClient, StreamableHTTPConnection } from '@langchain/mcp-a
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
 import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
-import { type RunnableConfig } from '@langchain/core/runnables';
 import { ToolCall } from '@langchain/core/messages/tool';
-import { GthCommand, StatusLevel } from '#src/core/types.js';
+import { GthAgentInterface, GthCommand, StatusLevel } from '#src/core/types.js';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import { getDefaultTools } from '#src/builtInToolsConfig.js';
 import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
 import { displayInfo } from '#src/consoleUtils.js';
+import { IterableReadableStream } from '@langchain/core/utils/stream';
+import { RunnableConfig } from '@langchain/core/runnables';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
-export class Invocation {
+export class GthLangChainAgent implements GthAgentInterface {
   private statusUpdate: StatusUpdateCallback;
   private verbose: boolean = false;
   private mcpClient: MultiServerMCPClient | null = null;
@@ -73,6 +73,115 @@ export class Invocation {
     });
   }
 
+  /**
+   * Invoke LLM with a message and runnable config.
+   * For streaming use {@link #stream} method, streaming is preferred if model API supports it.
+   * Please note that this when tools are involved, this method will anyway do multiple LLM
+   * calls within LangChain dependency.
+   */
+  async invoke(message: string, runConfig: RunnableConfig): Promise<string> {
+    if (!this.agent || !this.config) {
+      throw new Error('Agent not initialized. Call init() first.');
+    }
+
+    // Convert string to Message format expected by the agent
+    const messages = [{ role: 'user', content: message }];
+
+    try {
+      const progress = new ProgressIndicator('Thinking.');
+      try {
+        const response = await this.agent.invoke({ messages }, runConfig);
+        const aiMessage = response.messages[response.messages.length - 1].content as string;
+        const toolCalls = response.messages
+          .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
+          .flatMap((msg: AIMessage) => msg.tool_calls ?? [])
+          .filter((tc: ToolCall) => tc.name);
+        if (toolCalls.length > 0) {
+          this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
+        }
+        this.statusUpdate('display', aiMessage);
+        return aiMessage;
+      } catch (e) {
+        if (e instanceof Error && e?.name === 'ToolException') {
+          throw e; // Re-throw ToolException to be handled by outer catch
+        }
+        this.statusUpdate('warning', `Something went wrong ${(e as Error).message}`);
+        return '';
+      } finally {
+        progress.stop();
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error?.name === 'ToolException') {
+          this.statusUpdate('error', `Tool execution failed: ${error?.message}`);
+          return `Tool execution failed: ${error?.message}`;
+        }
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Induce LLM to stream AI messages with a user message and runnable config.
+   * When stream is not appropriate use {@link invoke}.
+   */
+  async stream(
+    message: string,
+    runConfig: RunnableConfig
+  ): Promise<IterableReadableStream<string>> {
+    if (!this.agent || !this.config) {
+      throw new Error('Agent not initialized. Call init() first.');
+    }
+
+    // Convert string to Message format expected by the agent
+    const messages = [{ role: 'user', content: message }];
+
+    this.statusUpdate('info', '\nThinking...\n');
+    const stream = await this.agent.stream({ messages }, { ...runConfig, streamMode: 'messages' });
+
+    const statusUpdate = this.statusUpdate;
+    return new IterableReadableStream({
+      async start(controller) {
+        try {
+          for await (const [chunk, _metadata] of stream) {
+            if (isAIMessage(chunk)) {
+              const text = chunk.text as string;
+              statusUpdate('stream', text);
+              controller.enqueue(text);
+              const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
+              if (toolCalls && toolCalls.length > 0) {
+                statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
+              }
+            }
+          }
+          controller.close();
+        } catch (error) {
+          if (error instanceof Error) {
+            if (error?.name === 'ToolException') {
+              statusUpdate('error', `Tool execution failed: ${error?.message}`);
+            }
+          }
+          controller.error(error);
+        }
+      },
+      async cancel() {
+        // Clean up the underlying stream if it has a cancel method
+        if (stream && typeof stream.cancel === 'function') {
+          await stream.cancel();
+        }
+      },
+    });
+  }
+
+  async cleanup(): Promise<void> {
+    if (this.mcpClient) {
+      await this.mcpClient.close();
+      this.mcpClient = null;
+    }
+    this.agent = null;
+    this.config = null;
+  }
+
   getEffectiveConfig(config: SlothConfig, command: GthCommand | undefined): SlothConfig {
     const supportsTools = !!config.llm.bindTools;
     if (!supportsTools) {
@@ -89,73 +198,6 @@ export class Invocation {
           ? config.commands[command].builtInTools!
           : config.builtInTools,
     };
-  }
-
-  async invoke(messages: Message[], runConfig?: RunnableConfig): Promise<string> {
-    if (!this.agent || !this.config) {
-      throw new Error('Invocation not initialized. Call init() first.');
-    }
-
-    // Run the agent
-    try {
-      const output = { aiMessage: '' };
-      if (this.config.streamOutput) {
-        // Streaming output
-        this.statusUpdate('info', '\nThinking...\n');
-        const stream = await this.agent.stream(
-          { messages },
-          { ...runConfig, streamMode: 'messages' }
-        );
-
-        for await (const [chunk, _metadata] of stream) {
-          if (isAIMessage(chunk)) {
-            this.statusUpdate('stream', chunk.text as string);
-            output.aiMessage += chunk.text;
-            const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
-            if (toolCalls && toolCalls.length > 0) {
-              this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
-            }
-          }
-        }
-      } else {
-        // Not streaming output
-        const progress = new ProgressIndicator('Thinking.');
-        try {
-          const response = await this.agent.invoke({ messages }, runConfig);
-          output.aiMessage = response.messages[response.messages.length - 1].content as string;
-          const toolCalls = response.messages
-            .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
-            .flatMap((msg: AIMessage) => msg.tool_calls ?? [])
-            .filter((tc: ToolCall) => tc.name);
-          if (toolCalls.length > 0) {
-            this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
-          }
-        } catch (e) {
-          this.statusUpdate('warning', `Something went wrong ${(e as Error).message}`);
-        } finally {
-          progress.stop();
-        }
-        this.statusUpdate('display', output.aiMessage);
-      }
-
-      return output.aiMessage;
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error?.name === 'ToolException') {
-          this.statusUpdate('error', `Tool execution failed: ${error?.message}`);
-        }
-      }
-      throw error;
-    }
-  }
-
-  async cleanup(): Promise<void> {
-    if (this.mcpClient) {
-      await this.mcpClient.close();
-      this.mcpClient = null;
-    }
-    this.agent = null;
-    this.config = null;
   }
 
   /**

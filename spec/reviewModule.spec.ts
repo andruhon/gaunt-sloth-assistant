@@ -59,6 +59,10 @@ vi.mock('#src/utils.js', () => utilsMock);
 // Mock llmUtils module
 const llmUtilsMock = {
   invoke: vi.fn(),
+  getNewRunnableConfig: vi.fn().mockReturnValue({
+    recursionLimit: 250,
+    configurable: { thread_id: 'test-thread-id' },
+  }),
 };
 vi.mock('#src/llmUtils.js', () => llmUtilsMock);
 
@@ -79,6 +83,7 @@ const mockConfig = {
     },
   },
   filesystem: 'none',
+  useColour: false,
 } as SlothConfig;
 
 // Mock config module

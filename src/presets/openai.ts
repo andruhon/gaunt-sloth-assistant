@@ -22,7 +22,9 @@ export async function processJsonConfig(
     apiKey: openaiApiKey,
     model: llmConfig.model || 'gpt-4o',
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (configFields as any).type;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (configFields as any).apiKeyEnvironmentVariable;
   return new ChatOpenAI(configFields);
 }

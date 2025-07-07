@@ -2,21 +2,22 @@ import type { Message } from '#src/modules/types.js';
 import { SlothConfig } from '#src/config.js';
 import { display, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { stdout } from '#src/systemUtils.js';
-import { type RunnableConfig } from '@langchain/core/runnables';
-import { BaseCheckpointSaver } from '@langchain/langgraph';
-import { Invocation } from '#src/core/Invocation.js';
+import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import { StatusLevel } from '#src/core/types.js';
+import { randomUUID } from 'crypto';
+import { RunnableConfig } from '@langchain/core/runnables';
 
 const llmGlobalSettings = {
   verbose: false,
 };
 
+/**
+ * @deprecated prefer using src/core/GthAgentRunner.ts directly
+ */
 export async function invoke(
   command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined,
   messages: Message[],
-  config: SlothConfig,
-  runConfig?: RunnableConfig,
-  checkpointSaver?: BaseCheckpointSaver | undefined
+  config: SlothConfig
 ): Promise<string> {
   const statusUpdate = (level: StatusLevel, message: string) => {
     switch (level) {
@@ -41,17 +42,31 @@ export async function invoke(
     }
   };
 
-  const invocation = new Invocation(statusUpdate);
-  invocation.setVerbose(llmGlobalSettings.verbose);
+  const runner = new GthAgentRunner(statusUpdate);
+  runner.setVerbose(llmGlobalSettings.verbose);
 
   try {
-    await invocation.init(command, config, checkpointSaver);
-    return await invocation.invoke(messages, runConfig);
+    await runner.init(command, config);
+    return await runner.processMessages(messages, getNewRunnableConfig());
   } finally {
-    await invocation.cleanup();
+    await runner.cleanup();
   }
 }
 
+// TODO make sure that it still works after refactoring
 export function setVerbose(debug: boolean) {
   llmGlobalSettings.verbose = debug;
+}
+
+/**
+ * Creates new runnable config.
+ * configurable.thread_id is an important part of that because it helps to distinguish different chat sessions.
+ * We normally do not have multiple sessions in the terminal, but I had bad stuff happening in tests
+ * and in another prototype project where I was importing Gaunt Sloth.
+ */
+export function getNewRunnableConfig(): RunnableConfig {
+  return {
+    recursionLimit: 250,
+    configurable: { thread_id: randomUUID() },
+  };
 }

@@ -5,21 +5,21 @@ import {
   displayInfo,
   formatInputPrompt,
 } from '#src/consoleUtils.js';
-import * as crypto from 'crypto';
 import { MemorySaver } from '@langchain/langgraph';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import {
-  createInterface,
   error,
   exit,
   stdin as input,
   stdout as output,
+  createInterface,
 } from '#src/systemUtils.js';
-import { RunnableConfig } from '@langchain/core/runnables';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { appendToFile, generateStandardFileName } from '#src/utils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
-import { Invocation } from '#src/core/Invocation.js';
+import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
+import { RunnableConfig } from '@langchain/core/runnables';
+import { getNewRunnableConfig } from '#src/llmUtils.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -33,14 +33,14 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
   const config = { ...(await initConfig()) };
   const checkpointSaver = new MemorySaver();
   // Initialize Invocation once
-  const invocation = new Invocation(defaultStatusCallbacks);
+  const invocation = new GthAgentRunner(defaultStatusCallbacks);
   await invocation.init(sessionConfig.mode, config, checkpointSaver);
+  const runConfig: RunnableConfig = getNewRunnableConfig();
 
   try {
     const rl = createInterface({ input, output });
     let isFirstMessage = true;
     let shouldExit = false;
-    const thread_id = crypto.randomUUID();
     const logFileName = getGslothFilePath(
       generateStandardFileName(sessionConfig.mode.toUpperCase())
     );
@@ -63,11 +63,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       }
       messages.push(new HumanMessage(userInput));
 
-      const runConfig = {
-        configurable: { thread_id },
-      } as RunnableConfig;
-
-      const aiResponse = await invocation.invoke(messages, runConfig);
+      const aiResponse = await invocation.processMessages(messages, runConfig);
 
       const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n${aiResponse}\n\n`;
       appendToFile(logFileName, logEntry);
@@ -75,23 +71,23 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       isFirstMessage = false;
     };
 
-    const askQuestion = () => {
-      rl.question(formatInputPrompt('  > '), async (userInput) => {
+    const askQuestion = async () => {
+      while (!shouldExit) {
+        const userInput = await rl.question(formatInputPrompt('  > '));
         if (!userInput.trim()) {
-          rl.close(); // This is not the end of the loop, simply skipping inference if no input
-          return;
+          continue; // Skip inference if no input
         }
         if (userInput.toLowerCase() === 'exit') {
-          rl.close();
           shouldExit = true;
           await invocation.cleanup();
+          rl.close();
           return;
         }
         await processMessage(userInput);
         display('\n\n');
         displayInfo(sessionConfig.exitMessage);
-        if (!shouldExit) askQuestion();
-      });
+      }
+      rl.close();
     };
 
     if (message) {
@@ -100,7 +96,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       display(sessionConfig.readyMessage);
       displayInfo(sessionConfig.exitMessage);
     }
-    if (!shouldExit) askQuestion();
+    if (!shouldExit) await askQuestion();
   } catch (err) {
     await invocation.cleanup();
     error(`Error in ${sessionConfig.mode} command: ${err}`);

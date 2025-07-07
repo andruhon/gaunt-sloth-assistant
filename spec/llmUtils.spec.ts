@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SlothConfig } from '#src/config.js';
 
-const invocationMock = {
+const agentRunnerMock = {
   setVerbose: vi.fn(),
   init: vi.fn(),
-  invoke: vi.fn(),
+  processMessages: vi.fn(),
   cleanup: vi.fn(),
 };
 
-const InvocationConstructor = vi.fn();
+const AgentRunnerConstructor = vi.fn();
 
-vi.mock('#src/core/Invocation.js', () => ({
-  Invocation: InvocationConstructor,
+vi.mock('#src/core/GthAgentRunner.js', () => ({
+  GthAgentRunner: AgentRunnerConstructor,
 }));
 
 const consoleUtilsMock = {
@@ -32,11 +32,11 @@ vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 describe('llmUtils', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    InvocationConstructor.mockImplementation(() => invocationMock);
+    AgentRunnerConstructor.mockImplementation(() => agentRunnerMock);
   });
 
-  it('should create Invocation and call its methods correctly', async () => {
-    invocationMock.invoke.mockResolvedValue('Test response');
+  it('should create Agent Runner and call its methods correctly', async () => {
+    agentRunnerMock.processMessages.mockResolvedValue('Test response');
 
     const { invoke } = await import('#src/llmUtils.js');
 
@@ -49,16 +49,16 @@ describe('llmUtils', () => {
 
     const result = await invoke('review', messages, mockConfig);
 
-    expect(InvocationConstructor).toHaveBeenCalledWith(expect.any(Function));
-    expect(invocationMock.setVerbose).toHaveBeenCalledWith(false);
-    expect(invocationMock.init).toHaveBeenCalledWith('review', mockConfig, undefined);
-    expect(invocationMock.invoke).toHaveBeenCalledWith(messages, undefined);
-    expect(invocationMock.cleanup).toHaveBeenCalled();
+    expect(AgentRunnerConstructor).toHaveBeenCalledWith(expect.any(Function));
+    expect(agentRunnerMock.setVerbose).toHaveBeenCalledWith(false);
+    expect(agentRunnerMock.init).toHaveBeenCalledWith('review', mockConfig);
+    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages, expect.any(Object));
+    expect(agentRunnerMock.cleanup).toHaveBeenCalled();
     expect(result).toBe('Test response');
   });
 
   it('should pass runConfig and checkpointSaver when provided', async () => {
-    invocationMock.invoke.mockResolvedValue('Another response');
+    agentRunnerMock.processMessages.mockResolvedValue('Another response');
 
     const { invoke } = await import('#src/llmUtils.js');
 
@@ -68,19 +68,16 @@ describe('llmUtils', () => {
       filesystem: 'all',
     } as SlothConfig;
     const messages = [{ role: 'system', content: 'system message' }] as any;
-    const runConfig = { configurable: { thread_id: 'test-thread' } };
-    const checkpointSaver = {} as any;
+    const result = await invoke('chat', messages, mockConfig);
 
-    const result = await invoke('chat', messages, mockConfig, runConfig, checkpointSaver);
-
-    expect(invocationMock.init).toHaveBeenCalledWith('chat', mockConfig, checkpointSaver);
-    expect(invocationMock.invoke).toHaveBeenCalledWith(messages, runConfig);
+    expect(agentRunnerMock.init).toHaveBeenCalledWith('chat', mockConfig);
+    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages, expect.any(Object));
     expect(result).toBe('Another response');
   });
 
   it('should call cleanup even when invoke throws an error', async () => {
     const error = new Error('Test error');
-    invocationMock.invoke.mockRejectedValue(error);
+    agentRunnerMock.processMessages.mockRejectedValue(error);
 
     const { invoke } = await import('#src/llmUtils.js');
 
@@ -92,11 +89,11 @@ describe('llmUtils', () => {
     const messages = [] as any;
 
     await expect(invoke('ask', messages, mockConfig)).rejects.toThrow('Test error');
-    expect(invocationMock.cleanup).toHaveBeenCalled();
+    expect(agentRunnerMock.cleanup).toHaveBeenCalled();
   });
 
   it('should set verbose mode correctly', async () => {
-    invocationMock.invoke.mockResolvedValue('Response');
+    agentRunnerMock.processMessages.mockResolvedValue('Response');
 
     const { setVerbose, invoke } = await import('#src/llmUtils.js');
 
@@ -111,6 +108,6 @@ describe('llmUtils', () => {
 
     await invoke('code', messages, mockConfig);
 
-    expect(invocationMock.setVerbose).toHaveBeenCalledWith(true);
+    expect(agentRunnerMock.setVerbose).toHaveBeenCalledWith(true);
   });
 });
