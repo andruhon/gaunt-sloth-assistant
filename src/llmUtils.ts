@@ -42,14 +42,14 @@ export async function invoke(
     }
   };
 
-  const invocation = new GthAgentRunner(statusUpdate);
-  invocation.setVerbose(llmGlobalSettings.verbose);
+  const runner = new GthAgentRunner(statusUpdate);
+  runner.setVerbose(llmGlobalSettings.verbose);
 
   try {
-    await invocation.init(command, config);
-    return await invocation.processMessages(messages, getNewRunnableConfig());
+    await runner.init(command, config);
+    return await runner.processMessages(messages, getNewRunnableConfig());
   } finally {
-    await invocation.cleanup();
+    await runner.cleanup();
   }
 }
 
