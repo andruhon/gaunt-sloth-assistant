@@ -55,7 +55,7 @@ vi.mock('#src/llmUtils.js', () => llmUtilsMock);
 const readlineMock = {
   createInterface: vi.fn(),
 };
-vi.mock('node:readline', () => readlineMock);
+vi.mock('node:readline/promises', () => readlineMock);
 
 const interactiveSessionModuleMock = {
   createInteractiveSession: vi.fn(),

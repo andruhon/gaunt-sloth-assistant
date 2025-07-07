@@ -2,8 +2,8 @@ import { Command } from 'commander';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { display, displayInfo } from '#src/consoleUtils.js';
 import { invoke } from '#src/llmUtils.js';
-import type { Interface as ReadlineInterface } from 'node:readline';
-import { createInterface } from 'node:readline';
+import type { Interface as ReadlineInterface } from 'node:readline/promises';
+import { createInterface } from 'node:readline/promises';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
@@ -70,7 +70,7 @@ vi.mock('#src/core/GthAgentRunner.js', () => ({
   GthAgentRunner: gthAgentRunnerMock,
 }));
 
-vi.mock('node:readline', () => ({
+vi.mock('node:readline/promises', () => ({
   createInterface: vi.fn(),
 }));
 
@@ -105,9 +105,7 @@ describe('codeCommand', () => {
 
   it('Should process initial message if provided', async () => {
     const mockReadline = {
-      question: vi.fn().mockImplementation((prompt, callback) => {
-        callback('exit'); // Simulate exit on next call
-      }),
+      question: vi.fn().mockResolvedValue('exit'),
       close: vi.fn(),
       terminal: true,
       line: '',
@@ -158,13 +156,13 @@ describe('codeCommand', () => {
   it('Should handle empty message gracefully', async () => {
     let callCount = 0;
     const mockReadline = {
-      question: vi.fn().mockImplementation((prompt, callback) => {
+      question: vi.fn().mockImplementation(() => {
         if (callCount === 0) {
-          callback(''); // Simulate empty input
+          callCount++;
+          return Promise.resolve(''); // Simulate empty input
         } else {
-          callback('exit'); // Simulate exit on next call
+          return Promise.resolve('exit'); // Simulate exit on next call
         }
-        callCount++;
       }),
       close: vi.fn(),
       terminal: true,
@@ -198,7 +196,7 @@ describe('codeCommand', () => {
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code']);
 
-    expect(mockReadline.question).toHaveBeenCalledWith('  > ', expect.any(Function));
+    expect(mockReadline.question).toHaveBeenCalledWith('  > ');
     expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
   });
@@ -206,13 +204,13 @@ describe('codeCommand', () => {
   it('Should greet user on empty first message', async () => {
     let callCount = 0;
     const mockReadline = {
-      question: vi.fn().mockImplementation((prompt, callback) => {
+      question: vi.fn().mockImplementation(() => {
         if (callCount === 0) {
-          callback(''); // Simulate empty input
+          callCount++;
+          return Promise.resolve(''); // Simulate empty input
         } else {
-          callback('exit'); // Simulate exit on next call
+          return Promise.resolve('exit'); // Simulate exit on next call
         }
-        callCount++;
       }),
       close: vi.fn(),
       terminal: true,
@@ -247,7 +245,7 @@ describe('codeCommand', () => {
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code']);
 
-    expect(mockReadline.question).toHaveBeenCalledWith('  > ', expect.any(Function));
+    expect(mockReadline.question).toHaveBeenCalledWith('  > ');
     expect(vi.mocked(display)).toHaveBeenCalledWith(
       '\nGaunt Sloth is ready to code. Type your prompt.'
     );
@@ -271,10 +269,11 @@ describe('codeCommand', () => {
     const { initConfig } = await import('#src/config.js');
     vi.mocked(initConfig).mockResolvedValue(mockConfig as SlothConfig);
 
-    let messageHandler: (_message: string) => Promise<void> = async () => {};
+    const messages = ['first message', 'second message', 'exit'];
+    let messageIndex = 0;
     const mockReadline = {
-      question: vi.fn().mockImplementation((prompt, callback) => {
-        messageHandler = callback;
+      question: vi.fn().mockImplementation(() => {
+        return Promise.resolve(messages[messageIndex++]);
       }),
       close: vi.fn(),
     };
@@ -282,9 +281,6 @@ describe('codeCommand', () => {
 
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code']); // Start code session
-
-    await messageHandler('first message');
-    await messageHandler('second message');
 
     expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledTimes(2);
     expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(
@@ -315,17 +311,17 @@ describe('codeCommand', () => {
     const { initConfig } = await import('#src/config.js');
     vi.mocked(initConfig).mockResolvedValue(mockConfig as SlothConfig);
     vi.mocked(invoke).mockResolvedValue('Mock response');
-    let messageHandler: (_message: string) => Promise<void> = async () => {};
+    const messages = ['first message', 'exit'];
+    let messageIndex = 0;
     const mockReadline = {
-      question: vi.fn().mockImplementation((prompt, callback) => {
-        messageHandler = callback;
+      question: vi.fn().mockImplementation(() => {
+        return Promise.resolve(messages[messageIndex++]);
       }),
       close: vi.fn(),
     };
     vi.mocked(createInterface).mockReturnValue(mockReadline as any);
     codeCommand(program);
     await program.parseAsync(['na', 'na', 'code']); // Start code session
-    await messageHandler('first message');
     expect(vi.mocked(appendToFile)).toHaveBeenCalledWith(
       'mock/code/file.txt',
       '## User\n\nfirst message\n\n## Assistant\n\nMock response\n\n'

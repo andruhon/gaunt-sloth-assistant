@@ -8,11 +8,11 @@ import {
 import { MemorySaver } from '@langchain/langgraph';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import {
-  createInterface,
   error,
   exit,
   stdin as input,
   stdout as output,
+  createInterface,
 } from '#src/systemUtils.js';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { appendToFile, generateStandardFileName } from '#src/utils.js';
@@ -71,23 +71,23 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       isFirstMessage = false;
     };
 
-    const askQuestion = () => {
-      rl.question(formatInputPrompt('  > '), async (userInput) => {
+    const askQuestion = async () => {
+      while (!shouldExit) {
+        const userInput = await rl.question(formatInputPrompt('  > '));
         if (!userInput.trim()) {
-          rl.close(); // This is not the end of the loop, simply skipping inference if no input
-          return;
+          continue; // Skip inference if no input
         }
         if (userInput.toLowerCase() === 'exit') {
-          rl.close();
           shouldExit = true;
           await invocation.cleanup();
+          rl.close();
           return;
         }
         await processMessage(userInput);
         display('\n\n');
         displayInfo(sessionConfig.exitMessage);
-        if (!shouldExit) askQuestion();
-      });
+      }
+      rl.close();
     };
 
     if (message) {
@@ -96,7 +96,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
       display(sessionConfig.readyMessage);
       displayInfo(sessionConfig.exitMessage);
     }
-    if (!shouldExit) askQuestion();
+    if (!shouldExit) await askQuestion();
   } catch (err) {
     await invocation.cleanup();
     error(`Error in ${sessionConfig.mode} command: ${err}`);
