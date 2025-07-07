@@ -35,8 +35,8 @@ export class GthAgentRunner {
     // Initialize the agent if it has an init method
     await this.agent.init(command, configIn, checkpointSaver);
 
-    // Set verbose if applicable
-    if (this.verbose && 'setVerbose' in this.agent && typeof this.agent.setVerbose === 'function') {
+    // Set verbose mode
+    if (this.verbose) {
       this.agent.setVerbose(this.verbose);
     }
   }
@@ -49,18 +49,32 @@ export class GthAgentRunner {
     // Convert Message[] to a single string for the agent interface
     const message = messages.map((msg) => msg.content).join('\n');
 
-    // Decision: Use streaming or non-streaming based on config
-    if (this.config.streamOutput) {
-      // Use streaming
-      const stream = await this.agent.stream(message, runConfig);
-      let result = '';
-      for await (const chunk of stream) {
-        result += chunk;
+    try {
+      // Decision: Use streaming or non-streaming based on config
+      if (this.config.streamOutput) {
+        // Use streaming
+        const stream = await this.agent.stream(message, runConfig);
+        let result = '';
+        try {
+          for await (const chunk of stream) {
+            result += chunk;
+          }
+        } catch (streamError) {
+          // Handle streaming-specific errors
+          throw new Error(
+            `Stream processing failed: ${streamError instanceof Error ? streamError.message : String(streamError)}`
+          );
+        }
+        return result;
+      } else {
+        // Use non-streaming
+        return await this.agent.invoke(message, runConfig);
       }
-      return result;
-    } else {
-      // Use non-streaming
-      return await this.agent.invoke(message, runConfig);
+    } catch (error) {
+      // Handle agent invocation errors
+      throw new Error(
+        `Agent processing failed: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 

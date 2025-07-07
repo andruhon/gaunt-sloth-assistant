@@ -164,6 +164,12 @@ export class GthLangChainAgent implements GthAgentInterface {
           controller.error(error);
         }
       },
+      async cancel() {
+        // Clean up the underlying stream if it has a cancel method
+        if (stream && typeof stream.cancel === 'function') {
+          await stream.cancel();
+        }
+      },
     });
   }
 

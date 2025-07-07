@@ -16,4 +16,6 @@ export interface GthAgentInterface {
   invoke(message: string, runConfig: RunnableConfig): Promise<string>;
 
   stream(message: string, runConfig: RunnableConfig): Promise<IterableReadableStream<string>>;
+
+  setVerbose(verbose: boolean): void;
 }
