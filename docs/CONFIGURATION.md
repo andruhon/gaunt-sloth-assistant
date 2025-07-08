@@ -490,6 +490,23 @@ MCP can be used in `chat` and `code` commands.
 
 Gaunt Sloth has OAuth client for MCP and is confirmed to work with public Jira MCP.
 
+```json
+{
+  "llm": {
+    "type": "vertexai",
+    "model": "gemini-2.5-pro",
+    "temperature": 0
+  },
+  "mcpServers": {
+    "jira": {
+      "url": "https://mcp.atlassian.com/v1/sse",
+      "authProvider": "OAuth",
+      "transport": "sse"
+    }
+  }
+}
+```
+
 #### 1. Modern Jira REST API (Scoped Token)
 
 Jira API is used with `pr` and `review` commands.
