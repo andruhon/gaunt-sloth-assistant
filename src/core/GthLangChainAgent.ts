@@ -13,6 +13,7 @@ import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderI
 import { displayInfo } from '#src/consoleUtils.js';
 import { IterableReadableStream } from '@langchain/core/utils/stream';
 import { RunnableConfig } from '@langchain/core/runnables';
+import type { Message } from '#src/modules/types.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -80,13 +81,10 @@ export class GthLangChainAgent implements GthAgentInterface {
    * Please note that this when tools are involved, this method will anyway do multiple LLM
    * calls within LangChain dependency.
    */
-  async invoke(message: string, runConfig: RunnableConfig): Promise<string> {
+  async invoke(messages: Message[], runConfig: RunnableConfig): Promise<string> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');
     }
-
-    // Convert string to Message format expected by the agent
-    const messages = [{ role: 'user', content: message }];
 
     try {
       const progress = new ProgressIndicator('Thinking.');
@@ -127,15 +125,12 @@ export class GthLangChainAgent implements GthAgentInterface {
    * When stream is not appropriate use {@link invoke}.
    */
   async stream(
-    message: string,
+    messages: Message[],
     runConfig: RunnableConfig
   ): Promise<IterableReadableStream<string>> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');
     }
-
-    // Convert string to Message format expected by the agent
-    const messages = [{ role: 'user', content: message }];
 
     this.statusUpdate('info', '\nThinking...\n');
     const stream = await this.agent.stream({ messages }, { ...runConfig, streamMode: 'messages' });
