@@ -1,6 +1,5 @@
-import path from 'node:path';
 import { displayWarning } from '#src/consoleUtils.js';
-import { env, getCurrentDir } from '#src/systemUtils.js';
+import { env } from '#src/systemUtils.js';
 import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import type {
@@ -30,9 +29,6 @@ const jsonContent = `{
 }`;
 
 export function init(configFileName: string): void {
-  const currentDir = getCurrentDir();
-  const configPath = path.join(currentDir, configFileName);
-
   // Determine which content to use based on file extension
   if (!configFileName.endsWith('.json')) {
     throw new Error('Only JSON config is supported.');
