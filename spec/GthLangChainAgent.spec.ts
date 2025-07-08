@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { AIMessage, AIMessageChunk } from '@langchain/core/messages';
+import { AIMessage, AIMessageChunk, HumanMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import type { SlothConfig } from '#src/config.js';
 import type { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
@@ -126,7 +126,7 @@ describe('GthLangChainAgent', () => {
       expect(mockConfig.llm.verbose).toBe(true);
     });
 
-    it('should set verbose on LLM when verbose mode is disabled', async () => {
+    it('should keep verbose=false on LLM when verbose mode is disabled', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
       agent.setVerbose(false);
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
@@ -231,7 +231,7 @@ describe('GthLangChainAgent', () => {
         configurable: { thread_id: 'test-thread-id' },
       };
 
-      await expect(agent.invoke('test', runConfig)).rejects.toThrow(
+      await expect(agent.invoke([new HumanMessage('test')], runConfig)).rejects.toThrow(
         'Agent not initialized. Call init() first.'
       );
     });
@@ -253,7 +253,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      const result = await agent.invoke('test message', runConfig);
+      const result = await agent.invoke([new HumanMessage('test message')], runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith('display', 'test response');
       expect(result).toBe('test response');
@@ -284,7 +284,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      await agent.invoke('test message', runConfig);
+      await agent.invoke([new HumanMessage('test message')], runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'info',
@@ -310,7 +310,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      const result = await agent.invoke('test message', runConfig);
+      const result = await agent.invoke([new HumanMessage('test message')], runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'warning',
@@ -339,7 +339,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      const result = await agent.invoke('test message', runConfig);
+      const result = await agent.invoke([new HumanMessage('test message')], runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith('display', 'test response');
       expect(result).toBe('test response');
@@ -369,7 +369,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      await agent.invoke('test message', runConfig);
+      await agent.invoke([new HumanMessage('test message')], runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nUsed tools: read_file()');
     });
@@ -415,7 +415,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      await agent.invoke('test message', runConfig);
+      await agent.invoke([new HumanMessage('test message')], runConfig);
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'info',
@@ -449,7 +449,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      const result = await agent.invoke('test message', runConfig);
+      const result = await agent.invoke([new HumanMessage('test message')], runConfig);
       expect(result).toBe('Tool execution failed: Tool failed');
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'error',
@@ -474,7 +474,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      const result = await agent.invoke('test message', runConfig);
+      const result = await agent.invoke([new HumanMessage('test message')], runConfig);
 
       expect(result).toBe('test response');
     });
@@ -488,7 +488,7 @@ describe('GthLangChainAgent', () => {
         configurable: { thread_id: 'test-thread-id' },
       };
 
-      await expect(agent.stream('test', runConfig)).rejects.toThrow(
+      await expect(agent.stream([new HumanMessage('test')], runConfig)).rejects.toThrow(
         'Agent not initialized. Call init() first.'
       );
     });
@@ -514,7 +514,7 @@ describe('GthLangChainAgent', () => {
         recursionLimit: 250,
         configurable: { thread_id: 'test-thread-id' },
       };
-      const stream = await agent.stream('test message', runConfig);
+      const stream = await agent.stream([new HumanMessage('test message')], runConfig);
 
       const chunks = [];
       for await (const chunk of stream) {
