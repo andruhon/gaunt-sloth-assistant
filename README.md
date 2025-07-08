@@ -138,12 +138,22 @@ For OpenAI-compatible providers like Inception, use `gsloth init openai` and mod
 More detailed information on configuration can be found in [CONFIGURATION.md](./docs/CONFIGURATION.md)
 
 ### Google Vertex AI
+
 ```shell
 cd ./your-project
 gsloth init vertexai
 gcloud auth login
 gcloud auth application-default login
 ```
+
+### Google GenAI (AI Studio)
+
+```shell
+cd ./your-project
+gsloth init google-genai
+```
+Make sure you either define `GOOGLE_API_KEY` environment variable or edit your configuration file and set up your key.
+It is recommended to obtain API key from Google AI Studio official website rather than from a reseller.
 
 ### Anthropic
 
@@ -186,14 +196,6 @@ Then edit your configuration to add custom base URL and API key. See [CONFIGURAT
 
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md).
-
-### Google GenAI
-```shell
-cd ./your-project
-gsloth init google-genai
-```
-Make sure you either define `GOOGLE_API_KEY` environment variable or edit your configuration file and set up your key.
-It is recommended to obtain API key from Google AI Studio official website rather than from a reseller.
 
 ## MCP (Model Context Protocol) Servers
 

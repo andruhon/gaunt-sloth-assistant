@@ -1,6 +1,5 @@
-import path from 'node:path';
 import { displayWarning } from '#src/consoleUtils.js';
-import { env, getCurrentDir } from '#src/systemUtils.js';
+import { env } from '#src/systemUtils.js';
 import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { ChatGroqInput } from '@langchain/groq';
@@ -25,9 +24,6 @@ const jsonContent = `{
 }`;
 
 export function init(configFileName: string): void {
-  const currentDir = getCurrentDir();
-  path.join(currentDir, configFileName);
-
   // Determine which content to use based on file extension
   if (!configFileName.endsWith('.json')) {
     throw new Error('Only JSON config is supported.');
