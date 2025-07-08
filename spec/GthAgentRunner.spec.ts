@@ -108,7 +108,7 @@ describe('GthAgentRunner', () => {
       expect(mockAgent.setVerbose).toHaveBeenCalledWith(true);
     });
 
-    it('should not call setVerbose on agent when verbose mode is disabled', async () => {
+    it('should not set verbose on agent when verbose mode is disabled (false is default)', async () => {
       const runner = new GthAgentRunner(statusUpdateCallback);
       runner.setVerbose(false);
 
