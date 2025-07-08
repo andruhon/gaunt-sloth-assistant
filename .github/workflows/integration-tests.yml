@@ -27,7 +27,7 @@ jobs:
       run: npm ci
     
     - name: Run Integration
-      run: npm run it ${{ env.BIG_TEST_PROVIDER }}
+      run: npm run it $BIG_TEST_PROVIDER
       env:
         BIG_TEST_PROVIDER: ${{ env.BIG_TEST_PROVIDER }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
