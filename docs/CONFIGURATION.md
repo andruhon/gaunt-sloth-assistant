@@ -482,9 +482,17 @@ To set GitHub as your default requirements provider, add this to your configurat
 
 ### JIRA
 
-Gaunt Sloth supports two methods to integrate with JIRA:
+Gaunt Sloth supports three methods to integrate with JIRA:
+
+#### Atlassian MCP
+
+MCP can be used in `chat` and `code` commands.
+
+Gaunt Sloth has OAuth client for MCP and is confirmed to work with public Jira MCP.
 
 #### 1. Modern Jira REST API (Scoped Token)
+
+Jira API is used with `pr` and `review` commands.
 
 This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). It requires your Atlassian Cloud ID.
 
@@ -560,6 +568,8 @@ export async function configure() {
 ```
 
 #### 2. Legacy Jira REST API (Unscoped Token)
+
+Jira API is used with `pr` and `review` commands.
 
 This uses the Unscoped API token (Aka Legacy API token) method with REST API v2.
 
