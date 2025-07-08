@@ -12,7 +12,6 @@ Your project should have the following files in order for gsloth to function:
 - `.gsloth.guidelines.md`
 
 > Gaunt Sloth currently only functions from the directory which has one of the configuration files and `.gsloth.guidelines.md`.
-> Global configuration to invoke gsloth anywhere is in [ROADMAP](../ROADMAP.md).
 
 ## Using .gsloth Directory
 
@@ -94,6 +93,12 @@ gcloud auth login
 gcloud auth application-default login
 ```
 
+### Google GenAI (AI Studio)
+```shell
+cd ./your-project
+gsloth init google-genai
+```
+
 ### Anthropic
 ```shell
 cd ./your-project
@@ -128,12 +133,6 @@ For providers that use OpenAI-compatible APIs:
 ```shell
 cd ./your-project
 gsloth init openai
-```
-
-### Google GenAI
-```shell
-cd ./your-project
-gsloth init google-genai
 ```
 
 Then edit your configuration file to add the custom base URL and API key. For example, for Inception:
@@ -173,8 +172,7 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
 {
   "llm": {
     "type": "vertexai",
-    "model": "gemini-2.5-pro-preview-05-06",
-    "temperature": 0
+    "model": "gemini-2.5-pro"
   }
 }
 ```
