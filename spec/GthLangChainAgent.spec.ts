@@ -126,6 +126,16 @@ describe('GthLangChainAgent', () => {
       expect(mockConfig.llm.verbose).toBe(true);
     });
 
+    it('should set verbose on LLM when verbose mode is disabled', async () => {
+      const agent = new GthLangChainAgent(statusUpdateCallback);
+      agent.setVerbose(false);
+      mcpClientInstanceMock.getTools.mockResolvedValue([]);
+
+      await agent.init(undefined, mockConfig);
+
+      expect(mockConfig.llm.verbose).toBe(false);
+    });
+
     it('should use command-specific filesystem config', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
       const configWithCommands = {

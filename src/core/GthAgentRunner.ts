@@ -32,13 +32,13 @@ export class GthAgentRunner {
       this.agent = new GthLangChainAgent(this.statusUpdate);
     }
 
-    // Initialize the agent if it has an init method
-    await this.agent.init(command, configIn, checkpointSaver);
-
-    // Set verbose mode
+    // Set verbose mode before initialization so it can be used during init
     if (this.verbose) {
       this.agent.setVerbose(this.verbose);
     }
+
+    // Initialize the agent if it has an init method
+    await this.agent.init(command, configIn, checkpointSaver);
   }
 
   async processMessages(messages: Message[], runConfig: RunnableConfig): Promise<string> {
@@ -46,14 +46,11 @@ export class GthAgentRunner {
       throw new Error('AgentRunner not initialized. Call init() first.');
     }
 
-    // Convert Message[] to a single string for the agent interface
-    const message = messages.map((msg) => msg.content).join('\n');
-
     try {
       // Decision: Use streaming or non-streaming based on config
       if (this.config.streamOutput) {
         // Use streaming
-        const stream = await this.agent.stream(message, runConfig);
+        const stream = await this.agent.stream(messages, runConfig);
         let result = '';
         try {
           for await (const chunk of stream) {
@@ -68,7 +65,7 @@ export class GthAgentRunner {
         return result;
       } else {
         // Use non-streaming
-        return await this.agent.invoke(message, runConfig);
+        return await this.agent.invoke(messages, runConfig);
       }
     } catch (error) {
       // Handle agent invocation errors
