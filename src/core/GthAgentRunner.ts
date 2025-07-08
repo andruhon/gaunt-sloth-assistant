@@ -32,13 +32,13 @@ export class GthAgentRunner {
       this.agent = new GthLangChainAgent(this.statusUpdate);
     }
 
-    // Initialize the agent if it has an init method
-    await this.agent.init(command, configIn, checkpointSaver);
-
-    // Set verbose mode
+    // Set verbose mode before initialization so it can be used during init
     if (this.verbose) {
       this.agent.setVerbose(this.verbose);
     }
+
+    // Initialize the agent if it has an init method
+    await this.agent.init(command, configIn, checkpointSaver);
   }
 
   async processMessages(messages: Message[], runConfig: RunnableConfig): Promise<string> {

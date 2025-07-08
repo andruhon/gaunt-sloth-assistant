@@ -67,6 +67,7 @@ describe('GthAgentRunner', () => {
       const customAgent: GthAgentInterface = {
         invoke: vi.fn(),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
       expect(runner).toBeDefined();
@@ -107,6 +108,15 @@ describe('GthAgentRunner', () => {
       expect(mockAgent.setVerbose).toHaveBeenCalledWith(true);
     });
 
+    it('should set verbose on agent when verbose mode is disabled', async () => {
+      const runner = new GthAgentRunner(statusUpdateCallback);
+      runner.setVerbose(false);
+
+      await runner.init(undefined, mockConfig);
+
+      expect(mockAgent.setVerbose).toHaveBeenCalledWith(false);
+    });
+
     it('should initialize with checkpoint saver', async () => {
       const runner = new GthAgentRunner(statusUpdateCallback);
       const checkpointSaver = new MemorySaver();
@@ -121,6 +131,7 @@ describe('GthAgentRunner', () => {
         init: vi.fn(),
         invoke: vi.fn(),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
 
@@ -138,6 +149,7 @@ describe('GthAgentRunner', () => {
         invoke: vi.fn(),
         stream: vi.fn(),
         init: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
 
@@ -225,6 +237,7 @@ describe('GthAgentRunner', () => {
         init: vi.fn(),
         invoke: vi.fn().mockResolvedValue('custom response'),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
 
@@ -261,6 +274,7 @@ describe('GthAgentRunner', () => {
         init: vi.fn(),
         invoke: vi.fn(),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
         cleanup: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
@@ -278,6 +292,7 @@ describe('GthAgentRunner', () => {
         init: vi.fn(),
         invoke: vi.fn(),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
 

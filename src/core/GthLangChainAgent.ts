@@ -37,6 +37,7 @@ export class GthLangChainAgent implements GthAgentInterface {
     configIn: SlothConfig,
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void> {
+    // Set verbose mode on LLM
     if (this.verbose) {
       configIn.llm.verbose = true;
     }
