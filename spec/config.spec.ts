@@ -591,7 +591,7 @@ describe('config', async () => {
       }
 
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq, deepseek, openai, gemini'
+        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq, deepseek, openai, google-genai'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
@@ -642,12 +642,12 @@ describe('config', async () => {
       expect(mockInit).toHaveBeenCalledWith('/mock/write/.gsloth.config.json');
     });
 
-    it('Should create project config for gemini', async () => {
-      const configType = 'gemini';
+    it('Should create project config for google-genai', async () => {
+      const configType = 'google-genai';
       const mockInit = vi.fn();
 
-      // Mock the gemini config module
-      vi.doMock('#src/presets/gemini.js', () => ({
+      // Mock the google-genai config module
+      vi.doMock('#src/presets/google-genai.js', () => ({
         init: mockInit,
       }));
 
@@ -661,7 +661,7 @@ describe('config', async () => {
       await createProjectConfig(configType);
 
       expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith(
-        'Creating project config for gemini'
+        'Creating project config for google-genai'
       );
       expect(mockInit).toHaveBeenCalledWith('/mock/write/.gsloth.config.json');
     });

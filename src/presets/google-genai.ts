@@ -8,30 +8,30 @@ import type {
   BaseChatModelParams,
 } from '@langchain/core/language_models/chat_models';
 
-// Function to process JSON config and create Anthropic LLM instance
+// Function to process JSON config and create Google GenAI LLM instance
 export async function processJsonConfig(
   llmConfig: ChatGoogleGenerativeAI & BaseChatModelParams
 ): Promise<BaseChatModel> {
   const gemini = await import('@langchain/google-genai');
   // Use config value if available, otherwise use the environment variable
-  const geminiApiKey = llmConfig.apiKey || env.GEMINI_API_KEY;
+  const googleApiKey = llmConfig.apiKey || env.GOOGLE_API_KEY;
   return new gemini.ChatGoogleGenerativeAI({
     ...llmConfig,
-    apiKey: geminiApiKey,
+    apiKey: googleApiKey,
     model: llmConfig.model || 'gemini-2.5-pro',
   });
 }
 
 const jsonContent = `{
   "llm": {
-    "type": "gemini",
+    "type": "google-genai",
     "model": "gemini-2.5-pro"
   }
 }`;
 
 export function init(configFileName: string): void {
   const currentDir = getCurrentDir();
-  path.join(currentDir, configFileName);
+  const configPath = path.join(currentDir, configFileName);
 
   // Determine which content to use based on file extension
   if (!configFileName.endsWith('.json')) {
@@ -40,7 +40,7 @@ export function init(configFileName: string): void {
 
   writeFileIfNotExistsWithMessages(configFileName, jsonContent);
   displayWarning(
-    `You need to update your ${configFileName} to add your Gemini API key, ` +
-      'or define GEMINI_API_KEY environment variable.'
+    `You need to update your ${configFileName} to add your Google GenAI API key, ` +
+      'or define GOOGLE_API_KEY environment variable.'
   );
 }

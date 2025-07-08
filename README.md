@@ -47,12 +47,12 @@ The promise of Gaunt Sloth:
 
 ### To make GSloth work, you need an **API key** from some AI provider, such as:
 
-- Google Vertex AI;
-- Anthropic;
 - Groq;
 - DeepSeek;
+- Google Vertex AI and Google AI Studio;
+- Anthropic;
 - OpenAI (and other providers using OpenAI format, such as Inception);
-- Gemini.
+- Ollama with JS config (some of the models, see https://github.com/andruhon/gaunt-sloth-assistant/discussions/107)
 
 `*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#JavaScript-Configuration).
 
@@ -130,7 +130,6 @@ npm install gaunt-sloth-assistant -g
 ## Configuration
 
 > Gaunt Sloth currently only functions from the directory which has a configuration file (`.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs`) and `.gsloth.guidelines.md`.
-> Global configuration to invoke gsloth anywhere is in [ROADMAP](ROADMAP.md).
 
 Configuration can be created with `gsloth init [vendor]` command.
 Currently, vertexai, anthropic, groq, deepseek and openai can be configured with `gsloth init [vendor]`.
@@ -188,12 +187,12 @@ Then edit your configuration to add custom base URL and API key. See [CONFIGURAT
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md).
 
-### Gemini
+### Google GenAI
 ```shell
 cd ./your-project
-gsloth init gemini
+gsloth init google-genai
 ```
-Make sure you either define `GEMINI_API_KEY` environment variable or edit your configuration file and set up your key.
+Make sure you either define `GOOGLE_API_KEY` environment variable or edit your configuration file and set up your key.
 It is recommended to obtain API key from Google AI Studio official website rather than from a reseller.
 
 ## MCP (Model Context Protocol) Servers
