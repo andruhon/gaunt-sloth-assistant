@@ -51,7 +51,8 @@ The promise of Gaunt Sloth:
 - Anthropic;
 - Groq;
 - DeepSeek;
-- OpenAI (and other providers using OpenAI format, such as Inception).
+- OpenAI (and other providers using OpenAI format, such as Inception);
+- Gemini.
 
 `*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#JavaScript-Configuration).
 
@@ -185,7 +186,15 @@ gsloth init openai
 Then edit your configuration to add custom base URL and API key. See [CONFIGURATION.md](./docs/CONFIGURATION.md) for examples.
 
 ### Other AI providers
-Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md). 
+Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md).
+
+### Gemini
+```shell
+cd ./your-project
+gsloth init gemini
+```
+Make sure you either define `GEMINI_API_KEY` environment variable or edit your configuration file and set up your key.
+It is recommended to obtain API key from Google AI Studio official website rather than from a reseller.
 
 ## MCP (Model Context Protocol) Servers
 

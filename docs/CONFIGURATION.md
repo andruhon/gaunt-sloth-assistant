@@ -6,9 +6,9 @@ Check [.gsloth.guidelines.md](../.gsloth.guidelines.md) for example.
 
 Your project should have the following files in order for gsloth to function:
 - Configuration file (one of):
-  - `.gsloth.config.js` (JavaScript module)
-  - `.gsloth.config.json` (JSON file)
-  - `.gsloth.config.mjs` (JavaScript module with explicit module extension)
+    - `.gsloth.config.js` (JavaScript module)
+    - `.gsloth.config.json` (JSON file)
+    - `.gsloth.config.mjs` (JavaScript module with explicit module extension)
 - `.gsloth.guidelines.md`
 
 > Gaunt Sloth currently only functions from the directory which has one of the configuration files and `.gsloth.guidelines.md`.
@@ -129,6 +129,13 @@ For providers that use OpenAI-compatible APIs:
 cd ./your-project
 gsloth init openai
 ```
+
+### Gemini
+```shell
+cd ./your-project
+gsloth init gemini
+```
+
 Then edit your configuration file to add the custom base URL and API key. For example, for Inception:
 ```json
 {
@@ -144,7 +151,7 @@ Then edit your configuration file to add the custom base URL and API key. For ex
 ```
 * apiKeyEnvironmentVariable property can be used to point to the correct API key environment variable.
 
-## Examples of configuration for different providers 
+## Examples of configuration for different providers
 
 ### JSON Configuration (.gsloth.config.json)
 
@@ -215,6 +222,17 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
     "configuration": {
       "baseURL": "https://api.inceptionlabs.ai/v1"
     }
+  }
+}
+```
+
+**Example of .gsloth.config.json for Gemini**
+```json
+{
+  "llm": {
+    "type": "gemini",
+    "model": "gemini-2.5-pro",
+    "apiKey": "your-api-key-here"
   }
 }
 ```
@@ -334,6 +352,19 @@ export async function configure() {
             },
         })
     };
+}
+```
+
+**Example of .gsloth.config.js for Gemini**
+```javascript
+export async function configure() {
+  const gemini = await import('@langchain/google-genai');
+  return {
+    llm: new gemini.ChatGoogleGenerativeAI({
+      model: 'gemini-2.5-pro',
+      apiKey: process.env.GEMINI_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
+    })
+  };
 }
 ```
 
@@ -464,8 +495,8 @@ This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). I
 1. **Cloud ID**: You can find your Cloud ID by visiting `https://yourcompany.atlassian.net/_edge/tenant_info` while authenticated.
 
 2. **Personal Access Token (PAT)**: Create a PAT with the appropriate permissions from `Atlassian Account Settings -> Security -> Create and manage API tokens -> [Create API token with scopes]`.
-   - For issue access, the recommended permission is `read:jira-work` (classic)
-   - Alternatively granular access would require: `read:issue-meta:jira`, `read:issue-security-level:jira`, `read:issue.vote:jira`, `read:issue.changelog:jira`, `read:avatar:jira`, `read:issue:jira`, `read:status:jira`, `read:user:jira`, `read:field-configuration:jira`
+    - For issue access, the recommended permission is `read:jira-work` (classic)
+    - Alternatively granular access would require: `read:issue-meta:jira`, `read:issue-security-level:jira`, `read:issue.vote:jira`, `read:issue.changelog:jira`, `read:avatar:jira`, `read:issue:jira`, `read:status:jira`, `read:user:jira`, `read:field-configuration:jira`
 
 Refer to JIRA API documentation for more details [https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get)
 
@@ -513,20 +544,20 @@ JavaScript:
 
 ```javascript
 export async function configure() {
-    const vertexAi = await import('@langchain/google-vertexai');
-    return {
-        llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-preview-05-06"
-        }),
-        requirementsProvider: 'jira',
-        requirementsProviderConfig: {
-            'jira': {
-                username: 'username@yourcompany.com', // Your Jira username/email
-                token: 'YOUR_JIRA_PAT_TOKEN',        // Your Personal Access Token
-                cloudId: 'YOUR_ATLASSIAN_CLOUD_ID'    // Your Atlassian Cloud ID
-            }
-        }
+  const vertexAi = await import('@langchain/google-vertexai');
+  return {
+    llm: new vertexAi.ChatVertexAI({
+      model: "gemini-2.5-pro-preview-05-06"
+    }),
+    requirementsProvider: 'jira',
+    requirementsProviderConfig: {
+      'jira': {
+        username: 'username@yourcompany.com', // Your Jira username/email
+        token: 'YOUR_JIRA_PAT_TOKEN',        // Your Personal Access Token
+        cloudId: 'YOUR_ATLASSIAN_CLOUD_ID'    // Your Atlassian Cloud ID
+      }
     }
+  }
 }
 ```
 
@@ -568,19 +599,19 @@ JavaScript:
 
 ```javascript
 export async function configure() {
-    const vertexAi = await import('@langchain/google-vertexai');
-    return {
-        llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-preview-05-06"
-        }),
-        requirementsProvider: 'jira-legacy',
-        requirementsProviderConfig: {
-            'jira-legacy': {
-                username: 'username@yourcompany.com', // Your Jira username/email
-                token: 'YOUR_JIRA_LEGACY_TOKEN',     // Replace with your real Jira API token
-                baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
-            }
-        }
+  const vertexAi = await import('@langchain/google-vertexai');
+  return {
+    llm: new vertexAi.ChatVertexAI({
+      model: "gemini-2.5-pro-preview-05-06"
+    }),
+    requirementsProvider: 'jira-legacy',
+    requirementsProviderConfig: {
+      'jira-legacy': {
+        username: 'username@yourcompany.com', // Your Jira username/email
+        token: 'YOUR_JIRA_LEGACY_TOKEN',     // Replace with your real Jira API token
+        baseUrl: 'https://yourcompany.atlassian.net/rest/api/2/issue/'  // Your Jira instance base URL
+      }
     }
+  }
 }
 ```

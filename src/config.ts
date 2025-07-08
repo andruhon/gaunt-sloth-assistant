@@ -100,6 +100,7 @@ export const availableDefaultConfigs = [
   'groq',
   'deepseek',
   'openai',
+  'gemini',
 ] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
