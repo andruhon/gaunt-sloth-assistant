@@ -6,9 +6,9 @@ Check [.gsloth.guidelines.md](../.gsloth.guidelines.md) for example.
 
 Your project should have the following files in order for gsloth to function:
 - Configuration file (one of):
-    - `.gsloth.config.js` (JavaScript module)
-    - `.gsloth.config.json` (JSON file)
-    - `.gsloth.config.mjs` (JavaScript module with explicit module extension)
+  - `.gsloth.config.js` (JavaScript module)
+  - `.gsloth.config.json` (JSON file)
+  - `.gsloth.config.mjs` (JavaScript module with explicit module extension)
 - `.gsloth.guidelines.md`
 
 > Gaunt Sloth currently only functions from the directory which has one of the configuration files and `.gsloth.guidelines.md`.
@@ -130,10 +130,10 @@ cd ./your-project
 gsloth init openai
 ```
 
-### Gemini
+### Google GenAI
 ```shell
 cd ./your-project
-gsloth init gemini
+gsloth init google-genai
 ```
 
 Then edit your configuration file to add the custom base URL and API key. For example, for Inception:
@@ -226,11 +226,11 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
 }
 ```
 
-**Example of .gsloth.config.json for Gemini**
+**Example of .gsloth.config.json for Google GenAI**
 ```json
 {
   "llm": {
-    "type": "gemini",
+    "type": "google-genai",
     "model": "gemini-2.5-pro",
     "apiKey": "your-api-key-here"
   }
@@ -355,14 +355,14 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.js for Gemini**
+**Example of .gsloth.config.js for Google GenAI**
 ```javascript
 export async function configure() {
-  const gemini = await import('@langchain/google-genai');
+  const googleGenai = await import('@langchain/google-genai');
   return {
-    llm: new gemini.ChatGoogleGenerativeAI({
+    llm: new googleGenai.ChatGoogleGenerativeAI({
       model: 'gemini-2.5-pro',
-      apiKey: process.env.GEMINI_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
+      apiKey: process.env.GOOGLE_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
     })
   };
 }
@@ -495,8 +495,8 @@ This method uses the Atlassian REST API v3 with a Personal Access Token (PAT). I
 1. **Cloud ID**: You can find your Cloud ID by visiting `https://yourcompany.atlassian.net/_edge/tenant_info` while authenticated.
 
 2. **Personal Access Token (PAT)**: Create a PAT with the appropriate permissions from `Atlassian Account Settings -> Security -> Create and manage API tokens -> [Create API token with scopes]`.
-    - For issue access, the recommended permission is `read:jira-work` (classic)
-    - Alternatively granular access would require: `read:issue-meta:jira`, `read:issue-security-level:jira`, `read:issue.vote:jira`, `read:issue.changelog:jira`, `read:avatar:jira`, `read:issue:jira`, `read:status:jira`, `read:user:jira`, `read:field-configuration:jira`
+   - For issue access, the recommended permission is `read:jira-work` (classic)
+   - Alternatively granular access would require: `read:issue-meta:jira`, `read:issue-security-level:jira`, `read:issue.vote:jira`, `read:issue.changelog:jira`, `read:avatar:jira`, `read:issue:jira`, `read:status:jira`, `read:user:jira`, `read:field-configuration:jira`
 
 Refer to JIRA API documentation for more details [https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get)
 
