@@ -67,6 +67,7 @@ describe('GthAgentRunner', () => {
       const customAgent: GthAgentInterface = {
         invoke: vi.fn(),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
       expect(runner).toBeDefined();
@@ -107,6 +108,15 @@ describe('GthAgentRunner', () => {
       expect(mockAgent.setVerbose).toHaveBeenCalledWith(true);
     });
 
+    it('should not set verbose on agent when verbose mode is disabled (false is default)', async () => {
+      const runner = new GthAgentRunner(statusUpdateCallback);
+      runner.setVerbose(false);
+
+      await runner.init(undefined, mockConfig);
+
+      expect(mockAgent.setVerbose).not.toHaveBeenCalled();
+    });
+
     it('should initialize with checkpoint saver', async () => {
       const runner = new GthAgentRunner(statusUpdateCallback);
       const checkpointSaver = new MemorySaver();
@@ -121,6 +131,7 @@ describe('GthAgentRunner', () => {
         init: vi.fn(),
         invoke: vi.fn(),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
 
@@ -138,6 +149,7 @@ describe('GthAgentRunner', () => {
         invoke: vi.fn(),
         stream: vi.fn(),
         init: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
 
@@ -165,7 +177,7 @@ describe('GthAgentRunner', () => {
       const messages = [new HumanMessage('test message')];
       const result = await runner.processMessages(messages);
 
-      expect(mockAgent.invoke).toHaveBeenCalledWith('test message', undefined);
+      expect(mockAgent.invoke).toHaveBeenCalledWith(messages, undefined);
       expect(mockAgent.stream).not.toHaveBeenCalled();
       expect(result).toBe('test response');
     });
@@ -185,7 +197,7 @@ describe('GthAgentRunner', () => {
       const messages = [new HumanMessage('test message')];
       const result = await runner.processMessages(messages);
 
-      expect(mockAgent.stream).toHaveBeenCalledWith('test message', undefined);
+      expect(mockAgent.stream).toHaveBeenCalledWith(messages, undefined);
       expect(mockAgent.invoke).not.toHaveBeenCalled();
       expect(result).toBe('chunk1chunk2');
     });
@@ -199,7 +211,7 @@ describe('GthAgentRunner', () => {
       const messages = [new HumanMessage('first message'), new HumanMessage('second message')];
       const result = await runner.processMessages(messages);
 
-      expect(mockAgent.invoke).toHaveBeenCalledWith('first message\nsecond message', undefined);
+      expect(mockAgent.invoke).toHaveBeenCalledWith(messages, undefined);
       expect(result).toBe('combined response');
     });
 
@@ -216,7 +228,7 @@ describe('GthAgentRunner', () => {
 
       const result = await runner.processMessages(messages, runConfig);
 
-      expect(mockAgent.invoke).toHaveBeenCalledWith('test message', runConfig);
+      expect(mockAgent.invoke).toHaveBeenCalledWith(messages, runConfig);
       expect(result).toBe('test response');
     });
 
@@ -225,6 +237,7 @@ describe('GthAgentRunner', () => {
         init: vi.fn(),
         invoke: vi.fn().mockResolvedValue('custom response'),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
 
@@ -233,7 +246,7 @@ describe('GthAgentRunner', () => {
       const messages = [new HumanMessage('test message')];
       const result = await runner.processMessages(messages);
 
-      expect(customAgent.invoke).toHaveBeenCalledWith('test message', undefined);
+      expect(customAgent.invoke).toHaveBeenCalledWith(messages, undefined);
       expect(result).toBe('custom response');
     });
   });
@@ -261,6 +274,7 @@ describe('GthAgentRunner', () => {
         init: vi.fn(),
         invoke: vi.fn(),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
         cleanup: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
@@ -278,6 +292,7 @@ describe('GthAgentRunner', () => {
         init: vi.fn(),
         invoke: vi.fn(),
         stream: vi.fn(),
+        setVerbose: vi.fn(),
       };
       const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
 
