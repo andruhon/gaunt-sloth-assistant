@@ -47,12 +47,12 @@ interface BaseSlothConfig {
   streamOutput?: boolean;
   useColour?: boolean;
   filesystem?: string[] | 'all' | 'read' | 'none';
-  prebuiltToolsConfig?: PreBuiltToolsConfig;
   customToolsConfig?: CustomToolsConfig;
   requirementsProviderConfig?: Record<string, unknown>;
   contentProviderConfig?: Record<string, unknown>;
   mcpServers?: Record<string, Connection>;
   builtInTools?: string[];
+  builtInToolsConfig?: BuiltInToolsConfig;
   commands?: {
     pr?: {
       contentProvider?: string;
@@ -83,7 +83,7 @@ interface BaseSlothConfig {
 }
 
 export type CustomToolsConfig = Record<string, object>;
-export type PreBuiltToolsConfig = {
+export type BuiltInToolsConfig = {
   jira: JiraConfig;
 };
 

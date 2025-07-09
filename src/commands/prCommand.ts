@@ -105,7 +105,7 @@ export function prCommand(program: Command): void {
       ) {
         // TODO we need to figure out some sort of post-processors
         let jiraConfig =
-          config.prebuiltToolsConfig?.jira ||
+          config.builtInToolsConfig?.jira ||
           (config.requirementsProviderConfig?.jira as JiraConfig);
         await jiraLogWork(
           jiraConfig,
