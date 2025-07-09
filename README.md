@@ -196,6 +196,7 @@ Then edit your configuration to add custom base URL and API key. See [CONFIGURAT
 
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md).
+For example, Ollama can be set up with JS config (some of the models, see https://github.com/andruhon/gaunt-sloth-assistant/discussions/107)
 
 ## MCP (Model Context Protocol) Servers
 
