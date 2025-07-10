@@ -20,10 +20,10 @@
     "prepare": "npm run build"
   },
   "bin": {
-    "gaunt-sloth-assistant": "index.js",
-    "gaunt-sloth": "index.js",
-    "gsloth": "index.js",
-    "gth": "index.js"
+    "gaunt-sloth-assistant": "cli.js",
+    "gaunt-sloth": "cli.js",
+    "gsloth": "cli.js",
+    "gth": "cli.js"
   },
   "dependencies": {
     "@langchain/anthropic": "^0.3.24",

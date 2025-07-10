@@ -58,6 +58,10 @@ describe('config', async () => {
     // Reset and set up systemUtils mocks
     systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
     systemUtilsMock.getInstallDir.mockReturnValue('/mock/install/dir');
+
+    // Clear the custom config path
+    const { clearCustomConfigPath } = await import('#src/config.js');
+    clearCustomConfigPath();
   });
 
   describe('initConfig', () => {
@@ -232,8 +236,14 @@ describe('config', async () => {
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockReturnValue(false);
 
-      // Import the module under test
-      const { initConfig } = await import('#src/config.js');
+      // Ensure filePathUtils returns mock paths
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Ensure custom config path is cleared
+      const { clearCustomConfigPath, initConfig } = await import('#src/config.js');
+      clearCustomConfigPath();
 
       // Function under test
       try {
@@ -529,6 +539,252 @@ describe('config', async () => {
         'LLM type not specified in config.'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('custom config path', () => {
+    it('Should use custom config path when specified', async () => {
+      const customPath = '/custom/path/config.json';
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+        },
+      } as RawSlothConfig;
+
+      // Set up fs mocks for custom path
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path === customPath;
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path === customPath) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Mock the vertexai config module
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+      }));
+
+      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
+
+      // Set custom config path
+      setCustomConfigPath(customPath);
+
+      // Function under test
+      const config = await initConfig();
+
+      expect(config).toEqual({
+        llm: { type: 'vertexai' },
+        contentProvider: 'file',
+        requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
+        useColour: true,
+        filesystem: 'read',
+        commands: {
+          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          code: { filesystem: 'all' },
+        },
+      });
+    });
+
+    it('Should handle custom JS config path', async () => {
+      const customPath = '/custom/path/config.js';
+      const mockConfig = { llm: { type: 'anthropic' } };
+      const mockConfigModule = {
+        configure: vi.fn().mockResolvedValue(mockConfig),
+      };
+
+      // Set up fs mocks for custom path
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path === customPath;
+      });
+
+      // Mock the import function
+      utilsMock.importExternalFile.mockImplementation((path: string) => {
+        if (path === customPath) return Promise.resolve(mockConfigModule);
+        return Promise.reject(new Error('Not found'));
+      });
+
+      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
+
+      // Set custom config path
+      setCustomConfigPath(customPath);
+
+      // Function under test
+      const config = await initConfig();
+
+      expect(config).toEqual({
+        llm: { type: 'anthropic' },
+        contentProvider: 'file',
+        requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
+        useColour: true,
+        filesystem: 'read',
+        commands: {
+          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          code: { filesystem: 'all' },
+        },
+      });
+    });
+
+    it('Should handle custom MJS config path', async () => {
+      const customPath = '/custom/path/config.mjs';
+      const mockConfig = { llm: { type: 'groq' } };
+      const mockConfigModule = {
+        configure: vi.fn().mockResolvedValue(mockConfig),
+      };
+
+      // Set up fs mocks for custom path
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path === customPath;
+      });
+
+      // Mock the import function
+      utilsMock.importExternalFile.mockImplementation((path: string) => {
+        if (path === customPath) return Promise.resolve(mockConfigModule);
+        return Promise.reject(new Error('Not found'));
+      });
+
+      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
+
+      // Set custom config path
+      setCustomConfigPath(customPath);
+
+      // Function under test
+      const config = await initConfig();
+
+      expect(config).toEqual({
+        llm: { type: 'groq' },
+        contentProvider: 'file',
+        requirementsProvider: 'file',
+        projectGuidelines: '.gsloth.guidelines.md',
+        projectReviewInstructions: '.gsloth.review.md',
+        streamOutput: true,
+        useColour: true,
+        filesystem: 'read',
+        commands: {
+          pr: { contentProvider: 'github', requirementsProvider: 'github' },
+          code: { filesystem: 'all' },
+        },
+      });
+    });
+
+    it('Should throw error when custom config file does not exist', async () => {
+      const customPath = '/custom/path/nonexistent.json';
+
+      // Set up fs mocks
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path !== customPath;
+      });
+
+      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
+
+      // Set custom config path
+      setCustomConfigPath(customPath);
+
+      // Function under test
+      try {
+        await initConfig();
+        expect(true).toBe(false); // Should not reach here
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe(
+          `Provided manual config "${customPath}" does not exist`
+        );
+      }
+    });
+
+    it('Should fall back to default config loading when custom config has unsupported extension', async () => {
+      const customPath = '/custom/path/config.txt';
+
+      // Set up fs mocks - custom path exists but has wrong extension, no default configs exist
+      fsMock.existsSync.mockImplementation((path: string) => {
+        if (path === customPath) return true;
+        // Make sure no default configs exist so we get the expected error
+        return false;
+      });
+
+      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
+
+      // Set custom config path
+      setCustomConfigPath(customPath);
+
+      // Function under test - should fall back to default config loading and fail
+      try {
+        await initConfig();
+        expect(true).toBe(false); // Should not reach here
+      } catch {
+        // Expected to throw due to no config files found
+      }
+
+      // Should show error about no configuration file found since the custom path doesn't match supported extensions
+      expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+        'No configuration file found. Please create one of: ' +
+          '.gsloth.config.json, .gsloth.config.js, or .gsloth.config.mjs ' +
+          'in your project directory.'
+      );
+      expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
+
+    it('Should fall back to default config when custom JSON config is invalid', async () => {
+      const customPath = '/custom/path/config.json';
+      const jsonConfig = {
+        llm: {
+          // Missing type field
+        },
+      } as RawSlothConfig;
+
+      // Set up fs mocks - custom path exists but has invalid JSON, no default configs exist
+      fsMock.existsSync.mockImplementation((path: string) => {
+        if (path === customPath) return true;
+        return false; // No default configs exist
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path === customPath) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
+
+      // Set custom config path
+      setCustomConfigPath(customPath);
+
+      // Function under test
+      try {
+        await initConfig();
+        expect(true).toBe(false); // Should not reach here
+      } catch {
+        // Expected to throw due to invalid config falling back to no configs found
+      }
+
+      // Should show fallback error message and then no config found error
+      expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+        'Failed to read config from .gsloth.config.json, will try other formats.'
+      );
+      expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
+        'No configuration file found. Please create one of: ' +
+          '.gsloth.config.json, .gsloth.config.js, or .gsloth.config.mjs ' +
+          'in your project directory.'
+      );
+      expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
+    });
+
+    it('Should get and set custom config path', async () => {
+      const customPath = '/custom/path/config.json';
+      const { setCustomConfigPath, getCustomConfigPath } = await import('#src/config.js');
+
+      // Initially undefined
+      expect(getCustomConfigPath()).toBeUndefined();
+
+      // Set custom config path
+      setCustomConfigPath(customPath);
+
+      // Should return the set path
+      expect(getCustomConfigPath()).toBe(customPath);
     });
   });
 

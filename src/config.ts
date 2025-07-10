@@ -14,6 +14,7 @@ import {
   USER_PROJECT_CONFIG_MJS,
 } from '#src/constants.js';
 import { JiraConfig } from '#src/providers/types.js';
+import { resolve } from 'node:path';
 
 export interface SlothConfig extends BaseSlothConfig {
   llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
@@ -104,6 +105,22 @@ export const availableDefaultConfigs = [
 ] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
+const configGlobalSettings = {
+  customConfigPath: undefined as undefined | string,
+};
+
+export function setCustomConfigPath(path: string): void {
+  configGlobalSettings.customConfigPath = resolve(path);
+}
+
+export function getCustomConfigPath(): string | undefined {
+  return configGlobalSettings.customConfigPath;
+}
+
+export function clearCustomConfigPath(): void {
+  configGlobalSettings.customConfigPath = undefined;
+}
+
 export const DEFAULT_CONFIG: Partial<SlothConfig> = {
   llm: undefined,
   contentProvider: 'file',
@@ -129,10 +146,17 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
  * @returns The loaded SlothConfig
  */
 export async function initConfig(): Promise<SlothConfig> {
-  const jsonConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JSON);
+  if (configGlobalSettings.customConfigPath && !existsSync(configGlobalSettings.customConfigPath)) {
+    throw new Error(
+      `Provided manual config "${configGlobalSettings.customConfigPath}" does not exist`
+    );
+  }
+
+  const jsonConfigPath =
+    configGlobalSettings.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_JSON);
 
   // Try loading the JSON config file first
-  if (existsSync(jsonConfigPath)) {
+  if (jsonConfigPath.endsWith('.json') && existsSync(jsonConfigPath)) {
     try {
       // TODO makes sense to employ ZOD to validate config
       const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as RawSlothConfig;
@@ -163,8 +187,9 @@ export async function initConfig(): Promise<SlothConfig> {
 
 // Helper function to try loading JS config
 async function tryJsConfig(): Promise<SlothConfig> {
-  const jsConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
-  if (existsSync(jsConfigPath)) {
+  const jsConfigPath =
+    configGlobalSettings.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
+  if (jsConfigPath.endsWith('.js') && existsSync(jsConfigPath)) {
     try {
       const i = await importExternalFile(jsConfigPath);
       const customConfig = await i.configure();
@@ -183,8 +208,9 @@ async function tryJsConfig(): Promise<SlothConfig> {
 
 // Helper function to try loading MJS config
 async function tryMjsConfig(): Promise<SlothConfig> {
-  const mjsConfigPath = getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
-  if (existsSync(mjsConfigPath)) {
+  const mjsConfigPath =
+    configGlobalSettings.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
+  if (mjsConfigPath.endsWith('.mjs') && existsSync(mjsConfigPath)) {
     try {
       const i = await importExternalFile(mjsConfigPath);
       const customConfig = await i.configure();
