@@ -59,5 +59,10 @@
   },
   "imports": {
     "#src/*.js": "./dist/*.js"
-  }
+  },
+  "exports": {
+    "./*": "./dist/*.js"
+  },
+  "types": "./dist/*",
+  "files": ["./dist/*"]
 }
