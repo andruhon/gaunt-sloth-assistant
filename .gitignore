@@ -4,6 +4,7 @@
 /gth_*
 /integration-tests/gth_*
 /integration-tests/.gsloth.config.json
+/docs-generated
 .junie
 .idea
 .claude

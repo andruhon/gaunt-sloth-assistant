@@ -1,0 +1,33 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Gaunt Sloth Assistant",
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "sort": ["source-order"],
+  "categorizeByGroup": false,
+  "out": "./docs-generated",
+  "projectDocuments": [
+    "docs/COMMANDS.md",
+    "docs/CONFIGURATION.md",
+    "docs/DEVELOPMENT.md"
+  ],
+  "searchCategoryBoosts": {
+    "Component": 2,
+    "Model": 1.2
+  },
+  "searchGroupBoosts": {
+    "Classes": 1.5
+  },
+  "navigationLinks": {
+    "GitHub": "https://github.com/andruhon/gaunt-sloth-assistant/"
+  },
+  "highlightLanguages": [
+    "typescript",
+    "javascript",
+    "markdown"
+  ],
+  "markdownItOptions": {
+    "html": true
+  },
+  "suppressCommentWarningsInDeclarationFiles": true
+}
