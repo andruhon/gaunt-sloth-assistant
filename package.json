@@ -5,7 +5,7 @@
   "license": "MIT",
   "author": "Andrew Kondratev",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/cli.js",
   "repository": "github:andruhon/gaunt-sloth-assistant",
   "engines": {
     "node": ">=22.0.0",
