@@ -1,6 +1,6 @@
 import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
 import { StructuredToolInterface } from '@langchain/core/tools';
-import { SlothConfig } from '#src/config.js';
+import { GthConfig } from '#src/config.js';
 import { displayWarning } from '#src/consoleUtils.js';
 import { getCurrentDir } from '#src/systemUtils.js';
 
@@ -12,7 +12,7 @@ const AVAILABLE_BUILT_IN_TOOLS = {
 /**
  * Get default tools based on filesystem and built-in tools configuration
  */
-export async function getDefaultTools(config: SlothConfig): Promise<StructuredToolInterface[]> {
+export async function getDefaultTools(config: GthConfig): Promise<StructuredToolInterface[]> {
   const filesystemTools = filterFilesystemTools(
     new GthFileSystemToolkit([getCurrentDir()]),
     config.filesystem
@@ -73,7 +73,7 @@ function filterFilesystemTools(
 /**
  * Get built-in tools based on configuration
  */
-async function getBuiltInTools(config: SlothConfig): Promise<StructuredToolInterface[]> {
+async function getBuiltInTools(config: GthConfig): Promise<StructuredToolInterface[]> {
   const tools: StructuredToolInterface[] = [];
 
   if (!config.builtInTools) {

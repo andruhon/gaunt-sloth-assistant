@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getDefaultTools } from '#src/builtInToolsConfig.js';
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 
 // Mock the GthFileSystemToolkit
 vi.mock('#src/tools/GthFileSystemToolkit.js', () => ({
@@ -31,7 +31,7 @@ describe('Config Tool Functions', () => {
     it('should return all tools when filesystem is "all"', async () => {
       const result = await getDefaultTools({
         filesystem: 'all',
-      } as Partial<SlothConfig> as SlothConfig);
+      } as Partial<SlothConfig> as GthConfig);
 
       expect(result).toHaveLength(4);
       expect(result.map((t) => t.name)).toEqual([
@@ -45,7 +45,7 @@ describe('Config Tool Functions', () => {
     it('should return no tools when filesystem is "none"', async () => {
       const result = await getDefaultTools({
         filesystem: 'none',
-      } as Partial<SlothConfig> as SlothConfig);
+      } as Partial<SlothConfig> as GthConfig);
 
       expect(result).toEqual([]);
     });
@@ -53,21 +53,21 @@ describe('Config Tool Functions', () => {
     it('should return only read tools when filesystem is "read"', async () => {
       const result = await getDefaultTools({
         filesystem: 'read',
-      } as Partial<SlothConfig> as SlothConfig);
+      } as Partial<SlothConfig> as GthConfig);
       expect(result.map((t) => t.name)).toEqual(['read_file', 'list_directory']);
     });
 
     it('should work with read in array format', async () => {
       const result = await getDefaultTools({
         filesystem: ['read'],
-      } as Partial<SlothConfig> as SlothConfig);
+      } as Partial<SlothConfig> as GthConfig);
       expect(result.map((t) => t.name)).toEqual(['read_file', 'list_directory']);
     });
 
     it('should filter filesystem tools based on specific read-only tool names', async () => {
       const result = await getDefaultTools({
         filesystem: ['read_file'],
-      } as Partial<SlothConfig> as SlothConfig);
+      } as Partial<SlothConfig> as GthConfig);
       expect(result.map((t) => t.name)).toEqual(['read_file']);
     });
 
@@ -75,7 +75,7 @@ describe('Config Tool Functions', () => {
       const result = await getDefaultTools({
         filesystem: 'none',
         builtInTools: ['gth_status_update'],
-      } as Partial<SlothConfig> as SlothConfig);
+      } as Partial<SlothConfig> as GthConfig);
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('gth_status_update');
     });
@@ -84,7 +84,7 @@ describe('Config Tool Functions', () => {
       const result = await getDefaultTools({
         filesystem: 'read',
         builtInTools: ['gth_status_update'],
-      } as Partial<SlothConfig> as SlothConfig);
+      } as Partial<SlothConfig> as GthConfig);
       expect(result).toHaveLength(3);
       expect(result.map((t) => t.name)).toEqual([
         'read_file',

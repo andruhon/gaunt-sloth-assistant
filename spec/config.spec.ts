@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { RawSlothConfig } from '#src/config.js';
+import type { RawGthConfig } from '#src/config.js';
+import { platform } from 'node:os';
 
 const fsMock = {
   existsSync: vi.fn(),
@@ -64,6 +65,9 @@ describe('config', async () => {
     clearCustomConfigPath();
   });
 
+  const customPathPrefix =
+    platform() == 'win32' ? 'C:\\custom\\path\\config' : '/custom/path/config';
+
   describe('initConfig', () => {
     it('Should load JSON config when it exists', async () => {
       // Create a test config
@@ -71,7 +75,7 @@ describe('config', async () => {
         llm: {
           type: 'vertexai',
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -270,7 +274,7 @@ describe('config', async () => {
         llm: {
           type: 'vertexai',
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -311,7 +315,7 @@ describe('config', async () => {
           type: 'vertexai',
         },
         useColour: true,
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -354,7 +358,7 @@ describe('config', async () => {
           type: 'vertexai',
           model: 'test-model',
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // Mock the vertexai config module
       const mockLlm = {
@@ -400,7 +404,7 @@ describe('config', async () => {
           type: 'unsupported',
           model: 'test-model',
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // When importing a non-existent config module, it should throw
       vi.doMock('#src/presets/unsupported.js', () => {
@@ -436,7 +440,7 @@ describe('config', async () => {
         llm: {
           type: 'test',
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // When importing a non-existent config module, it should throw
       vi.doMock('#src/presets/test.js', () => {
@@ -473,7 +477,7 @@ describe('config', async () => {
           type: 'badconfig',
           model: 'test-model',
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // Mock a config module without processJsonConfig
       vi.doMock('#src/presets/badconfig.js', () => ({
@@ -499,7 +503,7 @@ describe('config', async () => {
     it('Should handle missing LLM configuration', async () => {
       const jsonConfig = {
         // No llm property
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       const { tryJsonConfig } = await import('#src/config.js');
 
@@ -523,7 +527,7 @@ describe('config', async () => {
           model: 'test-model',
           // No type property
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       const { tryJsonConfig } = await import('#src/config.js');
 
@@ -544,12 +548,12 @@ describe('config', async () => {
 
   describe('custom config path', () => {
     it('Should use custom config path when specified', async () => {
-      const customPath = '/custom/path/config.json';
+      const customPath = customPathPrefix + '.json';
       const jsonConfig = {
         llm: {
           type: 'vertexai',
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // Set up fs mocks for custom path
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -590,7 +594,7 @@ describe('config', async () => {
     });
 
     it('Should handle custom JS config path', async () => {
-      const customPath = '/custom/path/config.js';
+      const customPath = customPathPrefix + '.js';
       const mockConfig = { llm: { type: 'anthropic' } };
       const mockConfigModule = {
         configure: vi.fn().mockResolvedValue(mockConfig),
@@ -632,7 +636,7 @@ describe('config', async () => {
     });
 
     it('Should handle custom MJS config path', async () => {
-      const customPath = '/custom/path/config.mjs';
+      const customPath = customPathPrefix + '.mjs';
       const mockConfig = { llm: { type: 'groq' } };
       const mockConfigModule = {
         configure: vi.fn().mockResolvedValue(mockConfig),
@@ -674,7 +678,7 @@ describe('config', async () => {
     });
 
     it('Should throw error when custom config file does not exist', async () => {
-      const customPath = '/custom/path/nonexistent.json';
+      const customPath = customPathPrefix + 'nonexistent.json';
 
       // Set up fs mocks
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -699,7 +703,7 @@ describe('config', async () => {
     });
 
     it('Should fall back to default config loading when custom config has unsupported extension', async () => {
-      const customPath = '/custom/path/config.txt';
+      const customPath = customPathPrefix + '.txt';
 
       // Set up fs mocks - custom path exists but has wrong extension, no default configs exist
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -731,12 +735,12 @@ describe('config', async () => {
     });
 
     it('Should fall back to default config when custom JSON config is invalid', async () => {
-      const customPath = '/custom/path/config.json';
+      const customPath = customPathPrefix + '.json';
       const jsonConfig = {
         llm: {
           // Missing type field
         },
-      } as RawSlothConfig;
+      } as RawGthConfig;
 
       // Set up fs mocks - custom path exists but has invalid JSON, no default configs exist
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -774,7 +778,7 @@ describe('config', async () => {
     });
 
     it('Should get and set custom config path', async () => {
-      const customPath = '/custom/path/config.json';
+      const customPath = customPathPrefix + '.json';
       const { setCustomConfigPath, getCustomConfigPath } = await import('#src/config.js');
 
       // Initially undefined

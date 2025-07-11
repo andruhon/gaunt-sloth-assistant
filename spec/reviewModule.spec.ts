@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 // Mock fs module
@@ -84,11 +84,11 @@ const mockConfig = {
   },
   filesystem: 'none',
   useColour: false,
-} as SlothConfig;
+} as GthConfig;
 
 // Mock config module
 vi.mock('#src/config.js', () => ({
-  SlothConfig: {},
+  GthConfig: {},
 }));
 
 describe('reviewModule', () => {
@@ -176,7 +176,7 @@ describe('reviewModule', () => {
       llm: new FakeListChatModel({
         responses: ['Different LLM Response'],
       }),
-    } as SlothConfig;
+    } as GthConfig;
 
     // Set a different response for this specific test
     llmUtilsMock.invoke.mockResolvedValue('Different LLM Response');

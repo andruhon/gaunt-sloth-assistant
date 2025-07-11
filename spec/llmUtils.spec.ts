@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 
 const agentRunnerMock = {
   setVerbose: vi.fn(),
@@ -40,11 +40,11 @@ describe('llmUtils', () => {
 
     const { invoke } = await import('#src/llmUtils.js');
 
-    const mockConfig: SlothConfig = {
+    const mockConfig: GthConfig = {
       streamOutput: false,
       llm: {} as any,
       filesystem: 'none',
-    } as SlothConfig;
+    } as GthConfig;
     const messages = [{ role: 'user', content: 'test message' }] as any;
 
     const result = await invoke('review', messages, mockConfig);
@@ -62,11 +62,11 @@ describe('llmUtils', () => {
 
     const { invoke } = await import('#src/llmUtils.js');
 
-    const mockConfig: SlothConfig = {
+    const mockConfig: GthConfig = {
       streamOutput: true,
       llm: {} as any,
       filesystem: 'all',
-    } as SlothConfig;
+    } as GthConfig;
     const messages = [{ role: 'system', content: 'system message' }] as any;
     const result = await invoke('chat', messages, mockConfig);
 
@@ -81,11 +81,11 @@ describe('llmUtils', () => {
 
     const { invoke } = await import('#src/llmUtils.js');
 
-    const mockConfig: SlothConfig = {
+    const mockConfig: GthConfig = {
       streamOutput: false,
       llm: {} as any,
       filesystem: 'none',
-    } as SlothConfig;
+    } as GthConfig;
     const messages = [] as any;
 
     await expect(invoke('ask', messages, mockConfig)).rejects.toThrow('Test error');
@@ -99,11 +99,11 @@ describe('llmUtils', () => {
 
     setVerbose(true);
 
-    const mockConfig: SlothConfig = {
+    const mockConfig: GthConfig = {
       streamOutput: false,
       llm: {} as any,
       filesystem: 'none',
-    } as SlothConfig;
+    } as GthConfig;
     const messages = [] as any;
 
     await invoke('code', messages, mockConfig);

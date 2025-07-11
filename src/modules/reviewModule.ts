@@ -1,4 +1,4 @@
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 import { display, displayDebug, displayError, displaySuccess } from '#src/consoleUtils.js';
 import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
@@ -10,7 +10,7 @@ export async function review(
   source: string,
   preamble: string,
   diff: string,
-  config: SlothConfig,
+  config: GthConfig,
   command: 'pr' | 'review' = 'review'
 ): Promise<void> {
   const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Reviewing.');

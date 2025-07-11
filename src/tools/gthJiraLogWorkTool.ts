@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { displayWarning } from '#src/consoleUtils.js';
 import jiraLogWork from '#src/helpers/jira/jiraLogWork.js';
 import type { JiraConfig } from '#src/providers/types.js';
-import { SlothConfig } from '#src/config.js';
+import { GthConfig } from '#src/config.js';
 
 // Define the input schema for the tool
 const gthJiraLogWorkSchema = z.object({
@@ -37,7 +37,7 @@ function getToolImpl(config?: Partial<JiraConfig>): StructuredToolInterface {
 }
 
 // Export a default instance that uses environment variables
-export function get(config: SlothConfig) {
+export function get(config: GthConfig) {
   if (!config.builtInToolsConfig?.jira && config.requirementsProviderConfig?.jira) {
     displayWarning(
       'config.prebuiltToolsConfig.jira is not defined. Using config.requirementsProviderConfig.jira.'

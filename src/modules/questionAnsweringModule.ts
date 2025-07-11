@@ -1,4 +1,4 @@
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
 import { getGslothFilePath } from '#src/filePathUtils.js';
 import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
@@ -16,7 +16,7 @@ export async function askQuestion(
   source: string,
   preamble: string,
   content: string,
-  config: SlothConfig
+  config: GthConfig
 ): Promise<void> {
   const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Thinking.');
   const messages = [new SystemMessage(preamble), new HumanMessage(content)];

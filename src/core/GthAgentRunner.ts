@@ -1,5 +1,5 @@
 import type { Message } from '#src/modules/types.js';
-import { SlothConfig } from '#src/config.js';
+import { GthConfig } from '#src/config.js';
 import { BaseCheckpointSaver } from '@langchain/langgraph';
 import { GthAgentInterface, GthCommand } from '#src/core/types.js';
 import { GthLangChainAgent, StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
@@ -9,7 +9,7 @@ export class GthAgentRunner {
   private statusUpdate: StatusUpdateCallback;
   private verbose: boolean = false;
   private agent: GthAgentInterface | null = null;
-  private config: SlothConfig | null = null;
+  private config: GthConfig | null = null;
 
   constructor(statusUpdate: StatusUpdateCallback, agent?: GthAgentInterface) {
     this.statusUpdate = statusUpdate;
@@ -22,7 +22,7 @@ export class GthAgentRunner {
 
   async init(
     command: GthCommand | undefined,
-    configIn: SlothConfig,
+    configIn: GthConfig,
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void> {
     this.config = configIn;

@@ -8,7 +8,7 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import { appendToFile } from '#src/utils.js';
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 
 // Mock modules
 vi.mock('#src/prompt.js', () => ({
@@ -265,9 +265,9 @@ describe('codeCommand', () => {
       requirementsProvider: 'file',
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none' as const,
-    } as Partial<SlothConfig>;
+    } as Partial<GthConfig>;
     const { initConfig } = await import('#src/config.js');
-    vi.mocked(initConfig).mockResolvedValue(mockConfig as SlothConfig);
+    vi.mocked(initConfig).mockResolvedValue(mockConfig as GthConfig);
 
     const messages = ['first message', 'second message', 'exit'];
     let messageIndex = 0;
@@ -307,9 +307,9 @@ describe('codeCommand', () => {
       requirementsProvider: 'file',
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none' as const,
-    } as Partial<SlothConfig>;
+    } as Partial<GthConfig>;
     const { initConfig } = await import('#src/config.js');
-    vi.mocked(initConfig).mockResolvedValue(mockConfig as SlothConfig);
+    vi.mocked(initConfig).mockResolvedValue(mockConfig as GthConfig);
     vi.mocked(invoke).mockResolvedValue('Mock response');
     const messages = ['first message', 'exit'];
     let messageIndex = 0;

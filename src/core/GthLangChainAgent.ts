@@ -1,5 +1,5 @@
 import { AIMessage, isAIMessage } from '@langchain/core/messages';
-import { SlothConfig } from '#src/config.js';
+import { GthConfig } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient, StreamableHTTPConnection } from '@langchain/mcp-adapters';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
@@ -23,7 +23,7 @@ export class GthLangChainAgent implements GthAgentInterface {
   private mcpClient: MultiServerMCPClient | null = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private agent: CompiledStateGraph<any, any> | null = null;
-  private config: SlothConfig | null = null;
+  private config: GthConfig | null = null;
 
   constructor(statusUpdate: StatusUpdateCallback) {
     this.statusUpdate = statusUpdate;
@@ -35,7 +35,7 @@ export class GthLangChainAgent implements GthAgentInterface {
 
   async init(
     command: GthCommand | undefined,
-    configIn: SlothConfig,
+    configIn: GthConfig,
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void> {
     // Set verbose mode on LLM
@@ -178,7 +178,7 @@ export class GthLangChainAgent implements GthAgentInterface {
     this.config = null;
   }
 
-  getEffectiveConfig(config: SlothConfig, command: GthCommand | undefined): SlothConfig {
+  getEffectiveConfig(config: GthConfig, command: GthCommand | undefined): GthConfig {
     const supportsTools = !!config.llm.bindTools;
     if (!supportsTools) {
       this.statusUpdate('warning', 'Model does not seem to support tools.');
@@ -220,7 +220,7 @@ export class GthLangChainAgent implements GthAgentInterface {
     return {};
   }
 
-  protected async getMcpClient(config: SlothConfig) {
+  protected async getMcpClient(config: GthConfig) {
     const defaultServers = this.getDefaultMcpServers();
 
     // Merge with user's mcpServers

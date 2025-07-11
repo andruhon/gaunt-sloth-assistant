@@ -1,6 +1,6 @@
 import type { RunnableConfig } from '@langchain/core/runnables';
 import { IterableReadableStream } from '@langchain/core/utils/stream';
-import { SlothConfig } from '#src/config.js';
+import { GthConfig } from '#src/config.js';
 import { BaseCheckpointSaver } from '@langchain/langgraph';
 import { Message } from '#src/modules/types.js';
 
@@ -10,7 +10,7 @@ export type GthCommand = 'ask' | 'pr' | 'review' | 'chat' | 'code';
 export interface GthAgentInterface {
   init(
     command: GthCommand | undefined,
-    configIn: SlothConfig,
+    configIn: GthConfig,
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void>;
 

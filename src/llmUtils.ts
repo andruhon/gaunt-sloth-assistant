@@ -1,5 +1,5 @@
 import type { Message } from '#src/modules/types.js';
-import { SlothConfig } from '#src/config.js';
+import { GthConfig } from '#src/config.js';
 import { display, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { stdout } from '#src/systemUtils.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
@@ -17,7 +17,7 @@ const llmGlobalSettings = {
 export async function invoke(
   command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined,
   messages: Message[],
-  config: SlothConfig
+  config: GthConfig
 ): Promise<string> {
   const statusUpdate = (level: StatusLevel, message: string) => {
     switch (level) {

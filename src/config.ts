@@ -16,8 +16,11 @@ import {
 import { JiraConfig } from '#src/providers/types.js';
 import { resolve } from 'node:path';
 
-export interface SlothConfig extends BaseSlothConfig {
-  llm: BaseChatModel; // FIXME this is still bad keeping instance in config is probably not best choice
+/**
+ * This is a processed Gaunt Sloth config ready to be passed down into components.
+ */
+export interface GthConfig extends BaseGthConfig {
+  llm: BaseChatModel;
   contentProvider: string;
   requirementsProvider: string;
   projectGuidelines: string;
@@ -30,16 +33,17 @@ export interface SlothConfig extends BaseSlothConfig {
 }
 
 /**
- * Raw, unprocessed sloth config
+ * Raw, unprocessed Gaunt Sloth config.
  */
-export interface RawSlothConfig extends BaseSlothConfig {
+export interface RawGthConfig extends BaseGthConfig {
   llm: LLMConfig;
 }
 
 /**
- * Do not export this one
+ * Do not export this one.
+ * This is a basic interface for Gaunt Sloth config.
  */
-interface BaseSlothConfig {
+interface BaseGthConfig {
   llm: unknown;
   contentProvider?: string;
   requirementsProvider?: string;
@@ -121,7 +125,7 @@ export function clearCustomConfigPath(): void {
   configGlobalSettings.customConfigPath = undefined;
 }
 
-export const DEFAULT_CONFIG: Partial<SlothConfig> = {
+export const DEFAULT_CONFIG: Partial<GthConfig> = {
   llm: undefined,
   contentProvider: 'file',
   requirementsProvider: 'file',
@@ -143,9 +147,9 @@ export const DEFAULT_CONFIG: Partial<SlothConfig> = {
 
 /**
  * Initialize configuration by loading from available config files
- * @returns The loaded SlothConfig
+ * @returns The loaded GthConfig
  */
-export async function initConfig(): Promise<SlothConfig> {
+export async function initConfig(): Promise<GthConfig> {
   if (configGlobalSettings.customConfigPath && !existsSync(configGlobalSettings.customConfigPath)) {
     throw new Error(
       `Provided manual config "${configGlobalSettings.customConfigPath}" does not exist`
@@ -159,7 +163,7 @@ export async function initConfig(): Promise<SlothConfig> {
   if (jsonConfigPath.endsWith('.json') && existsSync(jsonConfigPath)) {
     try {
       // TODO makes sense to employ ZOD to validate config
-      const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as RawSlothConfig;
+      const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as RawGthConfig;
       // If the config has an LLM with a type, create the appropriate LLM instance
       if (jsonConfig.llm && typeof jsonConfig.llm === 'object' && 'type' in jsonConfig.llm) {
         return await tryJsonConfig(jsonConfig);
@@ -186,14 +190,14 @@ export async function initConfig(): Promise<SlothConfig> {
 }
 
 // Helper function to try loading JS config
-async function tryJsConfig(): Promise<SlothConfig> {
+async function tryJsConfig(): Promise<GthConfig> {
   const jsConfigPath =
     configGlobalSettings.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
   if (jsConfigPath.endsWith('.js') && existsSync(jsConfigPath)) {
     try {
       const i = await importExternalFile(jsConfigPath);
       const customConfig = await i.configure();
-      return mergeConfig(customConfig) as SlothConfig;
+      return mergeConfig(customConfig) as GthConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
       displayError(`Failed to read config from ${USER_PROJECT_CONFIG_JS}, will try other formats.`);
@@ -207,14 +211,14 @@ async function tryJsConfig(): Promise<SlothConfig> {
 }
 
 // Helper function to try loading MJS config
-async function tryMjsConfig(): Promise<SlothConfig> {
+async function tryMjsConfig(): Promise<GthConfig> {
   const mjsConfigPath =
     configGlobalSettings.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
   if (mjsConfigPath.endsWith('.mjs') && existsSync(mjsConfigPath)) {
     try {
       const i = await importExternalFile(mjsConfigPath);
       const customConfig = await i.configure();
-      return mergeConfig(customConfig) as SlothConfig;
+      return mergeConfig(customConfig) as GthConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
       displayError(`Failed to read config from ${USER_PROJECT_CONFIG_MJS}.`);
@@ -237,9 +241,9 @@ async function tryMjsConfig(): Promise<SlothConfig> {
 /**
  * Process JSON LLM config by creating the appropriate LLM instance
  * @param jsonConfig - The parsed JSON config
- * @returns Promise<SlothConfig>
+ * @returns Promise<GthConfig>
  */
-export async function tryJsonConfig(jsonConfig: RawSlothConfig): Promise<SlothConfig> {
+export async function tryJsonConfig(jsonConfig: RawGthConfig): Promise<GthConfig> {
   try {
     if (jsonConfig.llm && typeof jsonConfig.llm === 'object') {
       // Get the type of LLM (e.g., 'vertexai', 'anthropic') - this should exist
@@ -341,8 +345,8 @@ Important! You are likely to be dealing with git diff below, please don't confus
 /**
  * Merge config with default config
  */
-function mergeConfig(partialConfig: Partial<SlothConfig>): SlothConfig {
-  const config = partialConfig as SlothConfig;
+function mergeConfig(partialConfig: Partial<GthConfig>): GthConfig {
+  const config = partialConfig as GthConfig;
   const mergedConfig = {
     ...DEFAULT_CONFIG,
     ...config,
@@ -358,6 +362,6 @@ function mergeConfig(partialConfig: Partial<SlothConfig>): SlothConfig {
 /**
  * Merge raw with default config
  */
-function mergeRawConfig(config: RawSlothConfig, llm: BaseChatModel): SlothConfig {
+function mergeRawConfig(config: RawGthConfig, llm: BaseChatModel): GthConfig {
   return mergeConfig({ ...config, llm });
 }

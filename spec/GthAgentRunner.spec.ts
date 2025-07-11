@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { HumanMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 import type { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 import type { GthAgentInterface } from '#src/core/types.js';
 import { RunnableConfig } from '@langchain/core/runnables';
@@ -27,7 +27,7 @@ vi.mock('#src/core/GthLangChainAgent.js', () => ({
 describe('GthAgentRunner', () => {
   let GthAgentRunner: typeof import('#src/core/GthAgentRunner.js').GthAgentRunner;
   let statusUpdateCallback: Mock<StatusUpdateCallback>;
-  let mockConfig: SlothConfig;
+  let mockConfig: GthConfig;
 
   beforeEach(async () => {
     vi.resetAllMocks();

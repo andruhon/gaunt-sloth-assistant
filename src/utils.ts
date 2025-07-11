@@ -1,6 +1,6 @@
 import { displayError, displayInfo, displaySuccess, displayWarning } from '#src/consoleUtils.js';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { SlothConfig } from '#src/config.js';
+import { GthConfig } from '#src/config.js';
 import { dirname, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentDir, getInstallDir, stdout } from '#src/systemUtils.js';
@@ -283,7 +283,7 @@ export function extractLastMessageContent(output: LLMOutput): string {
  */
 export function importExternalFile(
   filePath: string
-): Promise<{ configure: () => Promise<Partial<SlothConfig>> }> {
+): Promise<{ configure: () => Promise<Partial<GthConfig>> }> {
   const configFileUrl = url.pathToFileURL(filePath).toString();
   return import(configFileUrl);
 }

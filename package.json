@@ -53,6 +53,7 @@
     "eslint-plugin-prettier": "^5.5.1",
     "globals": "^16.3.0",
     "prettier": "3.6.2",
+    "typedoc": "^0.28.7",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   },

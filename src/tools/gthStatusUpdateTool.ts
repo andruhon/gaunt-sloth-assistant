@@ -1,7 +1,7 @@
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { displayInfo } from '#src/consoleUtils.js';
-import { SlothConfig } from '#src/config.js';
+import { GthConfig } from '#src/config.js';
 
 const toolDefinition = {
   name: 'gth_status_update',
@@ -12,6 +12,6 @@ const toolImpl = (s: string): void => {
   displayInfo(s);
 };
 
-export function get(_: SlothConfig) {
+export function get(_: GthConfig) {
   return tool(toolImpl, toolDefinition);
 }

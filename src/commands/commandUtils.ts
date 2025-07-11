@@ -1,4 +1,4 @@
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 import { displayError } from '#src/consoleUtils.js';
 
 /**
@@ -30,7 +30,7 @@ export type ContentProviderType = keyof typeof CONTENT_PROVIDERS;
 export async function getRequirementsFromProvider(
   requirementsProvider: RequirementsProviderType | undefined,
   requirementsId: string | undefined,
-  config: SlothConfig
+  config: GthConfig
 ): Promise<string> {
   return getFromProvider(
     requirementsProvider,
@@ -43,7 +43,7 @@ export async function getRequirementsFromProvider(
 export async function getContentFromProvider(
   contentProvider: ContentProviderType | undefined,
   contentId: string | undefined,
-  config: SlothConfig
+  config: GthConfig
 ): Promise<string> {
   return getFromProvider(
     contentProvider,

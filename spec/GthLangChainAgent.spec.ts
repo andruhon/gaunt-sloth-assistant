@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { AIMessage, AIMessageChunk, HumanMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
-import type { SlothConfig } from '#src/config.js';
+import type { GthConfig } from '#src/config.js';
 import type { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import {
   FakeChatInput,
@@ -54,7 +54,7 @@ vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 describe('GthLangChainAgent', () => {
   let GthLangChainAgent: typeof import('#src/core/GthLangChainAgent.ts').GthLangChainAgent;
   let statusUpdateCallback: Mock<StatusUpdateCallback>;
-  let mockConfig: SlothConfig;
+  let mockConfig: GthConfig;
 
   beforeEach(async () => {
     vi.resetAllMocks();
@@ -164,7 +164,7 @@ describe('GthLangChainAgent', () => {
         ...mockConfig,
         tools: mockTools,
         filesystem: 'none',
-      } as SlothConfig;
+      } as GthConfig;
 
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
@@ -198,7 +198,7 @@ describe('GthLangChainAgent', () => {
       const configWithTools = {
         ...mockConfig,
         tools: [mockToolkit, mockTool],
-      } as SlothConfig;
+      } as GthConfig;
 
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
@@ -214,7 +214,7 @@ describe('GthLangChainAgent', () => {
       const configWithTools = {
         ...mockConfig,
         tools: [mockToolkit],
-      } as SlothConfig;
+      } as GthConfig;
 
       const mcpTools = [{ name: 'mcp__filesystem__list_directory' } as StructuredToolInterface];
       mcpClientInstanceMock.getTools.mockResolvedValue(mcpTools);
@@ -408,7 +408,7 @@ describe('GthLangChainAgent', () => {
         llm: fakeListChatModel,
         streamOutput: false,
         tools: mockTools,
-      } as SlothConfig;
+      } as GthConfig;
       await agent.init(undefined, config);
 
       const runConfig: RunnableConfig = {
@@ -537,7 +537,7 @@ describe('GthLangChainAgent', () => {
             args: [],
           },
         },
-      } as SlothConfig;
+      } as GthConfig;
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
       await agent.init(undefined, configWithMcp);
@@ -563,7 +563,7 @@ describe('GthLangChainAgent', () => {
         ...mockConfig,
         filesystem: 'none',
         mcpServers: undefined,
-      } as SlothConfig;
+      } as GthConfig;
 
       const result = await agent['getMcpClient'](config);
 
@@ -614,7 +614,7 @@ describe('GthLangChainAgent', () => {
             authProvider: 'OAuth',
           },
         },
-      } as any as SlothConfig;
+      } as any as GthConfig;
 
       await agent['getMcpClient'](config);
 
@@ -641,7 +641,7 @@ describe('GthLangChainAgent', () => {
             builtInTools: ['specific'],
           },
         },
-      } as SlothConfig;
+      } as GthConfig;
 
       const result = agent.getEffectiveConfig(config, 'code');
 
@@ -655,7 +655,7 @@ describe('GthLangChainAgent', () => {
         ...mockConfig,
         filesystem: 'read',
         builtInTools: ['general'],
-      } as SlothConfig;
+      } as GthConfig;
 
       const result = agent.getEffectiveConfig(config, 'code');
 
@@ -671,7 +671,7 @@ describe('GthLangChainAgent', () => {
           ...mockConfig.llm,
           bindTools: undefined,
         },
-      } as SlothConfig;
+      } as GthConfig;
 
       agent.getEffectiveConfig(config, undefined);
 
