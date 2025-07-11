@@ -4,6 +4,7 @@ import { BaseCheckpointSaver } from '@langchain/langgraph';
 import { GthAgentInterface, GthCommand } from '#src/core/types.js';
 import { GthLangChainAgent, StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 import { RunnableConfig } from '@langchain/core/runnables';
+import { executeHooks } from '#src/utils.js';
 
 export class GthAgentRunner {
   private statusUpdate: StatusUpdateCallback;
@@ -27,9 +28,17 @@ export class GthAgentRunner {
   ): Promise<void> {
     this.config = configIn;
 
+    if (this.config.hooks?.beforeAgentInit && this.agent) {
+      throw new Error(
+        'Both constructor agent and createAgent hooks are set. Use only one of them.'
+      );
+    }
+
     // Create default agent if none provided
     if (!this.agent) {
-      this.agent = new GthLangChainAgent(this.statusUpdate);
+      this.agent = this.config.hooks?.createAgent
+        ? await this.config.hooks?.createAgent(this.statusUpdate)
+        : new GthLangChainAgent(this.statusUpdate);
     }
 
     // Set verbose mode before initialization so it can be used during init
@@ -37,14 +46,22 @@ export class GthAgentRunner {
       this.agent.setVerbose(this.verbose);
     }
 
-    // Initialize the agent if it has an init method
+    // Call before init hook
+    await executeHooks(this.config.hooks?.beforeAgentInit, this);
+
+    // Initialize the agent
     await this.agent.init(command, configIn, checkpointSaver);
+
+    // Call after init hook
+    await executeHooks(this.config.hooks?.afterAgentInit, this);
   }
 
   async processMessages(messages: Message[], runConfig: RunnableConfig): Promise<string> {
     if (!this.agent || !this.config) {
       throw new Error('AgentRunner not initialized. Call init() first.');
     }
+
+    await executeHooks(this.config.hooks?.beforeProcessMessages, this, messages, runConfig);
 
     try {
       // Decision: Use streaming or non-streaming based on config
@@ -73,6 +90,11 @@ export class GthAgentRunner {
         `Agent processing failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
+  }
+
+  // noinspection JSUnusedGlobalSymbols
+  public getAgent(): GthAgentInterface | null {
+    return this.agent;
   }
 
   async cleanup(): Promise<void> {

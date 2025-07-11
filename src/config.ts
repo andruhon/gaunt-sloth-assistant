@@ -15,6 +15,11 @@ import {
 } from '#src/constants.js';
 import { JiraConfig } from '#src/providers/types.js';
 import { resolve } from 'node:path';
+import type { GthAgentInterface } from '#src/core/types.js';
+import type { GthAgentRunner } from '#src/core/GthAgentRunner.js';
+import type { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
+import type { Message } from '#src/modules/types.js';
+import { RunnableConfig } from '@langchain/core/runnables';
 
 /**
  * This is a processed Gaunt Sloth config ready to be passed down into components.
@@ -30,7 +35,27 @@ export interface GthConfig extends BaseGthConfig {
   filesystem: string[] | 'all' | 'read' | 'none';
   builtInTools?: string[];
   tools?: StructuredToolInterface[] | BaseToolkit[];
+  /**
+   * Hooks are only available on JS config
+   */
+  hooks?: {
+    createAgent?: (agent: StatusUpdateCallback) => Promise<GthAgentInterface>;
+    beforeAgentInit?: RunnerHook | RunnerHook[];
+    /**
+     * After agent init.
+     */
+    afterAgentInit?: RunnerHook | RunnerHook[];
+    beforeProcessMessages?: BeforeMessageHook | BeforeMessageHook[];
+  };
 }
+
+type RunnerHook = (runner: GthAgentRunner) => Promise<void>;
+
+type BeforeMessageHook = (
+  runner: GthAgentRunner,
+  message: Message[],
+  runConfig: RunnableConfig
+) => Promise<void>;
 
 /**
  * Raw, unprocessed Gaunt Sloth config.

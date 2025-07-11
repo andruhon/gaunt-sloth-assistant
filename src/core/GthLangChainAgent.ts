@@ -169,6 +169,11 @@ export class GthLangChainAgent implements GthAgentInterface {
     });
   }
 
+  // noinspection JSUnusedGlobalSymbols
+  public getMCPClient(): MultiServerMCPClient | null {
+    return this.mcpClient;
+  }
+
   async cleanup(): Promise<void> {
     if (this.mcpClient) {
       await this.mcpClient.close();
