@@ -63,7 +63,7 @@ export type { ReadLineInterface };
 /**
  * Provide the path to the entry point of the application.
  * This is used to set the install directory.
- * This is called from index.js root entry point.
+ * This is called from cli.js root entry point.
  */
 export const setEntryPoint = (indexJs: string): void => {
   const filePath = fileURLToPath(indexJs);

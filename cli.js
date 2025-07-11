@@ -10,14 +10,14 @@ process.on('warning', (warning) => {
 });
 
 // This is a minimalistic entry point that sets the installDir in systemUtils
-// and delegates to the compiled TypeScript code in dist/index.js
+// and delegates to the compiled TypeScript code in dist/cli.js
 import { setEntryPoint } from './dist/systemUtils.js';
 
 // Set the installation directory in systemUtils
 setEntryPoint(import.meta.url);
 
 // Import and run the compiled TypeScript code
-import('./dist/index.js').catch((err) => {
+import('./dist/cli.js').catch((err) => {
   console.error('Failed to load application:', err);
   process.exit(1);
 });
