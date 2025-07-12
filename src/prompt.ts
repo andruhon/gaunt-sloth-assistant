@@ -1,15 +1,11 @@
-import {
-  readFileFromCurrentDir,
-  readFileFromCurrentOrInstallDir,
-  spawnCommand,
-} from '#src/utils.js';
+import { readFileFromCurrentOrInstallDir, spawnCommand } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
 import { exit } from '#src/systemUtils.js';
 import {
   GSLOTH_BACKSTORY,
-  GSLOTH_SYSTEM_PROMPT,
   GSLOTH_CHAT_PROMPT,
   GSLOTH_CODE_PROMPT,
+  GSLOTH_SYSTEM_PROMPT,
 } from '#src/constants.js';
 import { getGslothConfigReadPath } from '#src/filePathUtils.js';
 
@@ -18,15 +14,7 @@ export function readBackstory(): string {
 }
 
 export function readGuidelines(guidelinesFilename: string): string {
-  try {
-    const filePath = getGslothConfigReadPath(guidelinesFilename);
-    return readFileFromCurrentDir(filePath);
-  } catch (error) {
-    displayError(
-      'Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options.'
-    );
-    throw error;
-  }
+  return readFileFromCurrentOrInstallDir(guidelinesFilename);
 }
 
 export function readReviewInstructions(reviewInstructions: string): string {

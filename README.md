@@ -130,6 +130,9 @@ npm install gaunt-sloth-assistant -g
 ## Configuration
 
 > Gaunt Sloth currently only functions from the directory which has a configuration file (`.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs`) and `.gsloth.guidelines.md`. Configuration files can be located in the project root or in the `.gsloth/.gsloth-settings/` directory.
+>
+> You can also specify a path to a configuration file directly using the `-c` or `--config` global flag, for example `gth -c /path/to/your/config.json ask "who are you?"`
+> Note, however, is that project guidelines are going to be used from current directory if they exist and simple install dir prompt is going to be used if nothing found.
 
 Configuration can be created with `gsloth init [vendor]` command.
 Currently, anthropic, groq, deepseek, openai, google-genai and vertexai can be configured with `gsloth init [vendor]`.
@@ -141,6 +144,8 @@ More detailed information on configuration can be found in [CONFIGURATION.md](./
 
 ```shell
 cd ./your-project
+gsloth init google-genai
+```
 Make sure you either define `GOOGLE_API_KEY` environment variable or edit your configuration file and set up your key.
 It is recommended to obtain API key from Google AI Studio official website rather than from a reseller.
 
@@ -152,16 +157,6 @@ gsloth init vertexai
 gcloud auth login
 gcloud auth application-default login
 ```
-```
-
-### Google GenAI (AI Studio)
-
-```shell
-cd ./your-project
-gsloth init google-genai
-```
-Make sure you either define `GOOGLE_API_KEY` environment variable or edit your configuration file and set up your key.
-It is recommended to obtain API key from Google AI Studio official website rather than from a reseller.
 
 ### Anthropic
 
@@ -205,6 +200,12 @@ Then edit your configuration to add custom base URL and API key. See [CONFIGURAT
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md).
 For example, Ollama can be set up with JS config (some of the models, see https://github.com/andruhon/gaunt-sloth-assistant/discussions/107)
+
+## Integration with GitHub Workflows / Actions
+
+Example GitHub workflows integration can be found in [.github/workflows/review.yml;](.github/workflows/review.yml)
+this example workflow performs AI review on any pushes to Pull Request, resulting in a comment left by,
+GitHub actions bot.
 
 ## MCP (Model Context Protocol) Servers
 

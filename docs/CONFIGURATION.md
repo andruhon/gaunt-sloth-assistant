@@ -12,6 +12,8 @@ Your project should have the following files in order for gsloth to function:
 - `.gsloth.guidelines.md`
 
 > Gaunt Sloth currently only functions from the directory which has one of the configuration files and `.gsloth.guidelines.md`. Configuration files can be located in the project root or in the `.gsloth/.gsloth-settings/` directory.
+>
+> You can also specify a path to a configuration file directly using the `-c` or `--config` global flag, for example `gth -c /path/to/your/config.json ask "who are you?"`
 
 ## Using .gsloth Directory
 
@@ -371,6 +373,12 @@ export async function configure() {
 The configure function should simply return instance of langchain [chat model](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html).
 See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/) for more details.
 
+## Integration with GitHub Workflows / Actions
+
+Example GitHub workflows integration can be found in [.github/workflows/review.yml;](.github/workflows/review.yml)
+this example workflow performs AI review on any pushes to Pull Request, resulting in a comment left by,
+GitHub actions bot.
+
 ## Model Context Protocol (MCP)
 
 Gaunt Sloth Assistant supports the Model Context Protocol (MCP), which provides enhanced context management. You can connect to various MCP servers, including those requiring OAuth authentication.
@@ -411,16 +419,16 @@ To connect to the Atlassian Jira MCP server using OAuth, add the following to yo
 - Each server's tokens are stored in a separate file named after the server URL
 - The storage location is cross-platform (Windows, macOS, Linux)
 
-### MCP Filesystem Server Configuration
+### MCP stdio Server Configuration
 
-To configure the MCP filesystem server, add the `mcpServers` section to your configuration file:
+To configure local MCP server, add the `mcpServers` section to your configuration file,
+for example configuration for reference sequential thinking MCP follows:
 
 ```json
 {
   "llm": {
     "type": "vertexai",
-    "model": "gemini-2.5-pro-preview-05-06",
-    "temperature": 0
+    "model": "gemini-2.5-pro"
   },
   "mcpServers": {
     "filesystem": {
@@ -428,8 +436,7 @@ To configure the MCP filesystem server, add the `mcpServers` section to your con
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/home/path/to/your/files"
+        "@modelcontextprotocol/server-sequential-thinking"
       ]
     }
   }

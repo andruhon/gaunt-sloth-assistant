@@ -17,7 +17,7 @@ program
   .description('Gaunt Sloth Assistant reviewing your PRs')
   .version(getSlothVersion())
   .option('--verbose', 'Print entire prompt sent to LLM.')
-  .option('--config <path>', 'Path to custom configuration file')
+  .option('-c, --config <path>', 'Path to custom configuration file')
   .addOption(new Option('--nopipe').hideHelp(true));
 
 // Parse global options before binding any commands
