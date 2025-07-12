@@ -144,13 +144,10 @@ describe('codeCommand', () => {
       expect.any(MemorySaver)
     );
 
-    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith(
-      [
-        new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
-        new HumanMessage('test message'),
-      ],
-      expect.any(Object)
-    );
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
+      new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
+      new HumanMessage('test message'),
+    ]);
   });
 
   it('Should handle empty message gracefully', async () => {
@@ -283,19 +280,13 @@ describe('codeCommand', () => {
     await program.parseAsync(['na', 'na', 'code']); // Start code session
 
     expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledTimes(2);
-    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(
-      1,
-      [
-        new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
-        new HumanMessage('first message'),
-      ],
-      expect.any(Object)
-    );
-    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(
-      2,
-      [new HumanMessage('second message')],
-      expect.any(Object)
-    );
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(1, [
+      new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
+      new HumanMessage('first message'),
+    ]);
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(2, [
+      new HumanMessage('second message'),
+    ]);
   });
 
   it('Should save the conversation to a file', async () => {

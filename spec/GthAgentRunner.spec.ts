@@ -3,8 +3,6 @@ import { HumanMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import type { GthConfig } from '#src/config.js';
 import type { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
-import type { GthAgentInterface } from '#src/core/types.js';
-import { RunnableConfig } from '@langchain/core/runnables';
 
 // Mock the GthLangChainAgent - using a simplified approach
 const mockAgent = {
@@ -52,27 +50,10 @@ describe('GthAgentRunner', () => {
       requirementsProvider: 'file',
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none',
+      useColour: false,
     };
 
     ({ GthAgentRunner } = await import('#src/core/GthAgentRunner.js'));
-  });
-
-  describe('constructor', () => {
-    it('should initialize with status update callback', () => {
-      const runner = new GthAgentRunner(statusUpdateCallback);
-      expect(runner).toBeDefined();
-    });
-
-    it('should initialize with custom agent', () => {
-      const customAgent: GthAgentInterface = {
-        invoke: vi.fn(),
-        stream: vi.fn(),
-        setVerbose: vi.fn(),
-      };
-      const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
-      expect(runner).toBeDefined();
-      expect(runner['agent']).toBe(customAgent);
-    });
   });
 
   describe('setVerbose', () => {
@@ -125,38 +106,6 @@ describe('GthAgentRunner', () => {
 
       expect(mockAgent.init).toHaveBeenCalledWith(undefined, mockConfig, checkpointSaver);
     });
-
-    it('should use custom agent if provided', async () => {
-      const customAgent: GthAgentInterface = {
-        init: vi.fn(),
-        invoke: vi.fn(),
-        stream: vi.fn(),
-        setVerbose: vi.fn(),
-      };
-      const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
-
-      await runner.init(undefined, mockConfig);
-
-      // Should not create a new agent since custom one was provided
-      expect(mockAgent.init).not.toHaveBeenCalled();
-      expect(runner['agent']).toBe(customAgent);
-    });
-
-    it('should initialize custom agent with init method', async () => {
-      const customAgent: GthAgentInterface & {
-        init: (_cmd: any, _config: any, _saver: any) => void;
-      } = {
-        invoke: vi.fn(),
-        stream: vi.fn(),
-        init: vi.fn(),
-        setVerbose: vi.fn(),
-      };
-      const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
-
-      await runner.init(undefined, mockConfig);
-
-      expect(customAgent.init).toHaveBeenCalledWith(undefined, mockConfig, undefined);
-    });
   });
 
   describe('processMessages', () => {
@@ -177,7 +126,13 @@ describe('GthAgentRunner', () => {
       const messages = [new HumanMessage('test message')];
       const result = await runner.processMessages(messages);
 
-      expect(mockAgent.invoke).toHaveBeenCalledWith(messages, undefined);
+      expect(mockAgent.invoke).toHaveBeenCalledWith(
+        messages,
+        expect.objectContaining({
+          recursionLimit: 250,
+          configurable: { thread_id: expect.any(String) },
+        })
+      );
       expect(mockAgent.stream).not.toHaveBeenCalled();
       expect(result).toBe('test response');
     });
@@ -197,7 +152,13 @@ describe('GthAgentRunner', () => {
       const messages = [new HumanMessage('test message')];
       const result = await runner.processMessages(messages);
 
-      expect(mockAgent.stream).toHaveBeenCalledWith(messages, undefined);
+      expect(mockAgent.stream).toHaveBeenCalledWith(
+        messages,
+        expect.objectContaining({
+          recursionLimit: 250,
+          configurable: { thread_id: expect.any(String) },
+        })
+      );
       expect(mockAgent.invoke).not.toHaveBeenCalled();
       expect(result).toBe('chunk1chunk2');
     });
@@ -211,43 +172,14 @@ describe('GthAgentRunner', () => {
       const messages = [new HumanMessage('first message'), new HumanMessage('second message')];
       const result = await runner.processMessages(messages);
 
-      expect(mockAgent.invoke).toHaveBeenCalledWith(messages, undefined);
+      expect(mockAgent.invoke).toHaveBeenCalledWith(
+        messages,
+        expect.objectContaining({
+          recursionLimit: 250,
+          configurable: { thread_id: expect.any(String) },
+        })
+      );
       expect(result).toBe('combined response');
-    });
-
-    it('should pass run config to agent', async () => {
-      const runner = new GthAgentRunner(statusUpdateCallback);
-      mockAgent.invoke.mockResolvedValue('test response');
-
-      await runner.init(undefined, { ...mockConfig, streamOutput: false });
-
-      const messages = [new HumanMessage('test message')];
-      const runConfig: RunnableConfig = {
-        recursionLimit: 1000,
-      };
-
-      const result = await runner.processMessages(messages, runConfig);
-
-      expect(mockAgent.invoke).toHaveBeenCalledWith(messages, runConfig);
-      expect(result).toBe('test response');
-    });
-
-    it('should work with custom agent', async () => {
-      const customAgent: GthAgentInterface = {
-        init: vi.fn(),
-        invoke: vi.fn().mockResolvedValue('custom response'),
-        stream: vi.fn(),
-        setVerbose: vi.fn(),
-      };
-      const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
-
-      await runner.init(undefined, { ...mockConfig, streamOutput: false });
-
-      const messages = [new HumanMessage('test message')];
-      const result = await runner.processMessages(messages);
-
-      expect(customAgent.invoke).toHaveBeenCalledWith(messages, undefined);
-      expect(result).toBe('custom response');
     });
   });
 
@@ -267,40 +199,6 @@ describe('GthAgentRunner', () => {
       const runner = new GthAgentRunner(statusUpdateCallback);
 
       await expect(runner.cleanup()).resolves.not.toThrow();
-    });
-
-    it('should handle cleanup with custom agent', async () => {
-      const customAgent: GthAgentInterface & { cleanup: () => void } = {
-        init: vi.fn(),
-        invoke: vi.fn(),
-        stream: vi.fn(),
-        setVerbose: vi.fn(),
-        cleanup: vi.fn(),
-      };
-      const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
-
-      await runner.init(undefined, mockConfig);
-      await runner.cleanup();
-
-      expect(customAgent.cleanup).toHaveBeenCalled();
-      expect(runner['agent']).toBeNull();
-      expect(runner['config']).toBeNull();
-    });
-
-    it('should handle cleanup with custom agent without cleanup method', async () => {
-      const customAgent: GthAgentInterface = {
-        init: vi.fn(),
-        invoke: vi.fn(),
-        stream: vi.fn(),
-        setVerbose: vi.fn(),
-      };
-      const runner = new GthAgentRunner(statusUpdateCallback, customAgent);
-
-      await runner.init(undefined, mockConfig);
-
-      await expect(runner.cleanup()).resolves.not.toThrow();
-      expect(runner['agent']).toBeNull();
-      expect(runner['config']).toBeNull();
     });
   });
 });

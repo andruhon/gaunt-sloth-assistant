@@ -47,7 +47,7 @@ export async function invoke(
 
   try {
     await runner.init(command, config);
-    return await runner.processMessages(messages, getNewRunnableConfig());
+    return await runner.processMessages(messages);
   } finally {
     await runner.cleanup();
   }

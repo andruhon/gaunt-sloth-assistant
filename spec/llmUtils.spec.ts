@@ -52,7 +52,7 @@ describe('llmUtils', () => {
     expect(AgentRunnerConstructor).toHaveBeenCalledWith(expect.any(Function));
     expect(agentRunnerMock.setVerbose).toHaveBeenCalledWith(false);
     expect(agentRunnerMock.init).toHaveBeenCalledWith('review', mockConfig);
-    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages, expect.any(Object));
+    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages);
     expect(agentRunnerMock.cleanup).toHaveBeenCalled();
     expect(result).toBe('Test response');
   });
@@ -71,7 +71,7 @@ describe('llmUtils', () => {
     const result = await invoke('chat', messages, mockConfig);
 
     expect(agentRunnerMock.init).toHaveBeenCalledWith('chat', mockConfig);
-    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages, expect.any(Object));
+    expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages);
     expect(result).toBe('Another response');
   });
 

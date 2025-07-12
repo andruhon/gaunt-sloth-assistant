@@ -17,7 +17,6 @@ import { JiraConfig } from '#src/providers/types.js';
 import { resolve } from 'node:path';
 import type { GthAgentInterface } from '#src/core/types.js';
 import type { GthAgentRunner } from '#src/core/GthAgentRunner.js';
-import type { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 import type { Message } from '#src/modules/types.js';
 import { RunnableConfig } from '@langchain/core/runnables';
 
@@ -39,7 +38,8 @@ export interface GthConfig extends BaseGthConfig {
    * Hooks are only available on JS config
    */
   hooks?: {
-    createAgent?: (agent: StatusUpdateCallback) => Promise<GthAgentInterface>;
+    createRunnableConfig?: (config: GthConfig) => Promise<RunnableConfig>;
+    createAgent?: (config: GthConfig) => Promise<GthAgentInterface>;
     beforeAgentInit?: RunnerHook | RunnerHook[];
     /**
      * After agent init.
