@@ -6,7 +6,8 @@
   "author": "Andrew Kondratev",
   "type": "module",
   "main": "dist/cli.js",
-  "repository": "github:andruhon/gaunt-sloth-assistant",
+  "repository": "github:Galvanized-Pukeko/gaunt-sloth-assistant",
+  "keywords": ["ai", "agent", "mcp", "llm", "cli"],
   "engines": {
     "node": ">=22.0.0",
     "npm": ">=10.9.0"
