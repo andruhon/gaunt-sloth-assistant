@@ -41,7 +41,7 @@ It is always worth checking sourcecode in [config.ts](../src/config.ts) for more
 | Parameter                                | Required                          | Default Value | Description                                                                                                                                                                                                                                               |
 |------------------------------------------|-----------------------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `llm`                                    | Required                          | -             | An object configuring LLM. In JS config could be actual instance of LangChainJS [BaseChatModel](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html), allowing to use LLMs which do not have a preset. |
-| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq`, `vertexai`, `deepseek`, `openai` and `google-genai`. For providers using OpenAI format (like Inception), use `openai` type with custom configuration. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
+| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq`, `deepseek`, `openai`, `google-genai` and `vertexai`. For providers using OpenAI format (like Inception), use `openai` type with custom configuration. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
 | `llm.model`                              | Optional                          | -             | Particular LLM model string (Check in your provider documentation).                                                                                                                                                                                       |
 | `llm.apiKey`                             | Optional                          | -             | API key for the LLM provider. You can either use this parameter or use environment variable.                                                                                                                                                              |
 | `contentProvider`                        | Optional                          | `file`        | Default content provider used to get content for review. Options available are `github`, `file` and `text` (`text` provides text as it is).                                                                                                               |
@@ -82,8 +82,14 @@ It is always worth checking sourcecode in [config.ts](../src/config.ts) for more
 
 ## Config initialization
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, vertexai, anthropic, groq, deepseek and openai can be configured with `gsloth init [vendor]`.
+Currently, anthropic, groq, deepseek, openai, google-genai and vertexai can be configured with `gsloth init [vendor]`.
 For providers using OpenAI format (like Inception), use `gsloth init openai` and then modify the configuration.
+
+### Google GenAI (AI Studio)
+```shell
+cd ./your-project
+gsloth init google-genai
+```
 
 ### Google Vertex AI
 ```shell
@@ -91,12 +97,6 @@ cd ./your-project
 gsloth init vertexai
 gcloud auth login
 gcloud auth application-default login
-```
-
-### Google GenAI (AI Studio)
-```shell
-cd ./your-project
-gsloth init google-genai
 ```
 
 ### Anthropic
@@ -167,16 +167,6 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
 }
 ```
 
-**Example of .gsloth.config.json for VertexAI**
-```json
-{
-  "llm": {
-    "type": "vertexai",
-    "model": "gemini-2.5-pro"
-  }
-}
-```
-
 **Example of .gsloth.config.json for Groq**
 ```json
 {
@@ -235,6 +225,16 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
 }
 ```
 
+**Example of .gsloth.config.json for VertexAI**
+```json
+{
+  "llm": {
+    "type": "vertexai",
+    "model": "gemini-2.5-pro"
+  }
+}
+```
+
 ### JavaScript Configuration
 
 (.gsloth.config.js or .gsloth.config.mjs)
@@ -277,24 +277,6 @@ export async function configure() {
             model: "claude-3-5-sonnet-20241022"
         })
     };
-}
-```
-
-**Example of .gsloth.config.js for VertexAI**  
-VertexAI usually needs `gcloud auth application-default login`
-(or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
-```javascript
-export async function configure() {
-    const vertexAi = await import('@langchain/google-vertexai');
-    return {
-        llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-preview-05-06", // Consider checking for latest recommended model versions
-            // API Key from AI Studio should also work
-            //// Other parameters might be relevant depending on Vertex AI API updates.
-            //// The project is not in the interface, but it is in documentation and it seems to work.
-            // project: 'your-cool-google-cloud-project',
-        })
-    }
 }
 ```
 
@@ -363,6 +345,24 @@ export async function configure() {
       apiKey: process.env.GOOGLE_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
     })
   };
+}
+```
+
+**Example of .gsloth.config.js for VertexAI**  
+VertexAI usually needs `gcloud auth application-default login`
+(or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
+```javascript
+export async function configure() {
+    const vertexAi = await import('@langchain/google-vertexai');
+    return {
+        llm: new vertexAi.ChatVertexAI({
+            model: "gemini-2.5-pro-preview-05-06", // Consider checking for latest recommended model versions
+            // API Key from AI Studio should also work
+            //// Other parameters might be relevant depending on Vertex AI API updates.
+            //// The project is not in the interface, but it is in documentation and it seems to work.
+            // project: 'your-cool-google-cloud-project',
+        })
+    }
 }
 ```
 

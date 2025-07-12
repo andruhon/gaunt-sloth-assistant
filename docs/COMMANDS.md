@@ -15,7 +15,7 @@ gsloth init <type>
 ```
 
 ### Arguments
-- `<type>` - Configuration type. Available options: `vertexai`, `anthropic`, `groq`, `deepseek`, `openai`, `google-genai`
+- `<type>` - Configuration type. Available options: `anthropic`, `groq`, `deepseek`, `openai`, `google-genai`, `vertexai`
 
 ### Description
 Creates the necessary configuration files for your project. If a `.gsloth` directory exists, files will be placed in `.gsloth/.gsloth-settings/`. Otherwise, they will be created in the project root.

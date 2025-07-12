@@ -49,7 +49,7 @@ The promise of Gaunt Sloth:
 
 - Groq;
 - DeepSeek;
-- Google Vertex AI and Google AI Studio;
+- Google AI Studio and Google Vertex AI;
 - Anthropic;
 - OpenAI (and other providers using OpenAI format, such as Inception);
 - Ollama with JS config (some of the models, see https://github.com/andruhon/gaunt-sloth-assistant/discussions/107)
@@ -132,10 +132,17 @@ npm install gaunt-sloth-assistant -g
 > Gaunt Sloth currently only functions from the directory which has a configuration file (`.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs`) and `.gsloth.guidelines.md`. Configuration files can be located in the project root or in the `.gsloth/.gsloth-settings/` directory.
 
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, vertexai, anthropic, groq, deepseek, openai and google-genai can be configured with `gsloth init [vendor]`.
+Currently, anthropic, groq, deepseek, openai, google-genai and vertexai can be configured with `gsloth init [vendor]`.
 For OpenAI-compatible providers like Inception, use `gsloth init openai` and modify the configuration.
 
 More detailed information on configuration can be found in [CONFIGURATION.md](./docs/CONFIGURATION.md)
+
+### Google GenAI (AI Studio)
+
+```shell
+cd ./your-project
+Make sure you either define `GOOGLE_API_KEY` environment variable or edit your configuration file and set up your key.
+It is recommended to obtain API key from Google AI Studio official website rather than from a reseller.
 
 ### Google Vertex AI
 
@@ -144,6 +151,7 @@ cd ./your-project
 gsloth init vertexai
 gcloud auth login
 gcloud auth application-default login
+```
 ```
 
 ### Google GenAI (AI Studio)
