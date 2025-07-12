@@ -129,10 +129,10 @@ npm install gaunt-sloth-assistant -g
 
 ## Configuration
 
-> Gaunt Sloth currently only functions from the directory which has a configuration file (`.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs`) and `.gsloth.guidelines.md`.
+> Gaunt Sloth currently only functions from the directory which has a configuration file (`.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs`) and `.gsloth.guidelines.md`. Configuration files can be located in the project root or in the `.gsloth/.gsloth-settings/` directory.
 
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, vertexai, anthropic, groq, deepseek and openai can be configured with `gsloth init [vendor]`.
+Currently, vertexai, anthropic, groq, deepseek, openai and google-genai can be configured with `gsloth init [vendor]`.
 For OpenAI-compatible providers like Inception, use `gsloth init openai` and modify the configuration.
 
 More detailed information on configuration can be found in [CONFIGURATION.md](./docs/CONFIGURATION.md)

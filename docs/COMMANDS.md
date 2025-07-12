@@ -15,10 +15,10 @@ gsloth init <type>
 ```
 
 ### Arguments
-- `<type>` - Configuration type. Available options: `vertexai`, `anthropic`, `groq`
+- `<type>` - Configuration type. Available options: `vertexai`, `anthropic`, `groq`, `deepseek`, `openai`, `google-genai`
 
 ### Description
-Creates the necessary configuration files for your project:
+Creates the necessary configuration files for your project. If a `.gsloth` directory exists, files will be placed in `.gsloth/.gsloth-settings/`. Otherwise, they will be created in the project root.
 - `.gsloth.config.js`, `.gsloth.config.json`, or `.gsloth.config.mjs` - Configuration file
 - `.gsloth.guidelines.md` - Project guidelines file
 
@@ -153,7 +153,6 @@ Opens an interactive chat session where you can have a conversation with the AI.
 - Interactive conversation with context memory
 - Type 'exit' or press Ctrl+C to end the session
 - Chat history automatically saved
-- Streaming disabled for better interactive experience
 
 ### Examples
 ```shell
