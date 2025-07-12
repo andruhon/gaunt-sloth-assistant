@@ -1,5 +1,8 @@
 Make sure `npm config set git-tag-version true`
 
+! Important ! The `files` block of package.json strictly controls what is actually released,
+the `files` makes .npmignore ignored.
+
 For patch, e.g., from 0.0.8 to 0.0.9
 ```shell
 npm version patch -m "Release notes"

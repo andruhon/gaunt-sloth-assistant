@@ -66,6 +66,8 @@
   },
   "types": "./dist/*",
   "files": [
-    "./dist/*"
+    "./dist/*",
+    "cli.js",
+    ".gsloth.*.md"
   ]
 }
