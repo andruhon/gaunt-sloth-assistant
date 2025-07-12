@@ -1,13 +1,19 @@
 {
   "name": "gaunt-sloth-assistant",
-  "version": "0.8.9",
+  "version": "0.8.10",
   "description": "",
   "license": "MIT",
   "author": "Andrew Kondratev",
   "type": "module",
   "main": "dist/cli.js",
   "repository": "github:Galvanized-Pukeko/gaunt-sloth-assistant",
-  "keywords": ["ai", "agent", "mcp", "llm", "cli"],
+  "keywords": [
+    "ai",
+    "agent",
+    "mcp",
+    "llm",
+    "cli"
+  ],
   "engines": {
     "node": ">=22.0.0",
     "npm": ">=10.9.0"
