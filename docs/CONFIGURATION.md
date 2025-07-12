@@ -422,7 +422,7 @@ To connect to the Atlassian Jira MCP server using OAuth, add the following to yo
 ### MCP stdio Server Configuration
 
 To configure local MCP server, add the `mcpServers` section to your configuration file,
-for example configuration for reference sequential thinking MCP follows:
+for example, configuration for reference sequential thinking MCP follows:
 
 ```json
 {
@@ -431,7 +431,7 @@ for example configuration for reference sequential thinking MCP follows:
     "model": "gemini-2.5-pro"
   },
   "mcpServers": {
-    "filesystem": {
+    "sequential-thinking": {
       "transport": "stdio",
       "command": "npx",
       "args": [

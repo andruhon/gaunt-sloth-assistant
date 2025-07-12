@@ -31,7 +31,6 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
   const config = { ...(await initConfig()) };
   const checkpointSaver = new MemorySaver();
   // Initialize Runner
-  // XXX Maybe runner should hold the session, and a new instance of the runner should be created for hypothetic multi-session runner
   const runner = new GthAgentRunner(defaultStatusCallbacks);
 
   try {
