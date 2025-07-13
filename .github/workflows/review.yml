@@ -25,10 +25,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm i gaunt-sloth-assistant@0.8.3 -g && gth --version
-
-      - name: Prepare gsloth conf
-        run: cp .github/workflows/.gsloth.config.json .
+        run: npm i gaunt-sloth-assistant@0.8.10 -g && gth --version
 
       - name: Extract issue number from PR title
         id: extract_issue
@@ -43,9 +40,9 @@ jobs:
           if [ -z "${{ steps.extract_issue.outputs.issue_number }}" ]; then
             echo "ℹ️ **Tip:** To link this PR to an issue, start your PR title with the issue number followed by a space (e.g., '123 Fix authentication bug')" | tee review.md
             echo "" >> review.md
-            gth pr ${{ github.event.pull_request.number }} | tee -a review.md
+            gth --nopipe -c ".github/workflows/.gsloth.config.json" pr ${{ github.event.pull_request.number }} | tee -a review.md
           else
-            gth pr ${{ github.event.pull_request.number }} ${{ steps.extract_issue.outputs.issue_number }} | tee review.md
+            gth --nopipe -c ".github/workflows/.gsloth.config.json" pr ${{ github.event.pull_request.number }} ${{ steps.extract_issue.outputs.issue_number }} | tee review.md
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
