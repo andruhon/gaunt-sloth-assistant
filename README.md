@@ -10,6 +10,8 @@ Based on [LangChain.js](https://github.com/langchain-ai/langchainjs)
 
 ## Why?
 
+zobo
+
 There are many Open Source command line AI assistants available, such as Aider and Goose;
 there are great non-open source options such as Claude Code.
 
