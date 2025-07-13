@@ -36,7 +36,7 @@ export function init(configFileName: string): void {
 
   writeFileIfNotExistsWithMessages(configFileName, jsonContent);
   displayWarning(
-    `You need to update your \${configFileName} to add your xAI API key, ` +
+    `You need to update your ${configFileName} to add your xAI API key, ` +
       'or define XAI_API_KEY environment variable.'
   );
 }
