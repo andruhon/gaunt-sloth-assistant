@@ -851,7 +851,7 @@ describe('config', async () => {
       }
 
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
-        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq, deepseek, openai, google-genai'
+        'Unknown config type: invalid-config. Available options: vertexai, anthropic, groq, deepseek, openai, google-genai, xai'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
@@ -923,6 +923,28 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith(
         'Creating project config for google-genai'
       );
+      expect(mockInit).toHaveBeenCalledWith('/mock/write/.gsloth.config.json');
+    });
+
+    it('Should create project config for xai', async () => {
+      const configType = 'xai';
+      const mockInit = vi.fn();
+
+      // Mock the xai config module
+      vi.doMock('#src/presets/xai.js', () => ({
+        init: mockInit,
+      }));
+
+      // Ensure the filePathUtils mock is properly set for different files
+      filePathUtilsMock.getGslothConfigWritePath.mockImplementation(
+        (filename: string) => `/mock/write/${filename}`
+      );
+
+      const { createProjectConfig } = await import('#src/config.js');
+
+      await createProjectConfig(configType);
+
+      expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith('Creating project config for xai');
       expect(mockInit).toHaveBeenCalledWith('/mock/write/.gsloth.config.json');
     });
   });

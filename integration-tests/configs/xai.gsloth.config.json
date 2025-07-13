@@ -1,0 +1,6 @@
+{
+  "llm": {
+    "type": "xai",
+    "model": "grok-4-0709"
+  }
+}

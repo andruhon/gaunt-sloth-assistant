@@ -43,7 +43,7 @@ It is always worth checking sourcecode in [config.ts](../src/config.ts) for more
 | Parameter                                | Required                          | Default Value | Description                                                                                                                                                                                                                                               |
 |------------------------------------------|-----------------------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `llm`                                    | Required                          | -             | An object configuring LLM. In JS config could be actual instance of LangChainJS [BaseChatModel](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html), allowing to use LLMs which do not have a preset. |
-| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq`, `deepseek`, `openai`, `google-genai` and `vertexai`. For providers using OpenAI format (like Inception), use `openai` type with custom configuration. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
+| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq`, `deepseek`, `openai`, `google-genai`, `vertexai` and `xai`. For providers using OpenAI format (like Inception), use `openai` type with custom configuration. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
 | `llm.model`                              | Optional                          | -             | Particular LLM model string (Check in your provider documentation).                                                                                                                                                                                       |
 | `llm.apiKey`                             | Optional                          | -             | API key for the LLM provider. You can either use this parameter or use environment variable.                                                                                                                                                              |
 | `contentProvider`                        | Optional                          | `file`        | Default content provider used to get content for review. Options available are `github`, `file` and `text` (`text` provides text as it is).                                                                                                               |
@@ -84,7 +84,7 @@ It is always worth checking sourcecode in [config.ts](../src/config.ts) for more
 
 ## Config initialization
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, anthropic, groq, deepseek, openai, google-genai and vertexai can be configured with `gsloth init [vendor]`.
+Currently, anthropic, groq, deepseek, openai, google-genai, vertexai and xai can be configured with `gsloth init [vendor]`.
 For providers using OpenAI format (like Inception), use `gsloth init openai` and then modify the configuration.
 
 ### Google GenAI (AI Studio)
@@ -152,6 +152,13 @@ Then edit your configuration file to add the custom base URL and API key. For ex
 ```
 * apiKeyEnvironmentVariable property can be used to point to the correct API key environment variable.
 
+### xAI
+```shell
+cd ./your-project
+gsloth init xai
+```
+Make sure you either define `XAI_API_KEY` environment variable or edit your configuration file and set up your key.
+
 ## Examples of configuration for different providers
 
 ### JSON Configuration (.gsloth.config.json)
@@ -168,6 +175,7 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
   }
 }
 ```
+You can use the `ANTHROPIC_API_KEY` environment variable instead of specifying `apiKey` in the config.
 
 **Example of .gsloth.config.json for Groq**
 ```json
@@ -179,6 +187,7 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
   }
 }
 ```
+You can use the `GROQ_API_KEY` environment variable instead of specifying `apiKey` in the config.
 
 **Example of .gsloth.config.json for DeepSeek**
 ```json
@@ -190,6 +199,7 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
   }
 }
 ```
+You can use the `DEEPSEEK_API_KEY` environment variable instead of specifying `apiKey` in the config.
 
 **Example of .gsloth.config.json for OpenAI**
 ```json
@@ -201,6 +211,7 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
   }
 }
 ```
+You can use the `OPENAI_API_KEY` environment variable instead of specifying `apiKey` in the config.
 
 **Example of .gsloth.config.json for Inception (OpenAI-compatible)**
 ```json
@@ -215,6 +226,7 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
   }
 }
 ```
+You can use the `INCEPTION_API_KEY` environment variable as specified in `apiKeyEnvironmentVariable`.
 
 **Example of .gsloth.config.json for Google GenAI**
 ```json
@@ -226,6 +238,7 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
   }
 }
 ```
+You can use the `GOOGLE_API_KEY` environment variable instead of specifying `apiKey` in the config.
 
 **Example of .gsloth.config.json for VertexAI**
 ```json
@@ -236,6 +249,19 @@ JSON configuration is simpler but less flexible than JavaScript configuration. I
   }
 }
 ```
+VertexAI typically uses gcloud authentication; no `apiKey` is needed in the config.
+
+**Example of .gsloth.config.json for xAI**
+```json
+{
+  "llm": {
+    "type": "xai",
+    "model": "grok-4-0709",
+    "apiKey": "your-api-key-here"
+  }
+}
+```
+You can use the `XAI_API_KEY` environment variable instead of specifying `apiKey` in the config.
 
 ### JavaScript Configuration
 
@@ -245,6 +271,7 @@ JavaScript configuration provides more flexibility than JSON configuration, allo
 
 **Example with Custom Tools**
 ```javascript
+// .gsloth.config.mjs
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 
@@ -269,7 +296,7 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.js for Anthropic**
+**Example of .gsloth.config.mjs for Anthropic**
 ```javascript
 export async function configure() {
     const anthropic = await import('@langchain/anthropic');
@@ -282,7 +309,7 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.js for Groq**
+**Example of .gsloth.config.mjs for Groq**
 ```javascript
 export async function configure() {
     const groq = await import('@langchain/groq');
@@ -295,7 +322,7 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.js for DeepSeek**
+**Example of .gsloth.config.mjs for DeepSeek**
 ```javascript
 export async function configure() {
     const deepseek = await import('@langchain/deepseek');
@@ -308,7 +335,7 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.js for OpenAI**
+**Example of .gsloth.config.mjs for OpenAI**
 ```javascript
 export async function configure() {
     const openai = await import('@langchain/openai');
@@ -321,7 +348,7 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.js for Inception (OpenAI-compatible)**
+**Example of .gsloth.config.mjs for Inception (OpenAI-compatible)**
 ```javascript
 export async function configure() {
     const openai = await import('@langchain/openai');
@@ -337,7 +364,7 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.js for Google GenAI**
+**Example of .gsloth.config.mjs for Google GenAI**
 ```javascript
 export async function configure() {
   const googleGenai = await import('@langchain/google-genai');
@@ -350,7 +377,7 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.js for VertexAI**  
+**Example of .gsloth.config.mjs for VertexAI**  
 VertexAI usually needs `gcloud auth application-default login`
 (or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
 ```javascript
@@ -368,6 +395,19 @@ export async function configure() {
 }
 ```
 
+**Example of .gsloth.config.mjs for xAI**
+```javascript
+export async function configure() {
+    const xai = await import('@langchain/xai');
+    return {
+        llm: new xai.ChatXAI({
+            model: 'grok-4-0709',
+            apiKey: process.env.XAI_API_KEY, // Default value, but you can provide the key in many different ways, even as literal
+        })
+    };
+}
+```
+
 ## Using other AI providers
 
 The configure function should simply return instance of langchain [chat model](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html).
@@ -375,7 +415,7 @@ See [Langchain documentation](https://js.langchain.com/docs/tutorials/llm_chain/
 
 ## Integration with GitHub Workflows / Actions
 
-Example GitHub workflows integration can be found in [.github/workflows/review.yml;](.github/workflows/review.yml)
+Example GitHub workflows integration can be found in [.github/workflows/review.yml](.github/workflows/review.yml)
 this example workflow performs AI review on any pushes to Pull Request, resulting in a comment left by,
 GitHub actions bot.
 

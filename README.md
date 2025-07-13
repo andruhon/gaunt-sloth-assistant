@@ -53,6 +53,7 @@ The promise of Gaunt Sloth:
 - Anthropic;
 - OpenAI (and other providers using OpenAI format, such as Inception);
 - Ollama with JS config (some of the models, see https://github.com/andruhon/gaunt-sloth-assistant/discussions/107)
+- xAI;
 
 `*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#JavaScript-Configuration).
 
@@ -135,7 +136,7 @@ npm install gaunt-sloth-assistant -g
 > Note, however, is that project guidelines are going to be used from current directory if they exist and simple install dir prompt is going to be used if nothing found.
 
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, anthropic, groq, deepseek, openai, google-genai and vertexai can be configured with `gsloth init [vendor]`.
+Currently, anthropic, groq, deepseek, openai, google-genai, vertexai and xai can be configured with `gsloth init [vendor]`.
 For OpenAI-compatible providers like Inception, use `gsloth init openai` and modify the configuration.
 
 More detailed information on configuration can be found in [CONFIGURATION.md](./docs/CONFIGURATION.md)
@@ -196,6 +197,13 @@ cd ./your-project
 gsloth init openai
 ```
 Then edit your configuration to add custom base URL and API key. See [CONFIGURATION.md](./docs/CONFIGURATION.md) for examples.
+
+### xAI
+```shell
+cd ./your-project
+gsloth init xai
+```
+Make sure you either define `XAI_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ### Other AI providers
 Any other AI provider supported by Langchain.js can be configured with js [Config](./docs/CONFIGURATION.md).

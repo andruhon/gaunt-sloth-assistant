@@ -131,6 +131,7 @@ export const availableDefaultConfigs = [
   'deepseek',
   'openai',
   'google-genai',
+  'xai',
 ] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 

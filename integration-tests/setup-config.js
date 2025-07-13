@@ -15,6 +15,7 @@ const validConfigs = [
   'openai',
   'inception',
   'google-genai',
+  'xai',
 ];
 
 console.log(`Provided config "${configName}"`);
