@@ -94,6 +94,11 @@ git --no-pager diff | gsloth review
 git --no-pager diff v0.8.3..HEAD | gth review
 ```
 
+**Review diff between head and previous release and head using a specific requirements provider (GitHub issue 38), not the one which is configured by default:
+```shell
+git --no-pager diff v0.8.10 HEAD | npx gth review --requirements-provider github -r 38
+```
+
 **Ask questions:**
 ```shell
 gsloth ask "What does this function do?" -f utils.js
