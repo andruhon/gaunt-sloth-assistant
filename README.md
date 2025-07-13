@@ -41,7 +41,7 @@ The promise of Gaunt Sloth:
   - Fetches descriptions (requirements) from Github issue or Jira (`gsloth pr 42 12`);;
 - Answers questions about provided code;
 - Writes code;
-- Connects to MCP server;
+- Connects to MCP server (including remote MCP with OAuth);
 - Saves all responses in .md file in the project directory;
 - Anything else you need, when combined with other command line tools.
 
