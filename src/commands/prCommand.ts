@@ -70,18 +70,19 @@ export function prCommand(program: Command): void {
         (config?.contentProvider as ContentProviderType | undefined) ??
         'github';
 
+      if (options.file) {
+        content.push(readMultipleFilesFromCurrentDir(options.file));
+      }
+
       // Handle requirements
       const requirements = await getRequirementsFromProvider(
         requirementsProvider,
         requirementsId,
         config
       );
+
       if (requirements) {
         content.push(requirements);
-      }
-
-      if (options.file) {
-        content.push(readMultipleFilesFromCurrentDir(options.file));
       }
 
       // Get PR diff using the provider
