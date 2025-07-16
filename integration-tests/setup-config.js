@@ -16,6 +16,7 @@ const validConfigs = [
   'inception',
   'google-genai',
   'xai',
+  'openrouter',
 ];
 
 console.log(`Provided config "${configName}"`);

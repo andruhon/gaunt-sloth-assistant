@@ -130,7 +130,16 @@ gsloth init openai
 ```
 Make sure you either define `OPENAI_API_KEY` environment variable or edit your configuration file and set up your key.
 
-### OpenAI-compatible providers (Inception, etc.)
+### Open Router
+
+```shell
+cd ./your-project
+gsloth init openrouter
+```
+
+Make sure you either define `OPEN_ROUTER_API_KEY` environment variable or edit your configuration file and set up your key.
+
+### Other OpenAI-compatible providers (Inception, etc.)
 For providers that use OpenAI-compatible APIs:
 ```shell
 cd ./your-project
@@ -250,6 +259,19 @@ You can use the `GOOGLE_API_KEY` environment variable instead of specifying `api
 }
 ```
 VertexAI typically uses gcloud authentication; no `apiKey` is needed in the config.
+
+**Example of .gsloth.config.json for Open Router**
+```json
+{
+  "llm": {
+    "type": "openrouter",
+    "model": "moonshotai/kimi-k2"
+  }
+}
+```
+
+Make sure you either define `OPEN_ROUTER_API_KEY` environment variable or edit your configuration file and set up your key.
+When changing a model, make sure you're using a model which supports tools.
 
 **Example of .gsloth.config.json for xAI**
 ```json

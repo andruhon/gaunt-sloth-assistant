@@ -7,7 +7,7 @@ const createProjectConfig = vi.fn();
 // Mock the config module
 vi.mock('#src/config.js', () => ({
   createProjectConfig,
-  availableDefaultConfigs: ['vertexai', 'anthropic', 'groq'],
+  availableDefaultConfigs: ['vertexai', 'anthropic', 'groq', 'openrouter'],
   GSLOTH_BACKSTORY: '.gsloth.backstory.md',
   USER_PROJECT_REVIEW_PREAMBLE: '.gsloth.guidelines.md',
 }));
@@ -43,6 +43,9 @@ describe('initCommand', () => {
 
     // Verify available config types are displayed
     expect(testOutput.text).toContain('<type>');
-    expect(testOutput.text).toContain('(choices: "vertexai", "anthropic", "groq")');
+    expect(testOutput.text).toContain('vertexai');
+    expect(testOutput.text).toContain('anthropic');
+    expect(testOutput.text).toContain('groq');
+    expect(testOutput.text).toContain('openrouter');
   });
 });

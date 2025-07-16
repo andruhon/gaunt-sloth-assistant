@@ -1,0 +1,6 @@
+{
+  "llm": {
+    "type": "openrouter",
+    "model": "minimax/minimax-m1"
+  }
+}

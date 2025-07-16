@@ -47,6 +47,7 @@ The promise of Gaunt Sloth:
 
 ### To make GSloth work, you need an **API key** from some AI provider, such as:
 
+- OpenRouter
 - Groq;
 - DeepSeek;
 - Google AI Studio and Google Vertex AI;
@@ -141,7 +142,7 @@ npm install gaunt-sloth-assistant -g
 > Note, however, is that project guidelines are going to be used from current directory if they exist and simple install dir prompt is going to be used if nothing found.
 
 Configuration can be created with `gsloth init [vendor]` command.
-Currently, anthropic, groq, deepseek, openai, google-genai, vertexai and xai can be configured with `gsloth init [vendor]`.
+Currently, openrouter, anthropic, groq, deepseek, openai, google-genai, vertexai and xai can be configured with `gsloth init [vendor]`.
 For OpenAI-compatible providers like Inception, use `gsloth init openai` and modify the configuration.
 
 More detailed information on configuration can be found in [CONFIGURATION.md](./docs/CONFIGURATION.md)
@@ -163,6 +164,15 @@ gsloth init vertexai
 gcloud auth login
 gcloud auth application-default login
 ```
+
+### Open Router
+
+```shell
+cd ./your-project
+gsloth init openrouter
+```
+
+Make sure you either define `OPEN_ROUTER_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ### Anthropic
 

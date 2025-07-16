@@ -74,15 +74,40 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
         if (!userInput.trim()) {
           continue; // Skip inference if no input
         }
-        if (userInput.toLowerCase() === 'exit') {
+        const lowerInput = userInput.toLowerCase();
+        if (lowerInput === 'exit' || lowerInput === '/exit') {
           shouldExit = true;
           await runner.cleanup();
           rl.close();
           return;
         }
-        await processMessage(userInput);
-        display('\n\n');
-        displayInfo(sessionConfig.exitMessage);
+
+        let shouldRetry = false;
+        let currentInput = userInput;
+
+        do {
+          try {
+            await processMessage(currentInput);
+            shouldRetry = false;
+          } catch (err) {
+            display(
+              `\n❌ Error processing message: ${err instanceof Error ? err.message : String(err)}\n`
+            );
+            const retryResponse = await rl.question(
+              'Do you want to try again with the same prompt? (y/n): '
+            );
+            shouldRetry = retryResponse.toLowerCase().trim().startsWith('y');
+
+            if (!shouldRetry) {
+              display('\nSkipping to next prompt...');
+            }
+          }
+        } while (shouldRetry && !shouldExit);
+
+        if (!shouldExit) {
+          display('\n\n');
+          displayInfo(sessionConfig.exitMessage);
+        }
       }
       rl.close();
     };

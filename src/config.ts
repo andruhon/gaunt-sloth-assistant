@@ -132,6 +132,7 @@ export const availableDefaultConfigs = [
   'openai',
   'google-genai',
   'xai',
+  'openrouter',
 ] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
