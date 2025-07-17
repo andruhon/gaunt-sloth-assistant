@@ -7,6 +7,9 @@ import { createTwoFilesPatch } from 'diff';
 import { minimatch } from 'minimatch';
 import { displayInfo } from '#src/consoleUtils.js';
 
+// TODO make it configurable
+const IGNORED_DIRS = ['node_modules', '.git', '.idea', 'dist'];
+
 // Helper function to create a tool with filesystem type
 function createGthTool<T extends z.ZodSchema>(
   fn: (args: z.infer<T>) => Promise<string>,
@@ -649,6 +652,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             name: string;
             type: 'file' | 'directory';
             children?: TreeEntry[];
+            ignored?: boolean;
           }
 
           const buildTree = async (currentPath: string): Promise<TreeEntry[]> => {
@@ -661,8 +665,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
                 name: entry.name,
                 type: entry.isDirectory() ? 'directory' : 'file',
               };
+              if (IGNORED_DIRS.indexOf(entry.name) >= 0) {
+                entryData.ignored = true;
+              }
 
-              if (entry.isDirectory()) {
+              if (entry.isDirectory() && !entryData.ignored) {
                 const subPath = path.join(currentPath, entry.name);
                 entryData.children = await buildTree(subPath);
               }

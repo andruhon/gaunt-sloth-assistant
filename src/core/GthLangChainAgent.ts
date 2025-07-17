@@ -14,16 +14,7 @@ import { displayInfo } from '#src/consoleUtils.js';
 import { IterableReadableStream } from '@langchain/core/utils/stream';
 import { RunnableConfig } from '@langchain/core/runnables';
 import type { Message } from '#src/modules/types.js';
-import {
-  debugLog,
-  debugLogLLMInput,
-  debugLogLLMResponse,
-  debugLogLLMChunk,
-  debugLogToolCalls,
-  debugLogError,
-  debugLogObject,
-  debugLogStatus,
-} from '#src/debugUtils.js';
+import { debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -37,7 +28,6 @@ export class GthLangChainAgent implements GthAgentInterface {
 
   constructor(statusUpdate: StatusUpdateCallback) {
     this.statusUpdate = (level: StatusLevel, message: string) => {
-      debugLogStatus(level, message);
       statusUpdate(level, message);
     };
   }
@@ -118,7 +108,7 @@ export class GthLangChainAgent implements GthAgentInterface {
     }
 
     debugLog('=== Starting non-streaming invoke ===');
-    debugLogLLMInput(messages);
+    debugLogObject('LLM Input Messages', messages);
     debugLogObject('Invoke RunConfig', runConfig);
 
     try {
@@ -131,7 +121,7 @@ export class GthLangChainAgent implements GthAgentInterface {
         debugLogObject('Full Response', response);
 
         const aiMessage = response.messages[response.messages.length - 1].content as string;
-        debugLogLLMResponse(aiMessage);
+        debugLogObject('LLM Response', aiMessage);
 
         const toolCalls = response.messages
           .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
@@ -139,7 +129,7 @@ export class GthLangChainAgent implements GthAgentInterface {
           .filter((tc: ToolCall) => tc.name);
 
         if (toolCalls.length > 0) {
-          debugLogToolCalls(toolCalls);
+          debugLogObject('Tool Calls', toolCalls);
           this.statusUpdate('info', `\nRequested tools: ${formatToolCalls(toolCalls)}`);
         }
 
@@ -180,7 +170,7 @@ export class GthLangChainAgent implements GthAgentInterface {
     }
 
     debugLog('=== Starting streaming invoke ===');
-    debugLogLLMInput(messages);
+    debugLogObject('LLM Input Messages', messages);
     debugLogObject('Stream RunConfig', runConfig);
 
     this.statusUpdate('info', '\nThinking...\n');
@@ -194,9 +184,9 @@ export class GthLangChainAgent implements GthAgentInterface {
           let totalChunks = 0;
 
           for await (const [chunk, _metadata] of stream) {
+            debugLogObject('Stream chunk', { chunk, _metadata });
             if (isAIMessage(chunk)) {
               const text = chunk.text as string;
-              debugLogLLMChunk(text);
               totalChunks++;
 
               statusUpdate('stream', text);
@@ -204,7 +194,6 @@ export class GthLangChainAgent implements GthAgentInterface {
 
               const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
               if (toolCalls && toolCalls.length > 0) {
-                debugLogToolCalls(toolCalls);
                 statusUpdate('info', `\nRequested tools: ${formatToolCalls(toolCalls)}`);
               }
             }

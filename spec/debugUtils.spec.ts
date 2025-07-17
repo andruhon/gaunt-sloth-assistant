@@ -96,7 +96,7 @@ describe('debugUtils', () => {
   });
 
   describe('debugLogObject', () => {
-    it('should format object as JSON', async () => {
+    it('should format object using node inspect', async () => {
       const { initDebugLogging, debugLogObject } = await import('#src/debugUtils.js');
 
       initDebugLogging(true);
@@ -107,43 +107,13 @@ describe('debugUtils', () => {
 
       expect(fsMock.appendFileSync).toHaveBeenCalledWith(
         '/resolved/gaunt-sloth.log',
-        expect.stringContaining('"foo": "bar"'),
+        expect.stringContaining('=== Test Object ==='),
         'utf8'
       );
+      // Check that inspect format is used (contains properties without quotes around keys)
       expect(fsMock.appendFileSync).toHaveBeenCalledWith(
         '/resolved/gaunt-sloth.log',
-        expect.stringContaining('"value": 123'),
-        'utf8'
-      );
-    });
-  });
-
-  describe('debugLogLLMInput', () => {
-    it('should log LLM input messages', async () => {
-      const { initDebugLogging, debugLogLLMInput } = await import('#src/debugUtils.js');
-
-      initDebugLogging(true);
-      vi.clearAllMocks();
-
-      const messages = [
-        { _getType: () => 'human', content: 'Hello', additional_kwargs: {} },
-        { _getType: () => 'ai', content: 'Hi there', additional_kwargs: { tool_calls: [] } },
-      ];
-      debugLogLLMInput(messages as any);
-
-      expect(fsMock.appendFileSync).toHaveBeenCalledWith(
-        '/resolved/gaunt-sloth.log',
-        expect.stringContaining('>>> Sending messages to LLM:'),
-        'utf8'
-      );
-      expect(fsMock.appendFileSync).toHaveBeenCalledWith(
-        '/resolved/gaunt-sloth.log',
-        expect.stringContaining('Message 1 [human]'),
-        'utf8'
-      );
-      expect(fsMock.appendFileSync).toHaveBeenCalledWith(
-        '/resolved/gaunt-sloth.log',
-        expect.stringContaining('Content: "Hello"'),
+        expect.stringContaining("foo: 'bar'"),
         'utf8'
       );
     });

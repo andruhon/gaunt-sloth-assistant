@@ -4,6 +4,7 @@ import { spawn } from 'child_process';
 import path from 'node:path';
 import { displayInfo, displayError } from '#src/consoleUtils.js';
 import { GthDevToolsConfig } from '#src/config.js';
+import { stdout } from '#src/systemUtils.js';
 
 // Helper function to create a tool with dev type
 function createGthTool<T extends z.ZodSchema>(
@@ -113,8 +114,7 @@ export default class GthDevToolkit extends BaseToolkit {
 
     return new Promise((resolve, reject) => {
       const child = spawn(command, {
-        shell: true,
-        stdio: 'inherit', // Show output in real-time
+        shell: true
       });
 
       let output = '';
@@ -122,23 +122,37 @@ export default class GthDevToolkit extends BaseToolkit {
       // Capture output if available (when stdio is not 'inherit')
       if (child.stdout) {
         child.stdout.on('data', (data) => {
-          output += data.toString();
+          const chunk = data.toString();
+          stdout.write(chunk);
+          output += chunk;
         });
       }
 
       if (child.stderr) {
         child.stderr.on('data', (data) => {
-          output += data.toString();
+          const chunk = data.toString();
+          stdout.write(chunk);
+          output += chunk;
         });
       }
 
       child.on('close', (code) => {
         if (code === 0) {
-          resolve(output || `Command '${command}' completed successfully`);
+          resolve(
+            `Executing '${command}'...\n\n` +
+              `<COMMAND_OUTPUT>\n` +
+              output +
+              `</COMMAND_OUTPUT>\n` +
+              `\n\nCommand '${command}' completed successfully`
+          );
         } else {
-          const errorMsg = `Command '${command}' exited with code ${code}`;
-          displayError(errorMsg);
-          reject(new Error(errorMsg + (output ? `\nOutput: ${output}` : '')));
+          resolve(
+            `Executing '${command}'...\n\n` +
+              `<COMMAND_OUTPUT>\n` +
+              output +
+              `</COMMAND_OUTPUT>\n` +
+              `\n\nCommand '${command}' exited with code ${code}`
+          );
         }
       });
 

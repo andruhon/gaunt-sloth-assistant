@@ -6,14 +6,7 @@ import { GthLangChainAgent, StatusUpdateCallback } from '#src/core/GthLangChainA
 import { RunnableConfig } from '@langchain/core/runnables';
 import { executeHooks } from '#src/utils.js';
 import { getNewRunnableConfig } from '#src/llmUtils.js';
-import {
-  initDebugLogging,
-  debugLog,
-  debugLogAgentInit,
-  debugLogRunnableConfig,
-  debugLogError,
-  debugLogObject,
-} from '#src/debugUtils.js';
+import { initDebugLogging, debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
 
 /**
  * Agent simplifies interaction with LLM and reduces it to calling a few methods
@@ -49,13 +42,12 @@ export class GthAgentRunner {
     // Initialize debug logging
     initDebugLogging(configIn.debugLog ?? false);
     debugLog(`Initializing GthAgentRunner with command: ${command || 'default'}`);
-    debugLogAgentInit(configIn);
 
     this.runConfig = this.config.hooks?.createRunnableConfig
       ? await this.config.hooks.createRunnableConfig(this.config)
       : getNewRunnableConfig();
 
-    debugLogRunnableConfig(this.runConfig);
+    debugLogObject('Runnable Config', this.runConfig);
 
     this.agent = this.config.hooks?.createAgent
       ? await this.config.hooks?.createAgent(this.config)
@@ -102,6 +94,7 @@ export class GthAgentRunner {
         let result = '';
         try {
           for await (const chunk of stream) {
+            debugLogObject('Stream chunk', chunk);
             result += chunk;
           }
         } catch (streamError) {
