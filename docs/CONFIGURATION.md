@@ -407,7 +407,7 @@ export async function configure() {
     const vertexAi = await import('@langchain/google-vertexai');
     return {
         llm: new vertexAi.ChatVertexAI({
-            model: "gemini-2.5-pro-preview-05-06", // Consider checking for latest recommended model versions
+            model: "gemini-2.5-pro", // Consider checking for latest recommended model versions
             // API Key from AI Studio should also work
             //// Other parameters might be relevant depending on Vertex AI API updates.
             //// The project is not in the interface, but it is in documentation and it seems to work.
@@ -540,7 +540,7 @@ To set GitHub as your default requirements provider, add this to your configurat
 
 ```json
 {
-  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro"},
   "commands": {
     "pr": {
       "requirementsProvider": "github"
@@ -606,7 +606,7 @@ JSON:
 
 ```json
 {
-  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro"},
   "requirementsProvider": "jira",
   "requirementsProviderConfig": {
     "jira": {
@@ -622,7 +622,7 @@ Optionally displayUrl can be defined to have a clickable link in the output:
 
 ```json
 {
-  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro"},
   "requirementsProvider": "jira",
   "requirementsProviderConfig": {
     "jira": {
@@ -639,7 +639,7 @@ export async function configure() {
   const vertexAi = await import('@langchain/google-vertexai');
   return {
     llm: new vertexAi.ChatVertexAI({
-      model: "gemini-2.5-pro-preview-05-06"
+      model: "gemini-2.5-pro"
     }),
     requirementsProvider: 'jira',
     requirementsProviderConfig: {
@@ -677,7 +677,7 @@ JSON:
 
 ```json
 {
-  "llm": {"type": "vertexai", "model": "gemini-2.5-pro-preview-05-06"},
+  "llm": {"type": "vertexai", "model": "gemini-2.5-pro"},
   "requirementsProvider": "jira-legacy",
   "requirementsProviderConfig": {
     "jira-legacy": {
@@ -696,7 +696,7 @@ export async function configure() {
   const vertexAi = await import('@langchain/google-vertexai');
   return {
     llm: new vertexAi.ChatVertexAI({
-      model: "gemini-2.5-pro-preview-05-06"
+      model: "gemini-2.5-pro"
     }),
     requirementsProvider: 'jira-legacy',
     requirementsProviderConfig: {
