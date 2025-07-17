@@ -48,7 +48,7 @@ export class GthLangChainAgent implements GthAgentInterface {
     this.mcpClient = await this.getMcpClient(this.config);
 
     // Get default filesystem tools (filtered based on config)
-    const defaultTools = await getDefaultTools(this.config);
+    const defaultTools = await getDefaultTools(this.config, command);
 
     // Get user config tools
     const flattenedConfigTools = this.extractAndFlattenTools(this.config.tools || []);

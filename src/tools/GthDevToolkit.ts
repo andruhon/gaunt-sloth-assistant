@@ -1,7 +1,8 @@
 import { BaseToolkit, StructuredToolInterface, tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import { execSync } from 'child_process';
-import { displayInfo } from '#src/consoleUtils.js';
+import { spawn } from 'child_process';
+import { displayInfo, displayError } from '#src/consoleUtils.js';
+import { GthDevToolsConfig } from '#src/config.js';
 
 // Helper function to create a tool with dev type
 function createGthTool<T extends z.ZodSchema>(
@@ -24,17 +25,11 @@ const RunTestsArgsSchema = z.object({});
 const RunLintArgsSchema = z.object({});
 const RunBuildArgsSchema = z.object({});
 
-interface DevToolsConfig {
-  run_tests?: string;
-  run_lint?: string;
-  run_build?: string;
-}
-
 export default class GthDevToolkit extends BaseToolkit {
   tools: StructuredToolInterface[];
-  private commands: DevToolsConfig;
+  private commands: GthDevToolsConfig;
 
-  constructor(commands: DevToolsConfig = {}) {
+  constructor(commands: GthDevToolsConfig = {}) {
     super();
     this.commands = commands;
     this.tools = this.createTools();
@@ -51,18 +46,46 @@ export default class GthDevToolkit extends BaseToolkit {
     });
   }
 
-  private executeCommand(command: string, toolName: string): string {
-    try {
-      displayInfo(`\n🔧 Executing ${toolName}: ${command}`);
-      const result = execSync(command, {
-        encoding: 'utf-8',
-        stdio: 'pipe', // Capture output instead of inheriting
+  private async executeCommand(command: string, toolName: string): Promise<string> {
+    displayInfo(`\n🔧 Executing ${toolName}: ${command}`);
+
+    return new Promise((resolve, reject) => {
+      const child = spawn(command, {
+        shell: true,
+        stdio: 'inherit', // Show output in real-time
       });
-      return result.toString();
-    } catch (error) {
-      // Simply stringify the error and return it
-      return String(error);
-    }
+
+      let output = '';
+
+      // Capture output if available (when stdio is not 'inherit')
+      if (child.stdout) {
+        child.stdout.on('data', (data) => {
+          output += data.toString();
+        });
+      }
+
+      if (child.stderr) {
+        child.stderr.on('data', (data) => {
+          output += data.toString();
+        });
+      }
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve(output || `Command '${command}' completed successfully`);
+        } else {
+          const errorMsg = `Command '${command}' exited with code ${code}`;
+          displayError(errorMsg);
+          reject(new Error(errorMsg + (output ? `\nOutput: ${output}` : '')));
+        }
+      });
+
+      child.on('error', (error) => {
+        const errorMsg = `Failed to execute command '${command}': ${error.message}`;
+        displayError(errorMsg);
+        reject(new Error(errorMsg));
+      });
+    });
   }
 
   private createTools(): StructuredToolInterface[] {
@@ -72,12 +95,13 @@ export default class GthDevToolkit extends BaseToolkit {
       tools.push(
         createGthTool(
           async (_args: z.infer<typeof RunTestsArgsSchema>): Promise<string> => {
-            return this.executeCommand(this.commands.run_tests!, 'run_tests');
+            return await this.executeCommand(this.commands.run_tests!, 'run_tests');
           },
           {
             name: 'run_tests',
             description:
-              'Execute the test suite for this project. Runs the configured test command and returns the output.',
+              'Execute the test suite for this project. Runs the configured test command and returns the output.' +
+              `\nThe configured command is [${this.commands.run_tests!}].`,
             schema: RunTestsArgsSchema,
           },
           'execute'
@@ -89,12 +113,13 @@ export default class GthDevToolkit extends BaseToolkit {
       tools.push(
         createGthTool(
           async (_args: z.infer<typeof RunLintArgsSchema>): Promise<string> => {
-            return this.executeCommand(this.commands.run_lint!, 'run_lint');
+            return await this.executeCommand(this.commands.run_lint!, 'run_lint');
           },
           {
             name: 'run_lint',
             description:
-              'Run the linter on the project code. Executes the configured lint command and returns any linting errors or warnings.',
+              'Run the linter on the project code. Executes the configured lint command and returns any linting errors or warnings.' +
+              `\nThe configured command is [${this.commands.run_lint!}].`,
             schema: RunLintArgsSchema,
           },
           'execute'
@@ -106,12 +131,13 @@ export default class GthDevToolkit extends BaseToolkit {
       tools.push(
         createGthTool(
           async (_args: z.infer<typeof RunBuildArgsSchema>): Promise<string> => {
-            return this.executeCommand(this.commands.run_build!, 'run_build');
+            return await this.executeCommand(this.commands.run_build!, 'run_build');
           },
           {
             name: 'run_build',
             description:
-              'Build the project. Executes the configured build command and returns the build output.',
+              'Build the project. Executes the configured build command and returns the build output.' +
+              `\nThe configured command is [${this.commands.run_build!}].`,
             schema: RunBuildArgsSchema,
           },
           'execute'

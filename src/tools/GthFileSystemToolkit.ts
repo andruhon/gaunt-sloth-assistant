@@ -525,7 +525,8 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'Always present diff returned by this tool back to the user.' +
             'Prefer applying small edits, eg. one function at a time, one block or one condition.' +
             'Fall back to using the "write_file" tool if you need to make large edits.' +
-            'or of the "edit_file" fails for some reason.',
+            'or of the "edit_file" fails for some reason.' +
+            'Always read file before every edit to ensure that the file is not corrupted.',
           schema: EditFileArgsSchema,
         },
         'write'

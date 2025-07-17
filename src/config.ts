@@ -108,6 +108,7 @@ interface BaseGthConfig {
     code?: {
       filesystem?: string[] | 'all' | 'read' | 'none';
       builtInTools?: string[];
+      devTools?: GthDevToolsConfig;
     };
   };
 }
@@ -116,6 +117,29 @@ export type CustomToolsConfig = Record<string, object>;
 export type BuiltInToolsConfig = {
   jira: JiraConfig;
 };
+
+/**
+ * Config for {@link GthDevToolkit}.
+ * Tools are not applied when config is not provided.
+ * Only available in `code` mode.
+ */
+export interface GthDevToolsConfig {
+  /**
+   * Optional shell command to run tests.
+   * Not applied when config is not provided.
+   */
+  run_tests?: string;
+  /**
+   * Optional shell command to run static analysis (lint).
+   * Not applied when config is not provided.
+   */
+  run_lint?: string;
+  /**
+   * Optional shell command to run the build.
+   * Not applied when config is not provided.
+   */
+  run_build?: string;
+}
 
 export interface LLMConfig extends Record<string, unknown> {
   type: string;

@@ -1,8 +1,10 @@
 import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
 import { StructuredToolInterface } from '@langchain/core/tools';
-import { GthConfig } from '#src/config.js';
+import { GthDevToolsConfig, GthConfig } from '#src/config.js';
 import { displayWarning } from '#src/consoleUtils.js';
 import { getCurrentDir } from '#src/systemUtils.js';
+import { GthCommand } from '#src/core/types.js';
+import GthDevToolkit from '#src/tools/GthDevToolkit.js';
 
 const AVAILABLE_BUILT_IN_TOOLS = {
   gth_status_update: '#src/tools/gthStatusUpdateTool.js',
@@ -12,23 +14,35 @@ const AVAILABLE_BUILT_IN_TOOLS = {
 /**
  * Get default tools based on filesystem and built-in tools configuration
  */
-export async function getDefaultTools(config: GthConfig): Promise<StructuredToolInterface[]> {
-  const filesystemTools = filterFilesystemTools(
-    new GthFileSystemToolkit([getCurrentDir()]),
-    config.filesystem
-  );
+export async function getDefaultTools(
+  config: GthConfig,
+  command: GthCommand | undefined
+): Promise<StructuredToolInterface[]> {
+  const filesystemTools = filterFilesystemTools(config.filesystem);
   const builtInTools = await getBuiltInTools(config);
+  const devTools = filterDevTools(command, config.commands?.code?.devTools);
+  return [...filesystemTools, ...devTools, ...builtInTools];
+}
 
-  return [...filesystemTools, ...builtInTools];
+function filterDevTools(
+  command: GthCommand | undefined,
+  devToolConfig: GthDevToolsConfig | undefined
+): StructuredToolInterface[] {
+  if (command != 'code' || !devToolConfig) {
+    return [];
+  }
+  const toolkit = new GthDevToolkit(devToolConfig);
+  return toolkit.getTools();
 }
 
 /**
  * Filter filesystem tools based on configuration
  */
+
 function filterFilesystemTools(
-  toolkit: GthFileSystemToolkit,
   filesystemConfig: string[] | 'all' | 'read' | 'none'
 ): StructuredToolInterface[] {
+  const toolkit = new GthFileSystemToolkit([getCurrentDir()]);
   if (filesystemConfig === 'all') {
     return toolkit.getTools();
   }
