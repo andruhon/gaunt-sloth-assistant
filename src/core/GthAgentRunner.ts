@@ -6,6 +6,7 @@ import { GthLangChainAgent, StatusUpdateCallback } from '#src/core/GthLangChainA
 import { RunnableConfig } from '@langchain/core/runnables';
 import { executeHooks } from '#src/utils.js';
 import { getNewRunnableConfig } from '#src/llmUtils.js';
+import { initDebugLogging, debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
 
 /**
  * Agent simplifies interaction with LLM and reduces it to calling a few methods
@@ -38,9 +39,15 @@ export class GthAgentRunner {
   ): Promise<void> {
     this.config = configIn;
 
+    // Initialize debug logging
+    initDebugLogging(configIn.debugLog ?? false);
+    debugLog(`Initializing GthAgentRunner with command: ${command || 'default'}`);
+
     this.runConfig = this.config.hooks?.createRunnableConfig
       ? await this.config.hooks.createRunnableConfig(this.config)
       : getNewRunnableConfig();
+
+    debugLogObject('Runnable Config', this.runConfig);
 
     this.agent = this.config.hooks?.createAgent
       ? await this.config.hooks?.createAgent(this.config)
@@ -52,13 +59,17 @@ export class GthAgentRunner {
     }
 
     // Call before init hook
+    debugLog('Executing beforeAgentInit hooks...');
     await executeHooks(this.config.hooks?.beforeAgentInit, this);
 
     // Initialize the agent
+    debugLog('Initializing agent...');
     await this.agent.init(command, configIn, checkpointSaver);
 
     // Call after init hook
+    debugLog('Executing afterAgentInit hooks...');
     await executeHooks(this.config.hooks?.afterAgentInit, this);
+    debugLog('Agent initialization complete');
   }
 
   /**
@@ -69,31 +80,42 @@ export class GthAgentRunner {
       throw new Error('AgentRunner not initialized. Call init() first.');
     }
 
+    debugLog('Processing messages...');
+    debugLogObject('Input Messages', messages);
+
     await executeHooks(this.config.hooks?.beforeProcessMessages, this, messages, this.runConfig);
 
     try {
       // Decision: Use streaming or non-streaming based on config
       if (this.config.streamOutput) {
         // Use streaming
+        debugLog('Using streaming mode');
         const stream = await this.agent.stream(messages, this.runConfig);
         let result = '';
         try {
           for await (const chunk of stream) {
+            debugLogObject('Stream chunk', chunk);
             result += chunk;
           }
         } catch (streamError) {
           // Handle streaming-specific errors
+          debugLogError('Stream processing', streamError);
           throw new Error(
             `Stream processing failed: ${streamError instanceof Error ? streamError.message : String(streamError)}`
           );
         }
+        debugLog(`Stream completed. Total response length: ${result.length}`);
         return result;
       } else {
         // Use non-streaming
-        return await this.agent.invoke(messages, this.runConfig);
+        debugLog('Using non-streaming mode');
+        const result = await this.agent.invoke(messages, this.runConfig);
+        debugLog(`Non-stream response length: ${result.length}`);
+        return result;
       }
     } catch (error) {
       // Handle agent invocation errors
+      debugLogError('Agent processing', error);
       throw new Error(
         `Agent processing failed: ${error instanceof Error ? error.message : String(error)}`
       );
@@ -106,10 +128,12 @@ export class GthAgentRunner {
   }
 
   async cleanup(): Promise<void> {
+    debugLog('Cleaning up GthAgentRunner...');
     if (this.agent && 'cleanup' in this.agent && typeof this.agent.cleanup === 'function') {
       await this.agent.cleanup();
     }
     this.agent = null;
     this.config = null;
+    debugLog('GthAgentRunner cleanup complete');
   }
 }

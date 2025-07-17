@@ -288,7 +288,7 @@ describe('GthLangChainAgent', () => {
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'info',
-        '\nUsed tools: read_file(), write_file()'
+        '\nRequested tools: read_file(), write_file()'
       );
     });
 
@@ -371,7 +371,7 @@ describe('GthLangChainAgent', () => {
       };
       await agent.invoke([new HumanMessage('test message')], runConfig);
 
-      expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nUsed tools: read_file()');
+      expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nRequested tools: read_file()');
     });
 
     it('should handle multiple tool calls in non-streaming mode', async () => {
@@ -419,7 +419,7 @@ describe('GthLangChainAgent', () => {
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'info',
-        '\nUsed tools: read_file(), write_file()'
+        '\nRequested tools: read_file(), write_file()'
       );
     });
 

@@ -69,6 +69,7 @@ export interface RawGthConfig extends BaseGthConfig {
  * This is a basic interface for Gaunt Sloth config.
  */
 interface BaseGthConfig {
+  debugLog?: boolean;
   llm: unknown;
   contentProvider?: string;
   requirementsProvider?: string;
@@ -108,6 +109,7 @@ interface BaseGthConfig {
     code?: {
       filesystem?: string[] | 'all' | 'read' | 'none';
       builtInTools?: string[];
+      devTools?: GthDevToolsConfig;
     };
   };
 }
@@ -116,6 +118,37 @@ export type CustomToolsConfig = Record<string, object>;
 export type BuiltInToolsConfig = {
   jira: JiraConfig;
 };
+
+/**
+ * Config for {@link GthDevToolkit}.
+ * Tools are not applied when config is not provided.
+ * Only available in `code` mode.
+ */
+export interface GthDevToolsConfig {
+  /**
+   * Optional shell command to run tests.
+   * Not applied when config is not provided.
+   */
+  run_tests?: string;
+  /**
+   * Optional shell command to run static analysis (lint).
+   * Not applied when config is not provided.
+   */
+  run_lint?: string;
+  /**
+   * Optional shell command to run the build.
+   * Not applied when config is not provided.
+   */
+  run_build?: string;
+  /**
+   * Optional shell command to run a single test file.
+   * Supports command interpolation with the `${testPath}` placeholder.
+   * Example: "npm test -- ${testPath}" or "jest ${testPath}"
+   * Example: "npm test" - the test will simply be appended
+   * Not applied when config is not provided.
+   */
+  run_single_test?: string;
+}
 
 export interface LLMConfig extends Record<string, unknown> {
   type: string;
@@ -161,6 +194,7 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
   streamOutput: true,
   useColour: true,
   filesystem: 'read',
+  debugLog: false,
   commands: {
     pr: {
       contentProvider: 'github', // gh pr diff NN

@@ -7,6 +7,14 @@ import { createTwoFilesPatch } from 'diff';
 import { minimatch } from 'minimatch';
 import { displayInfo } from '#src/consoleUtils.js';
 
+/**
+ * Filesystem toolkit
+ * Inspired by https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
+ */
+
+// TODO make it configurable
+const IGNORED_DIRS = ['node_modules', '.git', '.idea', 'dist'];
+
 // Helper function to create a tool with filesystem type
 function createGthTool<T extends z.ZodSchema>(
   fn: (args: z.infer<T>) => Promise<string>,
@@ -22,8 +30,6 @@ function createGthTool<T extends z.ZodSchema>(
   (toolInstance as any).gthFileSystemType = gthFileSystemType;
   return toolInstance;
 }
-
-// Inspired by https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
 
 // Schema definitions
 const ReadFileArgsSchema = z.object({
@@ -525,7 +531,8 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             'Always present diff returned by this tool back to the user.' +
             'Prefer applying small edits, eg. one function at a time, one block or one condition.' +
             'Fall back to using the "write_file" tool if you need to make large edits.' +
-            'or of the "edit_file" fails for some reason.',
+            'or of the "edit_file" fails for some reason.' +
+            'Always read file before every edit to ensure that the file is not corrupted.',
           schema: EditFileArgsSchema,
         },
         'write'
@@ -648,6 +655,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             name: string;
             type: 'file' | 'directory';
             children?: TreeEntry[];
+            ignored?: boolean;
           }
 
           const buildTree = async (currentPath: string): Promise<TreeEntry[]> => {
@@ -660,8 +668,11 @@ export default class GthFileSystemToolkit extends BaseToolkit {
                 name: entry.name,
                 type: entry.isDirectory() ? 'directory' : 'file',
               };
+              if (IGNORED_DIRS.indexOf(entry.name) >= 0) {
+                entryData.ignored = true;
+              }
 
-              if (entry.isDirectory()) {
+              if (entry.isDirectory() && !entryData.ignored) {
                 const subPath = path.join(currentPath, entry.name);
                 entryData.children = await buildTree(subPath);
               }
