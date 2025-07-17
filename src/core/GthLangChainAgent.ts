@@ -96,7 +96,7 @@ export class GthLangChainAgent implements GthAgentInterface {
           .flatMap((msg: AIMessage) => msg.tool_calls ?? [])
           .filter((tc: ToolCall) => tc.name);
         if (toolCalls.length > 0) {
-          this.statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
+          this.statusUpdate('info', `\nRequested tools: ${formatToolCalls(toolCalls)}`);
         }
         this.statusUpdate('display', aiMessage);
         return aiMessage;
@@ -146,7 +146,7 @@ export class GthLangChainAgent implements GthAgentInterface {
               controller.enqueue(text);
               const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
               if (toolCalls && toolCalls.length > 0) {
-                statusUpdate('info', `\nUsed tools: ${formatToolCalls(toolCalls)}`);
+                statusUpdate('info', `\nRequested tools: ${formatToolCalls(toolCalls)}`);
               }
             }
           }
