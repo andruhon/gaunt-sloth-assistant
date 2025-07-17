@@ -114,7 +114,7 @@ export default class GthDevToolkit extends BaseToolkit {
 
     return new Promise((resolve, reject) => {
       const child = spawn(command, {
-        shell: true
+        shell: true,
       });
 
       let output = '';
