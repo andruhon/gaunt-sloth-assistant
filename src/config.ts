@@ -69,6 +69,7 @@ export interface RawGthConfig extends BaseGthConfig {
  * This is a basic interface for Gaunt Sloth config.
  */
 interface BaseGthConfig {
+  debugLog?: boolean;
   llm: unknown;
   contentProvider?: string;
   requirementsProvider?: string;
@@ -193,6 +194,7 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
   streamOutput: true,
   useColour: true,
   filesystem: 'read',
+  debugLog: false,
   commands: {
     pr: {
       contentProvider: 'github', // gh pr diff NN

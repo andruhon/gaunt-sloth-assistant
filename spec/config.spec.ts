@@ -119,6 +119,7 @@ describe('config', async () => {
         streamOutput: true,
         useColour: true,
         filesystem: 'read',
+        debugLog: false,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -174,6 +175,7 @@ describe('config', async () => {
         streamOutput: true,
         useColour: true,
         filesystem: 'read',
+        debugLog: false,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -229,6 +231,7 @@ describe('config', async () => {
         streamOutput: true,
         useColour: true,
         filesystem: 'read',
+        debugLog: false,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -391,6 +394,7 @@ describe('config', async () => {
         streamOutput: true,
         useColour: true,
         filesystem: 'read',
+        debugLog: false,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -521,6 +525,78 @@ describe('config', async () => {
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
 
+    it('Should handle mcpServers and customToolsConfig', async () => {
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+          model: 'test-model',
+          configuration: {},
+        },
+        mcpServers: {
+          filesystem: {
+            command: 'echo',
+            args: ['hello'],
+          },
+        },
+        customToolsConfig: {
+          jira: {
+            baseUrl: 'https://example.atlassian.net',
+            username: 'user@example.com',
+          },
+        },
+        builtInTools: ['jira', 'github'],
+      } as RawGthConfig;
+
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+      }));
+
+      const { tryJsonConfig } = await import('#src/config.js');
+      const config = await tryJsonConfig(jsonConfig);
+
+      expect(config.mcpServers).toBeDefined();
+      expect(config.mcpServers!.filesystem).toEqual({
+        command: 'echo',
+        args: ['hello'],
+      });
+      expect(config.customToolsConfig).toBeDefined();
+      expect(config.builtInTools).toEqual(['jira', 'github']);
+    });
+
+    it('Should handle configuration with devTools', async () => {
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+          model: 'test-model',
+          configuration: {},
+        },
+        commands: {
+          code: {
+            filesystem: 'all',
+            builtInTools: ['jira', 'dev-tools'],
+            devTools: {
+              run_tests: 'npm test',
+              run_lint: 'npm run lint',
+              run_build: 'npm run build',
+            },
+          },
+        },
+      } as RawGthConfig;
+
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+      }));
+
+      const { tryJsonConfig } = await import('#src/config.js');
+      const config = await tryJsonConfig(jsonConfig);
+
+      expect(config.commands?.code?.devTools).toEqual({
+        run_tests: 'npm test',
+        run_lint: 'npm run lint',
+        run_build: 'npm run build',
+      });
+    });
+
     it('Should handle missing LLM type property', async () => {
       const jsonConfig = {
         llm: {
@@ -586,6 +662,7 @@ describe('config', async () => {
         streamOutput: true,
         useColour: true,
         filesystem: 'read',
+        debugLog: false,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -628,6 +705,7 @@ describe('config', async () => {
         streamOutput: true,
         useColour: true,
         filesystem: 'read',
+        debugLog: false,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -670,6 +748,7 @@ describe('config', async () => {
         streamOutput: true,
         useColour: true,
         filesystem: 'read',
+        debugLog: false,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
