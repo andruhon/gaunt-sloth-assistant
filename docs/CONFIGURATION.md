@@ -709,3 +709,41 @@ export async function configure() {
   }
 }
 ```
+
+## Development Tools Configuration
+
+The `code` command can be configured with development tools via `commands.code.devTools`. These tools allow the AI to run build, tests, lint, and single tests using the specified commands.
+
+The tools are defined in `src/tools/GthDevToolkit.ts` and include:
+
+- **run_tests**: Executes the full test suite.
+- **run_single_test**: Runs a single test file. The test path must be relative.
+- **run_lint**: Runs the linter, potentially with auto-fix.
+- **run_build**: Builds the project.
+
+These tools execute the configured shell commands and capture their output.
+
+Example configuration including dev tools (from .gsloth.config.json):
+
+```json
+{
+  "llm": {
+    "type": "xai",
+    "model": "grok-4-0709"
+  },
+  "commands": {
+    "code": {
+      "filesystem": "all",
+      "devTools": {
+        "run_build": "npm build",
+        "run_tests": "npm test",
+        "run_lint": "npm run lint-n-fix",
+        "run_single_test": "npm test"
+      }
+    }
+  }
+}
+```
+
+Note: For `run_single_test`, the command can include a placeholder like `${testPath}` for the test file path. p
+Security validations are in place to prevent path traversal or injection.
