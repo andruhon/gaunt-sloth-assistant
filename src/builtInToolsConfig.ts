@@ -9,6 +9,7 @@ import GthDevToolkit from '#src/tools/GthDevToolkit.js';
 const AVAILABLE_BUILT_IN_TOOLS = {
   gth_status_update: '#src/tools/gthStatusUpdateTool.js',
   gth_jira_log_work: '#src/tools/gthJiraLogWorkTool.js',
+  gth_sequential_thinking: '#src/tools/gthSequentialThinkingTool.js',
 };
 
 /**
@@ -20,19 +21,20 @@ export async function getDefaultTools(
 ): Promise<StructuredToolInterface[]> {
   const filesystemTools = filterFilesystemTools(config.filesystem);
   const builtInTools = await getBuiltInTools(config);
-  const devTools = filterDevTools(command, config.commands?.code?.devTools);
+  const devTools = await filterDevTools(command, config.commands?.code?.devTools);
   return [...filesystemTools, ...devTools, ...builtInTools];
 }
 
-function filterDevTools(
+async function filterDevTools(
   command: GthCommand | undefined,
   devToolConfig: GthDevToolsConfig | undefined
-): StructuredToolInterface[] {
+): Promise<StructuredToolInterface[]> {
   if (command != 'code' || !devToolConfig) {
     return [];
   }
+  const thinking = await import(AVAILABLE_BUILT_IN_TOOLS.gth_sequential_thinking);
   const toolkit = new GthDevToolkit(devToolConfig);
-  return toolkit.getTools();
+  return [thinking.get(), ...toolkit.getTools()];
 }
 
 /**

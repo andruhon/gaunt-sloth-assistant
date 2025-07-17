@@ -7,6 +7,11 @@ import { createTwoFilesPatch } from 'diff';
 import { minimatch } from 'minimatch';
 import { displayInfo } from '#src/consoleUtils.js';
 
+/**
+ * Filesystem toolkit
+ * Inspired by https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
+ */
+
 // TODO make it configurable
 const IGNORED_DIRS = ['node_modules', '.git', '.idea', 'dist'];
 
@@ -25,8 +30,6 @@ function createGthTool<T extends z.ZodSchema>(
   (toolInstance as any).gthFileSystemType = gthFileSystemType;
   return toolInstance;
 }
-
-// Inspired by https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
 
 // Schema definitions
 const ReadFileArgsSchema = z.object({
