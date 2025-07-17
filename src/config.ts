@@ -139,6 +139,14 @@ export interface GthDevToolsConfig {
    * Not applied when config is not provided.
    */
   run_build?: string;
+  /**
+   * Optional shell command to run a single test file.
+   * Supports command interpolation with the `${testPath}` placeholder.
+   * Example: "npm test -- ${testPath}" or "jest ${testPath}"
+   * Example: "npm test" - the test will simply be appended
+   * Not applied when config is not provided.
+   */
+  run_single_test?: string;
 }
 
 export interface LLMConfig extends Record<string, unknown> {

@@ -1,6 +1,7 @@
 import { BaseToolkit, StructuredToolInterface, tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { spawn } from 'child_process';
+import path from 'node:path';
 import { displayInfo, displayError } from '#src/consoleUtils.js';
 import { GthDevToolsConfig } from '#src/config.js';
 
@@ -24,7 +25,11 @@ function createGthTool<T extends z.ZodSchema>(
 const RunTestsArgsSchema = z.object({});
 const RunLintArgsSchema = z.object({});
 const RunBuildArgsSchema = z.object({});
+const RunSingleTestArgsSchema = z.object({
+  testPath: z.string().describe('Relative path to the test file to run'),
+});
 
+const TEST_PATH_PLACEHOLDER = '${testPath}';
 export default class GthDevToolkit extends BaseToolkit {
   tools: StructuredToolInterface[];
   private commands: GthDevToolsConfig;
@@ -44,6 +49,63 @@ export default class GthDevToolkit extends BaseToolkit {
       const toolType = (tool as any).gthDevType;
       return allowedOperations.includes(toolType);
     });
+  }
+
+  /**
+   * Validate test path to prevent security issues
+   */
+  private validateTestPath(testPath: string): string {
+    // Check for absolute paths
+    if (path.isAbsolute(testPath)) {
+      throw new Error('Absolute paths are not allowed for test files');
+    }
+
+    // Check for directory traversal attempts
+    if (testPath.includes('..') || testPath.includes('\\..\\') || testPath.includes('/../')) {
+      throw new Error('Directory traversal attempts are not allowed');
+    }
+
+    // Check for pipe attempts and other shell injection
+    if (
+      testPath.includes('|') ||
+      testPath.includes('&') ||
+      testPath.includes(';') ||
+      testPath.includes('`')
+    ) {
+      throw new Error('Shell injection attempts are not allowed');
+    }
+
+    // Check for null bytes
+    if (testPath.includes('\0')) {
+      throw new Error('Null bytes are not allowed in test path');
+    }
+
+    // Normalize the path to remove any redundant separators
+    const normalizedPath = path.normalize(testPath);
+
+    // Double-check after normalization
+    if (normalizedPath.includes('..')) {
+      throw new Error('Directory traversal attempts are not allowed');
+    }
+
+    return normalizedPath;
+  }
+
+  /**
+   * Build the command for running a single test file
+   */
+  private buildSingleTestCommand(testPath: string): string {
+    if (this.commands.run_single_test) {
+      if (this.commands.run_single_test.includes(TEST_PATH_PLACEHOLDER)) {
+        // Interpolate if placeholder is available
+        return this.commands.run_single_test.replace(TEST_PATH_PLACEHOLDER, testPath);
+      } else {
+        // Concatenate if no placeholder
+        return `${this.commands.run_single_test} ${testPath}`;
+      }
+    } else {
+      throw new Error('No test command configured');
+    }
   }
 
   private async executeCommand(command: string, toolName: string): Promise<string> {
@@ -103,6 +165,27 @@ export default class GthDevToolkit extends BaseToolkit {
               'Execute the test suite for this project. Runs the configured test command and returns the output.' +
               `\nThe configured command is [${this.commands.run_tests!}].`,
             schema: RunTestsArgsSchema,
+          },
+          'execute'
+        )
+      );
+    }
+
+    if (this.commands.run_single_test) {
+      tools.push(
+        createGthTool(
+          async (args: z.infer<typeof RunSingleTestArgsSchema>): Promise<string> => {
+            const validatedPath = this.validateTestPath(args.testPath);
+            const command = this.buildSingleTestCommand(validatedPath);
+            return await this.executeCommand(command, 'run_single_test');
+          },
+          {
+            name: 'run_single_test',
+            description:
+              'Execute a single test file. Runs the configured test command with the specified test file path. ' +
+              'The test path must be relative and cannot contain directory traversal attempts or shell injection. ' +
+              `\nThe base command is [${this.commands.run_single_test}].`,
+            schema: RunSingleTestArgsSchema,
           },
           'execute'
         )
