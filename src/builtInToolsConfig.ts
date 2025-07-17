@@ -16,7 +16,7 @@ const AVAILABLE_BUILT_IN_TOOLS = {
  */
 export async function getDefaultTools(
   config: GthConfig,
-  command: GthCommand | undefined
+  command?: GthCommand
 ): Promise<StructuredToolInterface[]> {
   const filesystemTools = filterFilesystemTools(config.filesystem);
   const builtInTools = await getBuiltInTools(config);
