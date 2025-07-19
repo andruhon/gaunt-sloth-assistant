@@ -7,10 +7,6 @@ import { StatusLevel } from '#src/core/types.js';
 import { randomUUID } from 'crypto';
 import { RunnableConfig } from '@langchain/core/runnables';
 
-export const llmGlobalSettings = {
-  verbose: false,
-};
-
 /**
  * @deprecated prefer using src/core/GthAgentRunner.ts directly
  */
@@ -43,7 +39,6 @@ export async function invoke(
   };
 
   const runner = new GthAgentRunner(statusUpdate);
-  runner.setVerbose(llmGlobalSettings.verbose);
 
   try {
     await runner.init(command, config);
@@ -51,11 +46,6 @@ export async function invoke(
   } finally {
     await runner.cleanup();
   }
-}
-
-// TODO make sure that it still works after refactoring
-export function setVerbose(debug: boolean) {
-  llmGlobalSettings.verbose = debug;
 }
 
 /**

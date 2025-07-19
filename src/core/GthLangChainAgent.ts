@@ -20,7 +20,6 @@ export type StatusUpdateCallback = (level: StatusLevel, message: string) => void
 
 export class GthLangChainAgent implements GthAgentInterface {
   private statusUpdate: StatusUpdateCallback;
-  private verbose: boolean = false;
   private mcpClient: MultiServerMCPClient | null = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private agent: CompiledStateGraph<any, any> | null = null;
@@ -32,26 +31,12 @@ export class GthLangChainAgent implements GthAgentInterface {
     };
   }
 
-  /**
-   * Set LangChain/LangGraph to verbose mode,
-   * causing LangChain/LangGraph to log many details into console
-   */
-  setVerbose(verbose: boolean): void {
-    this.verbose = verbose;
-  }
-
   async init(
     command: GthCommand | undefined,
     configIn: GthConfig,
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void> {
     debugLog(`GthLangChainAgent.init called with command: ${command || 'default'}`);
-
-    // Set verbose mode on LLM
-    if (this.verbose) {
-      configIn.llm.verbose = true;
-      debugLog('Verbose mode enabled on LLM');
-    }
 
     // Merge command-specific filesystem config if provided
     this.config = this.getEffectiveConfig(configIn, command);

@@ -93,47 +93,12 @@ describe('GthLangChainAgent', () => {
     });
   });
 
-  describe('setVerbose', () => {
-    it('should set verbose mode', () => {
-      const agent = new GthLangChainAgent(statusUpdateCallback);
-      agent.setVerbose(true);
-      expect(agent['verbose']).toBe(true);
-    });
-
-    it('should unset verbose mode', () => {
-      const agent = new GthLangChainAgent(statusUpdateCallback);
-      agent.setVerbose(true);
-      agent.setVerbose(false);
-      expect(agent['verbose']).toBe(false);
-    });
-  });
-
   describe('init', () => {
     it('should initialize with basic configuration', async () => {
       const agent = new GthLangChainAgent(statusUpdateCallback);
       mcpClientInstanceMock.getTools.mockResolvedValue([]);
 
       await agent.init(undefined, mockConfig);
-    });
-
-    it('should set verbose on LLM when verbose mode is enabled', async () => {
-      const agent = new GthLangChainAgent(statusUpdateCallback);
-      agent.setVerbose(true);
-      mcpClientInstanceMock.getTools.mockResolvedValue([]);
-
-      await agent.init(undefined, mockConfig);
-
-      expect(mockConfig.llm.verbose).toBe(true);
-    });
-
-    it('should keep verbose=false on LLM when verbose mode is disabled', async () => {
-      const agent = new GthLangChainAgent(statusUpdateCallback);
-      agent.setVerbose(false);
-      mcpClientInstanceMock.getTools.mockResolvedValue([]);
-
-      await agent.init(undefined, mockConfig);
-
-      expect(mockConfig.llm.verbose).toBe(false);
     });
 
     it('should use command-specific filesystem config', async () => {

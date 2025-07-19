@@ -56,21 +56,6 @@ describe('GthAgentRunner', () => {
     ({ GthAgentRunner } = await import('#src/core/GthAgentRunner.js'));
   });
 
-  describe('setVerbose', () => {
-    it('should set verbose mode', () => {
-      const runner = new GthAgentRunner(statusUpdateCallback);
-      runner.setVerbose(true);
-      expect(runner['verbose']).toBe(true);
-    });
-
-    it('should unset verbose mode', () => {
-      const runner = new GthAgentRunner(statusUpdateCallback);
-      runner.setVerbose(true);
-      runner.setVerbose(false);
-      expect(runner['verbose']).toBe(false);
-    });
-  });
-
   describe('init', () => {
     it('should initialize with basic configuration', async () => {
       const runner = new GthAgentRunner(statusUpdateCallback);
@@ -78,24 +63,6 @@ describe('GthAgentRunner', () => {
       await runner.init(undefined, mockConfig);
 
       expect(mockAgent.init).toHaveBeenCalledWith(undefined, mockConfig, undefined);
-    });
-
-    it('should set verbose on agent when verbose mode is enabled', async () => {
-      const runner = new GthAgentRunner(statusUpdateCallback);
-      runner.setVerbose(true);
-
-      await runner.init(undefined, mockConfig);
-
-      expect(mockAgent.setVerbose).toHaveBeenCalledWith(true);
-    });
-
-    it('should not set verbose on agent when verbose mode is disabled (false is default)', async () => {
-      const runner = new GthAgentRunner(statusUpdateCallback);
-      runner.setVerbose(false);
-
-      await runner.init(undefined, mockConfig);
-
-      expect(mockAgent.setVerbose).not.toHaveBeenCalled();
     });
 
     it('should initialize with checkpoint saver', async () => {

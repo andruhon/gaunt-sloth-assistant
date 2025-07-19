@@ -18,7 +18,6 @@ import { getGslothFilePath } from '#src/filePathUtils.js';
 import { appendToFile, generateStandardFileName } from '#src/utils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
-import { llmGlobalSettings } from '#src/llmUtils.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -33,7 +32,6 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
   const checkpointSaver = new MemorySaver();
   // Initialize Runner
   const runner = new GthAgentRunner(defaultStatusCallbacks);
-  runner.setVerbose(llmGlobalSettings.verbose);
 
   try {
     await runner.init(sessionConfig.mode, config, checkpointSaver);

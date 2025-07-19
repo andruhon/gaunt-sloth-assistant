@@ -14,21 +14,12 @@ import { initDebugLogging, debugLog, debugLogError, debugLogObject } from '#src/
  */
 export class GthAgentRunner {
   private statusUpdate: StatusUpdateCallback;
-  private verbose: boolean = false;
   private agent: GthAgentInterface | null = null;
   private config: GthConfig | null = null;
   private runConfig: RunnableConfig | null = null;
 
   constructor(statusUpdate: StatusUpdateCallback) {
     this.statusUpdate = statusUpdate;
-  }
-
-  /**
-   * Set LangChain/LangGraph to verbose mode,
-   * causing LangChain/LangGraph to log many details into console
-   */
-  setVerbose(verbose: boolean): void {
-    this.verbose = verbose;
   }
 
   /**
@@ -56,11 +47,6 @@ export class GthAgentRunner {
     this.agent = this.config.hooks?.createAgent
       ? await this.config.hooks?.createAgent(this.config)
       : new GthLangChainAgent(this.statusUpdate);
-
-    // Set verbose mode before initialization so it can be used during init
-    if (this.verbose) {
-      this.agent.setVerbose(this.verbose);
-    }
 
     // Call before init hook
     debugLog('Executing beforeAgentInit hooks...');

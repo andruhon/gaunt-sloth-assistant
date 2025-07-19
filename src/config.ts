@@ -169,20 +169,33 @@ export const availableDefaultConfigs = [
 ] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
-const configGlobalSettings = {
+/**
+ * Use this to store to keep config overrides global command parameters
+ */
+const commandLineConfigOverrides = {
   customConfigPath: undefined as undefined | string,
+  verbose: undefined as undefined | boolean,
 };
 
 export function setCustomConfigPath(path: string): void {
-  configGlobalSettings.customConfigPath = resolve(path);
+  commandLineConfigOverrides.customConfigPath = resolve(path);
+}
+
+/**
+ * Set LangChain/LangGraph to verbose mode,
+ * causing LangChain/LangGraph to log many details to the console.
+ * debugLog from config.ts may be a less intrusive option.
+ */
+export function setVerbose(verbose: boolean) {
+  commandLineConfigOverrides.verbose = verbose;
 }
 
 export function getCustomConfigPath(): string | undefined {
-  return configGlobalSettings.customConfigPath;
+  return commandLineConfigOverrides.customConfigPath;
 }
 
 export function clearCustomConfigPath(): void {
-  configGlobalSettings.customConfigPath = undefined;
+  commandLineConfigOverrides.customConfigPath = undefined;
 }
 
 export const DEFAULT_CONFIG: Partial<GthConfig> = {
@@ -196,7 +209,7 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
   filesystem: 'read',
   /**
    * Log messages and events to gaunt-sloth.log,
-   * use gth --verbose as more intrusive option, setting verbose to LangChain / LangGraph
+   * use llm.verbose or `gth --verbose` as more intrusive option, setting verbose to LangChain / LangGraph
    */
   debugLog: false,
   commands: {
@@ -215,14 +228,18 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
  * @returns The loaded GthConfig
  */
 export async function initConfig(): Promise<GthConfig> {
-  if (configGlobalSettings.customConfigPath && !existsSync(configGlobalSettings.customConfigPath)) {
+  if (
+    commandLineConfigOverrides.customConfigPath &&
+    !existsSync(commandLineConfigOverrides.customConfigPath)
+  ) {
     throw new Error(
-      `Provided manual config "${configGlobalSettings.customConfigPath}" does not exist`
+      `Provided manual config "${commandLineConfigOverrides.customConfigPath}" does not exist`
     );
   }
 
   const jsonConfigPath =
-    configGlobalSettings.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_JSON);
+    commandLineConfigOverrides.customConfigPath ??
+    getGslothConfigReadPath(USER_PROJECT_CONFIG_JSON);
 
   // Try loading the JSON config file first
   if (jsonConfigPath.endsWith('.json') && existsSync(jsonConfigPath)) {
@@ -257,7 +274,7 @@ export async function initConfig(): Promise<GthConfig> {
 // Helper function to try loading JS config
 async function tryJsConfig(): Promise<GthConfig> {
   const jsConfigPath =
-    configGlobalSettings.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
+    commandLineConfigOverrides.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
   if (jsConfigPath.endsWith('.js') && existsSync(jsConfigPath)) {
     try {
       const i = await importExternalFile(jsConfigPath);
@@ -278,7 +295,7 @@ async function tryJsConfig(): Promise<GthConfig> {
 // Helper function to try loading MJS config
 async function tryMjsConfig(): Promise<GthConfig> {
   const mjsConfigPath =
-    configGlobalSettings.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
+    commandLineConfigOverrides.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
   if (mjsConfigPath.endsWith('.mjs') && existsSync(mjsConfigPath)) {
     try {
       const i = await importExternalFile(mjsConfigPath);
@@ -417,6 +434,10 @@ function mergeConfig(partialConfig: Partial<GthConfig>): GthConfig {
     ...config,
     commands: { ...DEFAULT_CONFIG.commands, ...(config?.commands ?? {}) },
   };
+
+  if (commandLineConfigOverrides.verbose !== undefined) {
+    mergedConfig.llm.verbose = commandLineConfigOverrides.verbose;
+  }
 
   // Set the useColour value in systemUtils
   setUseColour(mergedConfig.useColour);

@@ -7,8 +7,7 @@ import { chatCommand } from '#src/commands/chatCommand.js';
 import { codeCommand } from '#src/commands/codeCommand.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
-import { setVerbose } from '#src/llmUtils.js';
-import { setCustomConfigPath } from '#src/config.js';
+import { setCustomConfigPath, setVerbose } from '#src/config.js';
 
 const program = new Command();
 

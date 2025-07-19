@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GthConfig } from '#src/config.js';
 
 const agentRunnerMock = {
-  setVerbose: vi.fn(),
   init: vi.fn(),
   processMessages: vi.fn(),
   cleanup: vi.fn(),
@@ -50,7 +49,6 @@ describe('llmUtils', () => {
     const result = await invoke('review', messages, mockConfig);
 
     expect(AgentRunnerConstructor).toHaveBeenCalledWith(expect.any(Function));
-    expect(agentRunnerMock.setVerbose).toHaveBeenCalledWith(false);
     expect(agentRunnerMock.init).toHaveBeenCalledWith('review', mockConfig);
     expect(agentRunnerMock.processMessages).toHaveBeenCalledWith(messages);
     expect(agentRunnerMock.cleanup).toHaveBeenCalled();
@@ -90,24 +88,5 @@ describe('llmUtils', () => {
 
     await expect(invoke('ask', messages, mockConfig)).rejects.toThrow('Test error');
     expect(agentRunnerMock.cleanup).toHaveBeenCalled();
-  });
-
-  it('should set verbose mode correctly', async () => {
-    agentRunnerMock.processMessages.mockResolvedValue('Response');
-
-    const { setVerbose, invoke } = await import('#src/llmUtils.js');
-
-    setVerbose(true);
-
-    const mockConfig: GthConfig = {
-      streamOutput: false,
-      llm: {} as any,
-      filesystem: 'none',
-    } as GthConfig;
-    const messages = [] as any;
-
-    await invoke('code', messages, mockConfig);
-
-    expect(agentRunnerMock.setVerbose).toHaveBeenCalledWith(true);
   });
 });
