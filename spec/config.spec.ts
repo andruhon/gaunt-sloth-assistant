@@ -59,10 +59,6 @@ describe('config', async () => {
     // Reset and set up systemUtils mocks
     systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
     systemUtilsMock.getInstallDir.mockReturnValue('/mock/install/dir');
-
-    // Clear the custom config path
-    const { clearCustomConfigPath } = await import('#src/config.js');
-    clearCustomConfigPath();
   });
 
   const customPathPrefix =
@@ -100,7 +96,7 @@ describe('config', async () => {
       const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      const config = await initConfig({});
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -156,7 +152,7 @@ describe('config', async () => {
       const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      const config = await initConfig({});
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -212,7 +208,7 @@ describe('config', async () => {
       const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      const config = await initConfig({});
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -249,12 +245,11 @@ describe('config', async () => {
       });
 
       // Ensure custom config path is cleared
-      const { clearCustomConfigPath, initConfig } = await import('#src/config.js');
-      clearCustomConfigPath();
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
       try {
-        await initConfig();
+        await initConfig({});
       } catch {
         // the mock exit does not exit, so we reach to unexpected error
       }
@@ -302,7 +297,7 @@ describe('config', async () => {
       const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      const config = await initConfig({});
 
       // Verify that useColour is true by default
       expect(config.useColour).toBe(true);
@@ -343,7 +338,7 @@ describe('config', async () => {
       const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      const config = await initConfig({});
 
       // Verify that useColour is true when explicitly set
       expect(config.useColour).toBe(true);
@@ -375,7 +370,7 @@ describe('config', async () => {
       const { tryJsonConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await tryJsonConfig(jsonConfig);
+      const config = await tryJsonConfig(jsonConfig, {});
 
       // It is easier to debug if messages checked first
       expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -418,7 +413,7 @@ describe('config', async () => {
       const { tryJsonConfig } = await import('#src/config.js');
 
       try {
-        await tryJsonConfig(jsonConfig);
+        await tryJsonConfig(jsonConfig, {});
         // Should not reach here due to error
         expect(true).toBe(false);
       } catch {
@@ -454,7 +449,7 @@ describe('config', async () => {
       const { tryJsonConfig } = await import('#src/config.js');
 
       try {
-        await tryJsonConfig(jsonConfig);
+        await tryJsonConfig(jsonConfig, {});
         // Should not reach here due to error
         expect(true).toBe(false);
       } catch {
@@ -491,7 +486,7 @@ describe('config', async () => {
       const { tryJsonConfig } = await import('#src/config.js');
 
       try {
-        await tryJsonConfig(jsonConfig);
+        await tryJsonConfig(jsonConfig, {});
         // Should not reach here due to error
         expect(true).toBe(false);
       } catch {
@@ -512,7 +507,7 @@ describe('config', async () => {
       const { tryJsonConfig } = await import('#src/config.js');
 
       try {
-        await tryJsonConfig(jsonConfig);
+        await tryJsonConfig(jsonConfig, {});
         // Should not reach here due to error
         expect(true).toBe(false);
       } catch {
@@ -552,7 +547,7 @@ describe('config', async () => {
       }));
 
       const { tryJsonConfig } = await import('#src/config.js');
-      const config = await tryJsonConfig(jsonConfig);
+      const config = await tryJsonConfig(jsonConfig, {});
 
       expect(config.mcpServers).toBeDefined();
       expect(config.mcpServers!.filesystem).toEqual({
@@ -588,7 +583,7 @@ describe('config', async () => {
       }));
 
       const { tryJsonConfig } = await import('#src/config.js');
-      const config = await tryJsonConfig(jsonConfig);
+      const config = await tryJsonConfig(jsonConfig, {});
 
       expect(config.commands?.code?.devTools).toEqual({
         run_tests: 'npm test',
@@ -608,7 +603,7 @@ describe('config', async () => {
       const { tryJsonConfig } = await import('#src/config.js');
 
       try {
-        await tryJsonConfig(jsonConfig);
+        await tryJsonConfig(jsonConfig, {});
         // Should not reach here due to error
         expect(true).toBe(false);
       } catch {
@@ -624,7 +619,7 @@ describe('config', async () => {
 
   describe('custom config path', () => {
     it('Should use custom config path when specified', async () => {
-      const customPath = customPathPrefix + '.json';
+      const customConfigPath = customPathPrefix + '.json';
       const jsonConfig = {
         llm: {
           type: 'vertexai',
@@ -633,10 +628,10 @@ describe('config', async () => {
 
       // Set up fs mocks for custom path
       fsMock.existsSync.mockImplementation((path: string) => {
-        return path === customPath;
+        return path === customConfigPath;
       });
       fsMock.readFileSync.mockImplementation((path: string) => {
-        if (path === customPath) return JSON.stringify(jsonConfig);
+        if (path === customConfigPath) return JSON.stringify(jsonConfig);
         return '';
       });
 
@@ -645,13 +640,10 @@ describe('config', async () => {
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
       }));
 
-      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
-
-      // Set custom config path
-      setCustomConfigPath(customPath);
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      const config = await initConfig({ customConfigPath });
 
       expect(config).toEqual({
         llm: { type: 'vertexai' },
@@ -671,7 +663,7 @@ describe('config', async () => {
     });
 
     it('Should handle custom JS config path', async () => {
-      const customPath = customPathPrefix + '.js';
+      const customConfigPath = customPathPrefix + '.js';
       const mockConfig = { llm: { type: 'anthropic' } };
       const mockConfigModule = {
         configure: vi.fn().mockResolvedValue(mockConfig),
@@ -679,22 +671,19 @@ describe('config', async () => {
 
       // Set up fs mocks for custom path
       fsMock.existsSync.mockImplementation((path: string) => {
-        return path === customPath;
+        return path === customConfigPath;
       });
 
       // Mock the import function
       utilsMock.importExternalFile.mockImplementation((path: string) => {
-        if (path === customPath) return Promise.resolve(mockConfigModule);
+        if (path === customConfigPath) return Promise.resolve(mockConfigModule);
         return Promise.reject(new Error('Not found'));
       });
 
-      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
-
-      // Set custom config path
-      setCustomConfigPath(customPath);
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      const config = await initConfig({ customConfigPath });
 
       expect(config).toEqual({
         llm: { type: 'anthropic' },
@@ -714,7 +703,7 @@ describe('config', async () => {
     });
 
     it('Should handle custom MJS config path', async () => {
-      const customPath = customPathPrefix + '.mjs';
+      const customConfigPath = customPathPrefix + '.mjs';
       const mockConfig = { llm: { type: 'groq' } };
       const mockConfigModule = {
         configure: vi.fn().mockResolvedValue(mockConfig),
@@ -722,22 +711,19 @@ describe('config', async () => {
 
       // Set up fs mocks for custom path
       fsMock.existsSync.mockImplementation((path: string) => {
-        return path === customPath;
+        return path === customConfigPath;
       });
 
       // Mock the import function
       utilsMock.importExternalFile.mockImplementation((path: string) => {
-        if (path === customPath) return Promise.resolve(mockConfigModule);
+        if (path === customConfigPath) return Promise.resolve(mockConfigModule);
         return Promise.reject(new Error('Not found'));
       });
 
-      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
-
-      // Set custom config path
-      setCustomConfigPath(customPath);
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
-      const config = await initConfig();
+      const config = await initConfig({ customConfigPath });
 
       expect(config).toEqual({
         llm: { type: 'groq' },
@@ -757,48 +743,42 @@ describe('config', async () => {
     });
 
     it('Should throw error when custom config file does not exist', async () => {
-      const customPath = customPathPrefix + 'nonexistent.json';
+      const customConfigPath = customPathPrefix + 'nonexistent.json';
 
       // Set up fs mocks
       fsMock.existsSync.mockImplementation((path: string) => {
-        return path !== customPath;
+        return path !== customConfigPath;
       });
 
-      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
-
-      // Set custom config path
-      setCustomConfigPath(customPath);
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
       try {
-        await initConfig();
+        await initConfig({ customConfigPath });
         expect(true).toBe(false); // Should not reach here
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toBe(
-          `Provided manual config "${customPath}" does not exist`
+          `Provided manual config "${customConfigPath}" does not exist`
         );
       }
     });
 
     it('Should fall back to default config loading when custom config has unsupported extension', async () => {
-      const customPath = customPathPrefix + '.txt';
+      const customConfigPath = customPathPrefix + '.txt';
 
       // Set up fs mocks - custom path exists but has wrong extension, no default configs exist
       fsMock.existsSync.mockImplementation((path: string) => {
-        if (path === customPath) return true;
+        if (path === customConfigPath) return true;
         // Make sure no default configs exist so we get the expected error
         return false;
       });
 
-      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
-
-      // Set custom config path
-      setCustomConfigPath(customPath);
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test - should fall back to default config loading and fail
       try {
-        await initConfig();
+        await initConfig({ customConfigPath });
         expect(true).toBe(false); // Should not reach here
       } catch {
         // Expected to throw due to no config files found
@@ -814,7 +794,7 @@ describe('config', async () => {
     });
 
     it('Should fall back to default config when custom JSON config is invalid', async () => {
-      const customPath = customPathPrefix + '.json';
+      const customConfigPath = customPathPrefix + '.json';
       const jsonConfig = {
         llm: {
           // Missing type field
@@ -823,22 +803,18 @@ describe('config', async () => {
 
       // Set up fs mocks - custom path exists but has invalid JSON, no default configs exist
       fsMock.existsSync.mockImplementation((path: string) => {
-        if (path === customPath) return true;
-        return false; // No default configs exist
+        return path === customConfigPath;
       });
       fsMock.readFileSync.mockImplementation((path: string) => {
-        if (path === customPath) return JSON.stringify(jsonConfig);
+        if (path === customConfigPath) return JSON.stringify(jsonConfig);
         return '';
       });
 
-      const { setCustomConfigPath, initConfig } = await import('#src/config.js');
-
-      // Set custom config path
-      setCustomConfigPath(customPath);
+      const { initConfig } = await import('#src/config.js');
 
       // Function under test
       try {
-        await initConfig();
+        await initConfig({ customConfigPath });
         expect(true).toBe(false); // Should not reach here
       } catch {
         // Expected to throw due to invalid config falling back to no configs found
@@ -854,20 +830,6 @@ describe('config', async () => {
           'in your project directory.'
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
-    });
-
-    it('Should get and set custom config path', async () => {
-      const customPath = customPathPrefix + '.json';
-      const { setCustomConfigPath, getCustomConfigPath } = await import('#src/config.js');
-
-      // Initially undefined
-      expect(getCustomConfigPath()).toBeUndefined();
-
-      // Set custom config path
-      setCustomConfigPath(customPath);
-
-      // Should return the set path
-      expect(getCustomConfigPath()).toBe(customPath);
     });
   });
 

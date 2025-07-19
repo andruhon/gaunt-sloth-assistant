@@ -7,7 +7,7 @@ import { chatCommand } from '#src/commands/chatCommand.js';
 import { codeCommand } from '#src/commands/codeCommand.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
-import { setCustomConfigPath, setVerbose } from '#src/config.js';
+import type { CommandLineConfigOverrides } from '#src/config.js';
 
 const program = new Command();
 
@@ -24,6 +24,8 @@ program
   .option('-c, --config <path>', 'Path to custom configuration file')
   .addOption(new Option('--nopipe').hideHelp(true));
 
+const cliConfigOverrides: CommandLineConfigOverrides = {};
+
 // Parse global options before binding any commands
 program.parseOptions(argv);
 if (program.getOptionValue('verbose')) {
@@ -32,19 +34,19 @@ if (program.getOptionValue('verbose')) {
    * causing LangChain/LangGraph to log many details to the console.
    * debugLog from config.ts may be a less intrusive option.
    */
-  setVerbose(true);
+  cliConfigOverrides.verbose = true;
 }
 if (program.getOptionValue('config')) {
-  // Set custom config path
-  setCustomConfigPath(program.getOptionValue('config'));
+  // Set a custom config path
+  cliConfigOverrides.customConfigPath = program.getOptionValue('config');
 }
 
 // Initialize all commands - they will handle their own config loading
 initCommand(program);
-reviewCommand(program);
-prCommand(program);
-askCommand(program);
-chatCommand(program);
-codeCommand(program);
+reviewCommand(program, cliConfigOverrides);
+prCommand(program, cliConfigOverrides);
+askCommand(program, cliConfigOverrides);
+chatCommand(program, cliConfigOverrides);
+codeCommand(program, cliConfigOverrides);
 
 await readStdin(program);

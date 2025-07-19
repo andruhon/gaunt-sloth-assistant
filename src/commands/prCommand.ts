@@ -15,6 +15,7 @@ import {
 } from './commandUtils.js';
 import jiraLogWork from '#src/helpers/jira/jiraLogWork.js';
 import { JiraConfig } from '#src/providers/types.js';
+import { CommandLineConfigOverrides } from '#src/config.js';
 
 interface PrCommandOptions {
   file?: string[];
@@ -22,7 +23,10 @@ interface PrCommandOptions {
   message?: string;
 }
 
-export function prCommand(program: Command): void {
+export function prCommand(
+  program: Command,
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): void {
   program
     .command('pr')
     .description(
@@ -48,7 +52,7 @@ export function prCommand(program: Command): void {
     .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (prId: string, requirementsId: string | undefined, options: PrCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
-      const config = await initConfig(); // Initialize and get config
+      const config = await initConfig(commandLineConfigOverrides); // Initialize and get config
 
       const systemPrompt = readSystemPrompt();
       const systemMessage = [

@@ -1,4 +1,4 @@
-import { initConfig } from '#src/config.js';
+import { CommandLineConfigOverrides, initConfig } from '#src/config.js';
 import {
   defaultStatusCallbacks,
   display,
@@ -27,8 +27,12 @@ export interface SessionConfig {
   exitMessage: string;
 }
 
-export async function createInteractiveSession(sessionConfig: SessionConfig, message?: string) {
-  const config = { ...(await initConfig()) };
+export async function createInteractiveSession(
+  sessionConfig: SessionConfig,
+  commandLineConfigOverrides: CommandLineConfigOverrides,
+  message?: string
+) {
+  const config = { ...(await initConfig(commandLineConfigOverrides)) };
   const checkpointSaver = new MemorySaver();
   // Initialize Runner
   const runner = new GthAgentRunner(defaultStatusCallbacks);

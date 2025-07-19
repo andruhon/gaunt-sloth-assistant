@@ -1,8 +1,12 @@
 import { Command } from 'commander';
 import { createInteractiveSession, SessionConfig } from '#src/modules/interactiveSessionModule.js';
 import { readChatPrompt } from '#src/prompt.js';
+import { CommandLineConfigOverrides } from '#src/config.js';
 
-export function chatCommand(program: Command) {
+export function chatCommand(
+  program: Command,
+  commandLineConfigOverrides: CommandLineConfigOverrides
+) {
   const sessionConfig: SessionConfig = {
     mode: 'chat',
     readModePrompt: readChatPrompt,
@@ -12,7 +16,7 @@ export function chatCommand(program: Command) {
   };
   // Start chat when no command typed
   program.action(async () => {
-    await createInteractiveSession(sessionConfig);
+    await createInteractiveSession(sessionConfig, commandLineConfigOverrides);
   });
   // Chat command
   program
@@ -20,6 +24,6 @@ export function chatCommand(program: Command) {
     .description('Start an interactive chat session with Gaunt Sloth')
     .argument('[message]', 'Initial message to start the chat')
     .action(async (message: string) => {
-      await createInteractiveSession(sessionConfig, message);
+      await createInteractiveSession(sessionConfig, commandLineConfigOverrides, message);
     });
 }

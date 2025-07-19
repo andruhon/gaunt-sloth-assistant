@@ -97,7 +97,7 @@ describe('chatCommand', () => {
 
   it('Should display help correctly', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     expect(program.commands[0].description()).toBe(
       'Start an interactive chat session with Gaunt Sloth'
     );
@@ -105,7 +105,7 @@ describe('chatCommand', () => {
 
   it('Should process initial message if provided', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     await program.parseAsync(['na', 'na', 'chat', 'test message']);
 
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
@@ -115,13 +115,14 @@ describe('chatCommand', () => {
         readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
         exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
       }),
+      {},
       'test message'
     );
   });
 
   it('Should handle empty message gracefully', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     await program.parseAsync(['na', 'na', 'chat']);
 
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
@@ -131,13 +132,14 @@ describe('chatCommand', () => {
         readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
         exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
       }),
+      {},
       undefined
     );
   });
 
   it('Should call createInteractiveSession with correct config', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     await program.parseAsync(['na', 'na', 'chat']);
 
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
@@ -147,13 +149,14 @@ describe('chatCommand', () => {
         readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
         exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
       }),
+      {},
       undefined
     );
   });
 
   it('Should pass readChatPrompt function to session config', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     await program.parseAsync(['na', 'na', 'chat']);
 
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
@@ -161,13 +164,14 @@ describe('chatCommand', () => {
         mode: 'chat',
         readModePrompt: promptMock.readChatPrompt,
       }),
+      {},
       undefined
     );
   });
 
   it('Should handle program action for no arguments', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     await program.parseAsync(['na', 'na']);
 
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
@@ -176,7 +180,8 @@ describe('chatCommand', () => {
         description: 'Start an interactive chat session with Gaunt Sloth',
         readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
         exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
-      })
+      }),
+      {}
     );
   });
 });
@@ -216,7 +221,7 @@ describe('Default Chat Behavior (no arguments)', () => {
 
   it('Should start chat session when called directly via createInteractiveSession', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     await program.parseAsync(['na', 'na']);
 
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
@@ -225,13 +230,14 @@ describe('Default Chat Behavior (no arguments)', () => {
         description: 'Start an interactive chat session with Gaunt Sloth',
         readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
         exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
-      })
+      }),
+      {}
     );
   });
 
   it('Should display welcome message when no initial message provided', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     await program.parseAsync(['na', 'na']);
 
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
@@ -239,7 +245,8 @@ describe('Default Chat Behavior (no arguments)', () => {
         mode: 'chat',
         readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
         exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
-      })
+      }),
+      {}
     );
   });
 
@@ -263,7 +270,7 @@ describe('Default Chat Behavior (no arguments)', () => {
 
   it('Should handle createInteractiveSession with initial message', async () => {
     const { chatCommand } = await import('#src/commands/chatCommand.js');
-    chatCommand(program);
+    chatCommand(program, {});
     await program.parseAsync(['na', 'na', 'chat', 'initial message']);
 
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
@@ -273,6 +280,7 @@ describe('Default Chat Behavior (no arguments)', () => {
         readyMessage: '\nGaunt Sloth is ready to chat. Type your prompt.',
         exitMessage: "Type 'exit' or hit Ctrl+C to exit chat\n",
       }),
+      {},
       'initial message'
     );
   });

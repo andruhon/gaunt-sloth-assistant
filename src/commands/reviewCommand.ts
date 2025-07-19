@@ -15,6 +15,7 @@ import {
   getRequirementsFromProvider,
   getContentFromProvider,
 } from './commandUtils.js';
+import { CommandLineConfigOverrides } from '#src/config.js';
 
 interface ReviewCommandOptions {
   file?: string[];
@@ -24,7 +25,10 @@ interface ReviewCommandOptions {
   message?: string;
 }
 
-export function reviewCommand(program: Command): void {
+export function reviewCommand(
+  program: Command,
+  cliConfigOverrides: CommandLineConfigOverrides
+): void {
   program
     .command('review')
     .description('Review provided diff or other content')
@@ -54,7 +58,7 @@ export function reviewCommand(program: Command): void {
     .option('-m, --message <message>', 'Extra message to provide just before the content')
     .action(async (contentId: string | undefined, options: ReviewCommandOptions) => {
       const { initConfig } = await import('#src/config.js');
-      const config = await initConfig(); // Initialize and get config
+      const config = await initConfig(cliConfigOverrides); // Initialize and get config
       const systemPrompt = readSystemPrompt();
       const systemMessage = [
         readBackstory(),

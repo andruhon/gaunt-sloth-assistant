@@ -14,7 +14,6 @@ import {
   USER_PROJECT_CONFIG_MJS,
 } from '#src/constants.js';
 import { JiraConfig } from '#src/providers/types.js';
-import { resolve } from 'node:path';
 import type { GthAgentInterface } from '#src/core/types.js';
 import type { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import type { Message } from '#src/modules/types.js';
@@ -169,33 +168,17 @@ export const availableDefaultConfigs = [
 ] as const;
 export type ConfigType = (typeof availableDefaultConfigs)[number];
 
-/**
- * Use this to store to keep config overrides global command parameters
- */
-const commandLineConfigOverrides = {
-  customConfigPath: undefined as undefined | string,
-  verbose: undefined as undefined | boolean,
-};
-
-export function setCustomConfigPath(path: string): void {
-  commandLineConfigOverrides.customConfigPath = resolve(path);
-}
-
-/**
- * Set LangChain/LangGraph to verbose mode,
- * causing LangChain/LangGraph to log many details to the console.
- * debugLog from config.ts may be a less intrusive option.
- */
-export function setVerbose(verbose: boolean) {
-  commandLineConfigOverrides.verbose = verbose;
-}
-
-export function getCustomConfigPath(): string | undefined {
-  return commandLineConfigOverrides.customConfigPath;
-}
-
-export function clearCustomConfigPath(): void {
-  commandLineConfigOverrides.customConfigPath = undefined;
+export interface CommandLineConfigOverrides {
+  /**
+   * Custom config path
+   */
+  customConfigPath?: string;
+  /**
+   * Set LangChain/LangGraph to verbose mode,
+   * causing LangChain/LangGraph to log many details to the console.
+   * debugLog from config.ts may be a less intrusive option.
+   */
+  verbose?: boolean;
 }
 
 export const DEFAULT_CONFIG: Partial<GthConfig> = {
@@ -227,7 +210,9 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
  * Initialize configuration by loading from available config files
  * @returns The loaded GthConfig
  */
-export async function initConfig(): Promise<GthConfig> {
+export async function initConfig(
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): Promise<GthConfig> {
   if (
     commandLineConfigOverrides.customConfigPath &&
     !existsSync(commandLineConfigOverrides.customConfigPath)
@@ -248,7 +233,7 @@ export async function initConfig(): Promise<GthConfig> {
       const jsonConfig = JSON.parse(readFileSync(jsonConfigPath, 'utf8')) as RawGthConfig;
       // If the config has an LLM with a type, create the appropriate LLM instance
       if (jsonConfig.llm && typeof jsonConfig.llm === 'object' && 'type' in jsonConfig.llm) {
-        return await tryJsonConfig(jsonConfig);
+        return await tryJsonConfig(jsonConfig, commandLineConfigOverrides);
       } else {
         error(`${jsonConfigPath} is not in valid format. Should at least define llm.type`);
         exit(1);
@@ -263,44 +248,48 @@ export async function initConfig(): Promise<GthConfig> {
         `Failed to read config from ${USER_PROJECT_CONFIG_JSON}, will try other formats.`
       );
       // Continue to try other formats
-      return tryJsConfig();
+      return tryJsConfig(commandLineConfigOverrides);
     }
   } else {
     // JSON config not found, try JS
-    return tryJsConfig();
+    return tryJsConfig(commandLineConfigOverrides);
   }
 }
 
 // Helper function to try loading JS config
-async function tryJsConfig(): Promise<GthConfig> {
+async function tryJsConfig(
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): Promise<GthConfig> {
   const jsConfigPath =
     commandLineConfigOverrides.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_JS);
   if (jsConfigPath.endsWith('.js') && existsSync(jsConfigPath)) {
     try {
       const i = await importExternalFile(jsConfigPath);
       const customConfig = await i.configure();
-      return mergeConfig(customConfig) as GthConfig;
+      return mergeConfig(customConfig, commandLineConfigOverrides) as GthConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
       displayError(`Failed to read config from ${USER_PROJECT_CONFIG_JS}, will try other formats.`);
       // Continue to try other formats
-      return tryMjsConfig();
+      return tryMjsConfig(commandLineConfigOverrides);
     }
   } else {
     // JS config not found, try MJS
-    return tryMjsConfig();
+    return tryMjsConfig(commandLineConfigOverrides);
   }
 }
 
 // Helper function to try loading MJS config
-async function tryMjsConfig(): Promise<GthConfig> {
+async function tryMjsConfig(
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): Promise<GthConfig> {
   const mjsConfigPath =
     commandLineConfigOverrides.customConfigPath ?? getGslothConfigReadPath(USER_PROJECT_CONFIG_MJS);
   if (mjsConfigPath.endsWith('.mjs') && existsSync(mjsConfigPath)) {
     try {
       const i = await importExternalFile(mjsConfigPath);
       const customConfig = await i.configure();
-      return mergeConfig(customConfig) as GthConfig;
+      return mergeConfig(customConfig, commandLineConfigOverrides) as GthConfig;
     } catch (e) {
       displayDebug(e instanceof Error ? e : String(e));
       displayError(`Failed to read config from ${USER_PROJECT_CONFIG_MJS}.`);
@@ -323,12 +312,16 @@ async function tryMjsConfig(): Promise<GthConfig> {
 /**
  * Process JSON LLM config by creating the appropriate LLM instance
  * @param jsonConfig - The parsed JSON config
+ * @param commandLineConfigOverrides - command line config overrides
  * @returns Promise<GthConfig>
  */
-export async function tryJsonConfig(jsonConfig: RawGthConfig): Promise<GthConfig> {
+export async function tryJsonConfig(
+  jsonConfig: RawGthConfig,
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): Promise<GthConfig> {
   try {
     if (jsonConfig.llm && typeof jsonConfig.llm === 'object') {
-      // Get the type of LLM (e.g., 'vertexai', 'anthropic') - this should exist
+      // Get the type of LLM (e.g. 'vertexai', 'anthropic') - this should exist
       const llmType = (jsonConfig.llm as LLMConfig).type;
       if (!llmType) {
         displayError('LLM type not specified in config.');
@@ -341,7 +334,7 @@ export async function tryJsonConfig(jsonConfig: RawGthConfig): Promise<GthConfig
       const configModule = await import(`./presets/${llmType}.js`);
       if (configModule.processJsonConfig) {
         const llm = (await configModule.processJsonConfig(llmConfig)) as BaseChatModel;
-        return mergeRawConfig(jsonConfig, llm);
+        return mergeRawConfig(jsonConfig, llm, commandLineConfigOverrides);
       } else {
         displayWarning(`Config module for ${llmType} does not have processJsonConfig function.`);
         exit(1);
@@ -427,7 +420,10 @@ Important! You are likely to be dealing with git diff below, please don't confus
 /**
  * Merge config with default config
  */
-function mergeConfig(partialConfig: Partial<GthConfig>): GthConfig {
+function mergeConfig(
+  partialConfig: Partial<GthConfig>,
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): GthConfig {
   const config = partialConfig as GthConfig;
   const mergedConfig = {
     ...DEFAULT_CONFIG,
@@ -448,6 +444,10 @@ function mergeConfig(partialConfig: Partial<GthConfig>): GthConfig {
 /**
  * Merge raw with default config
  */
-function mergeRawConfig(config: RawGthConfig, llm: BaseChatModel): GthConfig {
-  return mergeConfig({ ...config, llm });
+function mergeRawConfig(
+  config: RawGthConfig,
+  llm: BaseChatModel,
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): GthConfig {
+  return mergeConfig({ ...config, llm }, commandLineConfigOverrides);
 }

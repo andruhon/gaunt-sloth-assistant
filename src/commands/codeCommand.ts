@@ -1,8 +1,12 @@
 import { Command } from 'commander';
 import { createInteractiveSession, SessionConfig } from '#src/modules/interactiveSessionModule.js';
 import { readCodePrompt } from '#src/prompt.js';
+import { CommandLineConfigOverrides } from '#src/config.js';
 
-export function codeCommand(program: Command): void {
+export function codeCommand(
+  program: Command,
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): void {
   program
     .command('code')
     .description(
@@ -19,6 +23,6 @@ export function codeCommand(program: Command): void {
         exitMessage: "Type 'exit' or hit Ctrl+C to exit code session\n",
       };
 
-      await createInteractiveSession(sessionConfig, message);
+      await createInteractiveSession(sessionConfig, commandLineConfigOverrides, message);
     });
 }

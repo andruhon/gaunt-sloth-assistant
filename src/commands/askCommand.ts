@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
-import { initConfig } from '#src/config.js';
+import { CommandLineConfigOverrides, initConfig } from '#src/config.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
 
 interface AskCommandOptions {
@@ -11,8 +11,12 @@ interface AskCommandOptions {
 /**
  * Adds the ask command to the program
  * @param program - The commander program
+ * @param commandLineConfigOverrides - command line config overrides
  */
-export function askCommand(program: Command): void {
+export function askCommand(
+  program: Command,
+  commandLineConfigOverrides: CommandLineConfigOverrides
+): void {
   program
     .command('ask')
     .description('Ask a question')
@@ -22,7 +26,7 @@ export function askCommand(program: Command): void {
       'Input files. Content of these files will be added BEFORE the message'
     )
     .action(async (message: string, options: AskCommandOptions) => {
-      const config = await initConfig();
+      const config = await initConfig(commandLineConfigOverrides);
       const systemPrompt = readSystemPrompt();
       const preamble = [readBackstory(), readGuidelines(config.projectGuidelines)];
       if (systemPrompt) {
