@@ -51,4 +51,24 @@ describe('Chat Command Integration Tests', () => {
     const output = await waitForCursor(child);
     expect(output.toLowerCase()).toContain('javascript');
   });
+
+  it('--verbose should set LangChain to verbose mode in interactiveSessionModule', async () => {
+    const child = startChildProcess('npx', ['gth', '--verbose', '--nopipe', 'chat'], 'pipe');
+
+    child.stderr.on('data', (data) => {
+      throw new Error(data.toString());
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        new Error(`Command failed with code ${code}`);
+      }
+    });
+
+    await waitForCursor(child);
+    child.stdin.write('ping.\n');
+    const output = await waitForCursor(child);
+    child.stdin.write('What was that we were talking about?\n');
+    expect(output).toContain('Entering LLM run with input: {');
+  });
 });

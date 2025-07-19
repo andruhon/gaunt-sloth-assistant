@@ -16,14 +16,23 @@ program
   .name('gsloth')
   .description('Gaunt Sloth Assistant reviewing your PRs')
   .version(getSlothVersion())
-  .option('--verbose', 'Print entire prompt sent to LLM.')
+  .option(
+    '--verbose',
+    'Set LangChain/LangGraph to verbose mode, ' +
+      'causing LangChain/LangGraph to log many details to the console. ' +
+      'Consider using debugLog from config.ts for less intrusive debug logging.'
+  )
   .option('-c, --config <path>', 'Path to custom configuration file')
   .addOption(new Option('--nopipe').hideHelp(true));
 
 // Parse global options before binding any commands
 program.parseOptions(argv);
 if (program.getOptionValue('verbose')) {
-  // Set global prompt debug
+  /**
+   * Set LangChain/LangGraph to verbose mode,
+   * causing LangChain/LangGraph to log many details to the console.
+   * debugLog from config.ts may be a less intrusive option.
+   */
   setVerbose(true);
 }
 if (program.getOptionValue('config')) {

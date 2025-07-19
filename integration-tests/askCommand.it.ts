@@ -25,4 +25,11 @@ describe('Ask Command Integration Tests', () => {
     // Check for expected content in the response
     expect(checkOutputForExpectedContent(output, 'prime')).toBe(true);
   });
+
+  it('--verbose should set LangChain to verbose mode in llmUtils invoke', async () => {
+    const output = await runCommandWithArgs('npx', ['gth', '--verbose', 'ask', '"ping"']);
+
+    // Check for expected content in the response
+    expect(checkOutputForExpectedContent(output, 'Entering LLM run with input: {')).toBe(true);
+  });
 });

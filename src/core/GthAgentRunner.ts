@@ -23,6 +23,10 @@ export class GthAgentRunner {
     this.statusUpdate = statusUpdate;
   }
 
+  /**
+   * Set LangChain/LangGraph to verbose mode,
+   * causing LangChain/LangGraph to log many details into console
+   */
   setVerbose(verbose: boolean): void {
     this.verbose = verbose;
   }

@@ -18,6 +18,7 @@ import { getGslothFilePath } from '#src/filePathUtils.js';
 import { appendToFile, generateStandardFileName } from '#src/utils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
+import { llmGlobalSettings } from '#src/llmUtils.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -32,6 +33,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
   const checkpointSaver = new MemorySaver();
   // Initialize Runner
   const runner = new GthAgentRunner(defaultStatusCallbacks);
+  runner.setVerbose(llmGlobalSettings.verbose);
 
   try {
     await runner.init(sessionConfig.mode, config, checkpointSaver);
@@ -83,11 +85,10 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
         }
 
         let shouldRetry = false;
-        let currentInput = userInput;
 
         do {
           try {
-            await processMessage(currentInput);
+            await processMessage(userInput);
             shouldRetry = false;
           } catch (err) {
             display(
@@ -97,6 +98,7 @@ export async function createInteractiveSession(sessionConfig: SessionConfig, mes
               'Do you want to try again with the same prompt? (y/n): '
             );
             shouldRetry = retryResponse.toLowerCase().trim().startsWith('y');
+            isFirstMessage = false; // To make sure we don't resend system prompt if the first message failed
 
             if (!shouldRetry) {
               display('\nSkipping to next prompt...');

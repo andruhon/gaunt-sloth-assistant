@@ -194,6 +194,10 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
   streamOutput: true,
   useColour: true,
   filesystem: 'read',
+  /**
+   * Log messages and events to gaunt-sloth.log,
+   * use gth --verbose as more intrusive option, setting verbose to LangChain / LangGraph
+   */
   debugLog: false,
   commands: {
     pr: {

@@ -7,7 +7,7 @@ import { StatusLevel } from '#src/core/types.js';
 import { randomUUID } from 'crypto';
 import { RunnableConfig } from '@langchain/core/runnables';
 
-const llmGlobalSettings = {
+export const llmGlobalSettings = {
   verbose: false,
 };
 
