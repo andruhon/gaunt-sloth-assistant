@@ -90,6 +90,7 @@ describe('config', async () => {
       // Mock the vertexai config module to process the config
       vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
       }));
 
       // Import the module under test
@@ -291,6 +292,7 @@ describe('config', async () => {
       // Mock the vertexai config module to process the config
       vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
       }));
 
       // Import the module under test
@@ -332,6 +334,7 @@ describe('config', async () => {
       // Mock the vertexai config module to process the config
       vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
       }));
 
       // Import the module under test
@@ -365,6 +368,7 @@ describe('config', async () => {
       };
       vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue(mockLlm),
+        postProcessJsonConfig: undefined,
       }));
 
       const { tryJsonConfig } = await import('#src/config.js');
@@ -544,6 +548,7 @@ describe('config', async () => {
 
       vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
       }));
 
       const { tryJsonConfig } = await import('#src/config.js');
@@ -580,6 +585,7 @@ describe('config', async () => {
 
       vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
       }));
 
       const { tryJsonConfig } = await import('#src/config.js');
@@ -615,6 +621,37 @@ describe('config', async () => {
       );
       expect(systemUtilsMock.exit).toHaveBeenCalledWith(1);
     });
+
+    it('Should call postProcessJsonConfig if it exists on the preset module', async () => {
+      // 1. Setup mock config
+      const jsonConfig = {
+        llm: {
+          type: 'anthropic',
+          model: 'test-model',
+        },
+      } as RawGthConfig;
+
+      // 2. Mock the preset module
+      const postProcessedConfig = { llm: { type: 'anthropic', processed: true } };
+      const postProcessJsonConfigMock = vi.fn().mockReturnValue(postProcessedConfig);
+      const mockLlm = {
+        type: 'anthropic',
+        model: 'test-model',
+      };
+
+      vi.doMock('#src/presets/anthropic.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue(mockLlm),
+        postProcessJsonConfig: postProcessJsonConfigMock,
+      }));
+
+      // 3. Call function under test
+      const { tryJsonConfig } = await import('#src/config.js');
+      const finalConfig = await tryJsonConfig(jsonConfig, {});
+
+      // 4. Assert
+      expect(postProcessJsonConfigMock).toHaveBeenCalledOnce();
+      expect(finalConfig).toEqual(postProcessedConfig);
+    });
   });
 
   describe('custom config path', () => {
@@ -638,6 +675,7 @@ describe('config', async () => {
       // Mock the vertexai config module
       vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
       }));
 
       const { initConfig } = await import('#src/config.js');

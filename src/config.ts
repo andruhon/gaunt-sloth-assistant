@@ -18,6 +18,7 @@ import type { GthAgentInterface } from '#src/core/types.js';
 import type { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import type { Message } from '#src/modules/types.js';
 import { RunnableConfig } from '@langchain/core/runnables';
+import { StateDefinition, StateType } from '@langchain/langgraph';
 
 /**
  * This is a processed Gaunt Sloth config ready to be passed down into components.
@@ -32,7 +33,7 @@ export interface GthConfig extends BaseGthConfig {
   useColour: boolean;
   filesystem: string[] | 'all' | 'read' | 'none';
   builtInTools?: string[];
-  tools?: StructuredToolInterface[] | BaseToolkit[];
+  tools?: StructuredToolInterface[] | BaseToolkit[] | ServerTool[];
   /**
    * Hooks are only available on JS config
    */
@@ -45,8 +46,31 @@ export interface GthConfig extends BaseGthConfig {
      */
     afterAgentInit?: RunnerHook | RunnerHook[];
     beforeProcessMessages?: BeforeMessageHook | BeforeMessageHook[];
+    /**
+     * LangGraph preModelHook
+     * Provide 'skip' if you don't need default hook.
+     */
+    preModelHook?: LangChainHook;
+    /**
+     * LangGraph postModelHook
+     * Provide 'skip' if you don't need default hook.
+     */
+    postModelHook?: LangChainHook;
   };
 }
+
+/**
+ * Server tools such as Anthropic Web Search.
+ * These tools are meant to be magic objects like
+ * `{"type": "web_search_20250305", "name": "web_search", "max_uses": 10}`,
+ * AI Provider does the rest of the magic on their side.
+ */
+export interface ServerTool extends Record<string, unknown> {
+  type: string;
+  name?: string;
+}
+
+type LangChainHook = (state: StateType<StateDefinition>) => StateType<StateDefinition>;
 
 type RunnerHook = (runner: GthAgentRunner) => Promise<void>;
 
@@ -61,6 +85,8 @@ type BeforeMessageHook = (
  */
 export interface RawGthConfig extends BaseGthConfig {
   llm: LLMConfig;
+  preModelHook?: LangChainHook | 'skip';
+  postModelHook?: LangChainHook | 'skip';
 }
 
 /**
@@ -83,6 +109,7 @@ interface BaseGthConfig {
   mcpServers?: Record<string, Connection>;
   builtInTools?: string[];
   builtInToolsConfig?: BuiltInToolsConfig;
+  tools?: StructuredToolInterface[] | BaseToolkit[] | ServerTool[];
   commands?: {
     pr?: {
       contentProvider?: string;
@@ -334,7 +361,12 @@ export async function tryJsonConfig(
       const configModule = await import(`./presets/${llmType}.js`);
       if (configModule.processJsonConfig) {
         const llm = (await configModule.processJsonConfig(llmConfig)) as BaseChatModel;
-        return mergeRawConfig(jsonConfig, llm, commandLineConfigOverrides);
+        const mergedConfig = mergeRawConfig(jsonConfig, llm, commandLineConfigOverrides);
+        if (configModule.postProcessJsonConfig) {
+          return configModule.postProcessJsonConfig(mergedConfig);
+        } else {
+          return mergedConfig;
+        }
       } else {
         displayWarning(`Config module for ${llmType} does not have processJsonConfig function.`);
         exit(1);

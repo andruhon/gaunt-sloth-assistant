@@ -1,5 +1,5 @@
 import { AIMessage, isAIMessage } from '@langchain/core/messages';
-import { GthConfig } from '#src/config.js';
+import { GthConfig, ServerTool } from '#src/config.js';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient, StreamableHTTPConnection } from '@langchain/mcp-adapters';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
@@ -81,6 +81,8 @@ export class GthLangChainAgent implements GthAgentInterface {
       llm: this.config.llm,
       tools,
       checkpointSaver,
+      postModelHook: configIn.hooks?.postModelHook,
+      preModelHook: configIn.hooks?.preModelHook,
     });
     debugLog('React agent created successfully');
   }
@@ -250,7 +252,7 @@ export class GthLangChainAgent implements GthAgentInterface {
    * Extract and flatten tools from toolkits
    */
   private extractAndFlattenTools(
-    tools: (StructuredToolInterface | BaseToolkit)[]
+    tools: (StructuredToolInterface | BaseToolkit | ServerTool)[]
   ): StructuredToolInterface[] {
     const flattenedTools: StructuredToolInterface[] = [];
     for (const toolOrToolkit of tools) {

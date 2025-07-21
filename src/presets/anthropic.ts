@@ -1,4 +1,4 @@
-import { displayWarning } from '#src/consoleUtils.js';
+import { displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { env } from '#src/systemUtils.js';
 import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import type { AnthropicInput } from '@langchain/anthropic';
@@ -6,8 +6,15 @@ import type {
   BaseChatModel,
   BaseChatModelParams,
 } from '@langchain/core/language_models/chat_models';
+import { StateDefinition, StateType } from '@langchain/langgraph';
+import { isAIMessage } from '@langchain/core/messages';
+import { debugLog, debugLogError } from '#src/debugUtils.js';
+import { GthConfig } from '#src/config.js';
 
-// Function to process JSON config and create Anthropic LLM instance
+/**
+ * Function to process JSON config and create Anthropic LLM instance
+ */
+// noinspection JSUnusedGlobalSymbols
 export async function processJsonConfig(
   llmConfig: AnthropicInput & BaseChatModelParams
 ): Promise<BaseChatModel> {
@@ -28,6 +35,7 @@ const jsonContent = `{
   }
 }`;
 
+// noinspection JSUnusedGlobalSymbols
 export function init(configFileName: string): void {
   // Determine which content to use based on file extension
   if (!configFileName.endsWith('.json')) {
@@ -39,4 +47,54 @@ export function init(configFileName: string): void {
     `You need to update your ${configFileName} to add your Anthropic API key, ` +
       'or define ANTHROPIC_API_KEY environment variable.'
   );
+}
+
+// noinspection JSUnusedGlobalSymbols
+export function postProcessJsonConfig(config: GthConfig): GthConfig {
+  // eslint-disable-next-line
+  if ((config.hooks?.postModelHook as any as string) === 'skip') {
+    return {
+      ...config,
+      hooks: { ...config.hooks, postModelHook: undefined },
+    };
+  }
+  displayInfo('Applying Anthropic post-processing to config.');
+  return {
+    ...config,
+    hooks: { ...config.hooks, postModelHook: config.hooks?.postModelHook || postModelHook },
+  };
+}
+
+/**
+ * There's something off with calling server tools with ReAct agent,
+ * the tool is not added in react_agent_executor because it is not Runnable,
+ * but the tool_node explodes because LLM reports calling non-existing tool.
+ * This method removes tool calls from messages, leaving the resulting content.
+ * This method seems unnecessary with OpenAI, but is needed for Anthropic,
+ * OpenAI does not need a name on the tool and does not seem to return server_tool_use.
+ */
+export function postModelHook(state: StateType<StateDefinition>): StateType<StateDefinition> {
+  try {
+    const lastMessage = state.messages[state.messages.length - 1];
+    if (isAIMessage(lastMessage) && lastMessage.tool_calls && Array.isArray(lastMessage.content)) {
+      const serverToolsCalled = lastMessage.content
+        .filter(
+          (
+            content
+          ): content is {
+            type: string;
+            name: string;
+          } => content.type == 'server_tool_use' && content.name
+        )
+        .map((content) => content.name);
+      debugLog('found server tool calls ' + serverToolsCalled.join(','));
+      lastMessage.tool_calls = lastMessage.tool_calls.filter(
+        (tc) => !serverToolsCalled.includes(tc.name)
+      );
+    }
+    return state;
+  } catch (e) {
+    debugLogError('removeServerToolCalls error', e);
+    return state;
+  }
 }

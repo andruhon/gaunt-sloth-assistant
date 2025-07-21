@@ -747,3 +747,37 @@ Example configuration including dev tools (from .gsloth.config.json):
 
 Note: For `run_single_test`, the command can include a placeholder like `${testPath}` for the test file path. p
 Security validations are in place to prevent path traversal or injection.
+
+## Server Tools Configuration
+
+Some AI providers provide integrated server tools, such as web search.
+
+**.gsloth.config.json for OpenAI Web Search**
+```json
+{
+  "llm": {
+    "type": "openai",
+    "model": "gpt-4o"
+  },
+  "tools": [
+    { "type": "web_search_preview" }
+  ]
+}
+```
+
+**.gsloth.config.json for Anthropic Web Search** 
+```json
+{
+  "llm": {
+    "type": "anthropic",
+    "model": "claude-sonnet-4-20250514"
+  },
+  "tools": [
+    {
+      "type": "web_search_20250305",
+      "name": "web_search",
+      "max_uses": 10
+    }
+  ]
+}
+```
