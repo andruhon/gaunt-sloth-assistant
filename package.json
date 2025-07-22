@@ -43,7 +43,7 @@
     "@langchain/langgraph": "^0.3.10",
     "@langchain/mcp-adapters": "^0.5.4",
     "@langchain/openai": "^0.5.18",
-    "@langchain/xai": "^0.0.3",
+    "@langchain/xai": "^0.1.0",
     "commander": "^14.0.0",
     "diff": "^8.0.2",
     "express": "^5.1.0",
