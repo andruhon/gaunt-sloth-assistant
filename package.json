@@ -36,7 +36,7 @@
   "dependencies": {
     "@langchain/anthropic": "^0.3.24",
     "@langchain/core": "^0.3.66",
-    "@langchain/deepseek": "^0.0.2",
+    "@langchain/deepseek": "^0.1.0",
     "@langchain/google-genai": "^0.2.15",
     "@langchain/google-vertexai": "^0.2.15",
     "@langchain/groq": "^0.2.3",
