@@ -10,6 +10,7 @@ const AVAILABLE_BUILT_IN_TOOLS = {
   gth_status_update: '#src/tools/gthStatusUpdateTool.js',
   gth_jira_log_work: '#src/tools/gthJiraLogWorkTool.js',
   gth_sequential_thinking: '#src/tools/gthSequentialThinkingTool.js',
+  gth_web_fetch: '#src/tools/gthWebFetchTool.js',
 };
 
 /**
