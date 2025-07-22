@@ -41,7 +41,7 @@
     "@langchain/google-vertexai": "^0.2.15",
     "@langchain/groq": "^0.2.3",
     "@langchain/langgraph": "^0.3.10",
-    "@langchain/mcp-adapters": "^0.5.4",
+    "@langchain/mcp-adapters": "^0.6.0",
     "@langchain/openai": "^0.5.18",
     "@langchain/xai": "^0.1.0",
     "commander": "^14.0.0",
