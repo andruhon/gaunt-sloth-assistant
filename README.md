@@ -237,6 +237,22 @@ Gaunt Sloth supports connecting to MCP servers, including those requiring OAuth 
 This has been tested with the Atlassian Jira MCP server.  
 See the [MCP configuration section](./docs/CONFIGURATION.md#model-context-protocol-mcp) for detailed setup instructions.
 
+## Uninstall
+Uninstall global NPM package:
+```bash
+npm uninstall -g gaunt-sloth-assistant
+```
+
+Remove global config (if any)
+```bash
+rm -r ~/.gsloth
+```
+
+Remove configs from project (if necessary)
+```bash
+rm -r ./.gsloth*
+```
+
 ## Contributing
 Contributors are needed! Feel free to create a PR.
 If you are not sure where to start, look for issues with a "good first issue" label.
