@@ -199,6 +199,7 @@ export default class GthFileSystemToolkit extends BaseToolkit {
             }
 
             return absolute; // Valid parent exists, return the original absolute path
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (parentError: any) {
             if (parentError.code === 'ENOENT') {
               currentDir = path.dirname(currentDir); // Move up one level

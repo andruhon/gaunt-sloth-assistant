@@ -222,8 +222,6 @@ describe('GthFileSystemToolkit - Basic Tests', () => {
 
       it('should handle parent directory validation for non-existent paths within allowed directories', async () => {
         const testPath = path.join(process.cwd(), 'deep', 'nested', 'file.txt');
-        const parentPath = path.join(process.cwd(), 'deep', 'nested');
-        const grandParentPath = path.join(process.cwd(), 'deep');
         const rootPath = process.cwd();
 
         // Mock the file doesn't exist
