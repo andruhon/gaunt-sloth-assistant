@@ -16,6 +16,11 @@ export async function processJsonConfig(
   const { ChatOpenAI } = await import('@langchain/openai');
   // Use environment variable if available, otherwise use the config value
   const openRouterApiKey = getApiKey(llmConfig);
+  if (!openRouterApiKey) {
+    throw new Error(
+      'You need to define OPEN_ROUTER_API_KEY environment variable, or set apiKey in your config file.'
+    );
+  }
   const configFields = {
     ...llmConfig,
     apiKey: openRouterApiKey,
@@ -42,7 +47,7 @@ function getApiKey(llmConfig: OpenAIChatInput & ChatOpenAIFields & BaseChatModel
   if (conf.apiKeyEnvironmentVariable && env[conf.apiKeyEnvironmentVariable]) {
     return env[conf.apiKeyEnvironmentVariable];
   } else {
-    return llmConfig.apiKey || env.OPEN_ROUTER_API_KEY;
+    return llmConfig.apiKey || env.OPEN_ROUTER_API_KEY || env.OPENROUTER_API_KEY;
   }
 }
 
