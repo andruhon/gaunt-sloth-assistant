@@ -481,5 +481,8 @@ function mergeRawConfig(
   llm: BaseChatModel,
   commandLineConfigOverrides: CommandLineConfigOverrides
 ): GthConfig {
+  if (config.llm?.model) {
+    displayInfo(`Model ${config.llm.model}`);
+  }
   return mergeConfig({ ...config, llm }, commandLineConfigOverrides);
 }

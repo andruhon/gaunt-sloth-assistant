@@ -168,6 +168,19 @@ export class GthLangChainAgent implements GthAgentInterface {
     const stream = await this.agent.stream({ messages }, { ...runConfig, streamMode: 'messages' });
 
     const statusUpdate = this.statusUpdate;
+    const interruptState = { escape: false };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const interuptHandler = (_: any, key: any) => {
+      if (key?.name === 'escape') {
+        interruptState.escape = true;
+        statusUpdate('warning', '\nInterrupting...');
+      }
+    };
+    // TODO create special method in system utils
+    process.stdin.setRawMode(true);
+    process.stdin.on('keypress', interuptHandler);
+    this.statusUpdate('info', 'Press Escape to interrupt agent\n');
+
     return new IterableReadableStream({
       async start(controller) {
         try {
@@ -188,11 +201,18 @@ export class GthLangChainAgent implements GthAgentInterface {
                 statusUpdate('info', `\nRequested tools: ${formatToolCalls(toolCalls)}`);
               }
             }
+            if (interruptState.escape) {
+              statusUpdate('warning', '\nInterrupted by user, exiting');
+              break;
+            }
           }
-
+          process.stdin.setRawMode(false);
+          process.stdin.off('keypress', interuptHandler);
           debugLog(`Stream completed. Total chunks: ${totalChunks}`);
           controller.close();
         } catch (error) {
+          process.stdin.setRawMode(false);
+          process.stdin.off('keypress', interuptHandler);
           debugLogError('stream processing', error);
           if (error instanceof Error) {
             if (error?.name === 'ToolException') {
@@ -203,6 +223,8 @@ export class GthLangChainAgent implements GthAgentInterface {
         }
       },
       async cancel() {
+        process.stdin.setRawMode(false);
+        process.stdin.off('keypress', interuptHandler);
         // Clean up the underlying stream if it has a cancel method
         if (stream && typeof stream.cancel === 'function') {
           await stream.cancel();

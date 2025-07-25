@@ -18,6 +18,7 @@ import { getGslothFilePath } from '#src/filePathUtils.js';
 import { appendToFile, generateStandardFileName } from '#src/utils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
+import { StatusLevel } from '#src/core/types.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -35,20 +36,25 @@ export async function createInteractiveSession(
   const config = { ...(await initConfig(commandLineConfigOverrides)) };
   const checkpointSaver = new MemorySaver();
   // Initialize Runner
-  const runner = new GthAgentRunner(defaultStatusCallbacks);
+
+  const logFileName = getGslothFilePath(generateStandardFileName(sessionConfig.mode.toUpperCase()));
+  const statusCallback = (level: StatusLevel, message: string) => {
+    appendToFile(logFileName, message); // TODO this should probably be some sort of buffer
+    defaultStatusCallbacks(level, message);
+  };
+  const runner = new GthAgentRunner(statusCallback);
 
   try {
     await runner.init(sessionConfig.mode, config, checkpointSaver);
     const rl = createInterface({ input, output });
     let isFirstMessage = true;
     let shouldExit = false;
-    const logFileName = getGslothFilePath(
-      generateStandardFileName(sessionConfig.mode.toUpperCase())
-    );
 
     displayInfo(`${sessionConfig.mode} session will be logged to ${logFileName}\n`);
 
     const processMessage = async (userInput: string) => {
+      const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n`;
+      appendToFile(logFileName, logEntry);
       const messages: BaseMessage[] = [];
       if (isFirstMessage) {
         const systemPromptParts = [readBackstory(), readGuidelines(config.projectGuidelines)];
@@ -64,10 +70,7 @@ export async function createInteractiveSession(
       }
       messages.push(new HumanMessage(userInput));
 
-      const aiResponse = await runner.processMessages(messages);
-
-      const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n${aiResponse}\n\n`;
-      appendToFile(logFileName, logEntry);
+      await runner.processMessages(messages);
 
       isFirstMessage = false;
     };
