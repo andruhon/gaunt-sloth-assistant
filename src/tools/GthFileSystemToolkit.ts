@@ -162,38 +162,57 @@ export default class GthFileSystemToolkit extends BaseToolkit {
 
     const normalizedRequested = this.normalizePath(absolute);
 
-    const isAllowed = this.allowedDirectories.some((dir) => normalizedRequested.startsWith(dir));
-    if (!isAllowed) {
+    // Helper function to check if a path is within allowed directories
+    const isWithinAllowedDir = (checkPath: string): boolean => {
+      return this.allowedDirectories.some((allowedDir) => checkPath.startsWith(allowedDir));
+    };
+
+    // Check if the requested path is within allowed directories
+    if (!isWithinAllowedDir(normalizedRequested)) {
       throw new Error(
         `Access denied - path outside allowed directories: ${absolute} not in ${this.allowedDirectories.join(', ')}`
       );
     }
 
     try {
+      // Try to get the real path for existing files/directories
       const realPath = await fs.realpath(absolute);
       const normalizedReal = this.normalizePath(realPath);
-      const isRealPathAllowed = this.allowedDirectories.some((dir) =>
-        normalizedReal.startsWith(dir)
-      );
-      if (!isRealPathAllowed) {
+
+      // Verify the real path (after resolving symlinks) is still within allowed directories
+      if (!isWithinAllowedDir(normalizedReal)) {
         throw new Error('Access denied - symlink target outside allowed directories');
       }
       return realPath;
-    } catch {
-      const parentDir = path.dirname(absolute);
-      try {
-        const realParentPath = await fs.realpath(parentDir);
-        const normalizedParent = this.normalizePath(realParentPath);
-        const isParentAllowed = this.allowedDirectories.some((dir) =>
-          normalizedParent.startsWith(dir)
-        );
-        if (!isParentAllowed) {
-          throw new Error('Access denied - parent directory outside allowed directories');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        // Path doesn't exist - validate that its parent directory exists and is within allowed directories
+        let currentDir = path.dirname(absolute);
+        while (currentDir !== path.dirname(currentDir)) {
+          try {
+            const realParentPath = await fs.realpath(currentDir);
+            const normalizedParent = this.normalizePath(realParentPath);
+
+            if (!isWithinAllowedDir(normalizedParent)) {
+              throw new Error('Access denied - parent directory outside allowed directories');
+            }
+
+            return absolute; // Valid parent exists, return the original absolute path
+          } catch (parentError: any) {
+            if (parentError.code === 'ENOENT') {
+              currentDir = path.dirname(currentDir); // Move up one level
+            } else {
+              throw parentError; // Some other error
+            }
+          }
         }
-        return absolute;
-      } catch {
-        throw new Error(`Parent directory does not exist: ${parentDir}`);
+
+        // Could not find any existing parent in the path
+        throw new Error(`Cannot determine valid parent directory for: ${absolute}`);
       }
+      // Some other error
+      throw error;
     }
   }
 

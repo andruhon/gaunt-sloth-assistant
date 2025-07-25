@@ -15,7 +15,7 @@ const fsMock = {
 };
 
 // Keep the original path methods for basic functionality
-vi.mock('fs/promises', () => fsMock);
+vi.mock('fs/promises', () => ({ default: fsMock }));
 
 describe('GthFileSystemToolkit - Basic Tests', () => {
   let GthFileSystemToolkit: typeof import('#src/tools/GthFileSystemToolkit.js').default;
@@ -135,6 +135,123 @@ describe('GthFileSystemToolkit - Basic Tests', () => {
       expect(expandHome('~/test')).toBe(os.homedir() + path.sep + 'test');
       expect(expandHome('/absolute/path')).toBe('/absolute/path');
       expect(expandHome('relative/path')).toBe('relative/path');
+    });
+
+    describe('path validation', () => {
+      beforeEach(() => {
+        toolkit = new GthFileSystemToolkit([process.cwd()]);
+      });
+
+      it('should allow paths within allowed directories', async () => {
+        const testPath = path.join(process.cwd(), 'test-file.txt');
+        fsMock.realpath.mockResolvedValue(testPath);
+
+        const result = await toolkit['validatePath'](testPath);
+        expect(result).toBe(testPath);
+      });
+
+      it('should reject paths outside allowed directories', async () => {
+        const testPath = '/tmp/outside-file.txt';
+
+        await expect(toolkit['validatePath'](testPath)).rejects.toThrow(
+          'Access denied - path outside allowed directories'
+        );
+      });
+
+      it('should handle non-existent files with valid parent directories', async () => {
+        const testPath = path.join(process.cwd(), 'nonexistent', 'file.txt');
+        const rootPath = process.cwd();
+
+        // Mock the file doesn't exist
+        fsMock.realpath
+          .mockRejectedValueOnce(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
+          // Mock parent doesn't exist
+          .mockRejectedValueOnce(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
+          // Mock root exists
+          .mockResolvedValueOnce(rootPath);
+
+        const result = await toolkit['validatePath'](testPath);
+        expect(result).toBe(testPath);
+      });
+
+      it('should reject non-existent files when no valid parent exists', async () => {
+        const testPath = '/tmp/nonexistent/file.txt';
+
+        await expect(toolkit['validatePath'](testPath)).rejects.toThrow(
+          'Access denied - path outside allowed directories'
+        );
+      });
+
+      it('should reject non-existent files with invalid parent directories', async () => {
+        const testPath = '/tmp/nonexistent/file.txt';
+
+        await expect(toolkit['validatePath'](testPath)).rejects.toThrow(
+          'Access denied - path outside allowed directories'
+        );
+      });
+
+      it('should reject symlinks pointing outside allowed directories', async () => {
+        const testPath = path.join(process.cwd(), 'symlink.txt');
+        const targetPath = '/tmp/target.txt';
+
+        fsMock.realpath.mockResolvedValue(targetPath);
+
+        await expect(toolkit['validatePath'](testPath)).rejects.toThrow(
+          'Access denied - symlink target outside allowed directories'
+        );
+      });
+
+      it('should allow symlinks pointing within allowed directories', async () => {
+        const testPath = path.join(process.cwd(), 'symlink.txt');
+        const targetPath = path.join(process.cwd(), 'target.txt');
+
+        fsMock.realpath.mockResolvedValue(targetPath);
+
+        const result = await toolkit['validatePath'](testPath);
+        expect(result).toBe(targetPath);
+      });
+
+      it('should handle other filesystem errors properly', async () => {
+        const testPath = path.join(process.cwd(), 'test-file.txt');
+        const permissionError = Object.assign(new Error('Permission denied'), { code: 'EACCES' });
+
+        fsMock.realpath.mockRejectedValue(permissionError);
+
+        await expect(toolkit['validatePath'](testPath)).rejects.toThrow('Permission denied');
+      });
+
+      it('should handle parent directory validation for non-existent paths within allowed directories', async () => {
+        const testPath = path.join(process.cwd(), 'deep', 'nested', 'file.txt');
+        const parentPath = path.join(process.cwd(), 'deep', 'nested');
+        const grandParentPath = path.join(process.cwd(), 'deep');
+        const rootPath = process.cwd();
+
+        // Mock the file doesn't exist
+        fsMock.realpath
+          .mockRejectedValueOnce(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
+          // Mock immediate parent doesn't exist
+          .mockRejectedValueOnce(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
+          // Mock grandparent doesn't exist
+          .mockRejectedValueOnce(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
+          // Mock root exists and is allowed
+          .mockResolvedValueOnce(rootPath);
+
+        const result = await toolkit['validatePath'](testPath);
+        expect(result).toBe(testPath);
+      });
+
+      it('should reject when parent validation fails due to permission errors', async () => {
+        const testPath = path.join(process.cwd(), 'restricted', 'file.txt');
+        const permissionError = Object.assign(new Error('Permission denied'), { code: 'EACCES' });
+
+        // Mock the file doesn't exist
+        fsMock.realpath
+          .mockRejectedValueOnce(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
+          // Mock parent permission error
+          .mockRejectedValueOnce(permissionError);
+
+        await expect(toolkit['validatePath'](testPath)).rejects.toThrow('Permission denied');
+      });
     });
   });
 });
