@@ -93,9 +93,17 @@ export class GthLangChainAgent implements GthAgentInterface {
    * Please note that this when tools are involved, this method will anyway do multiple LLM
    * calls within LangChain dependency.
    */
-  async invoke(messages: Message[], runConfig: RunnableConfig): Promise<string> {
+  async invoke(
+    messages: Message[],
+    runConfig: RunnableConfig,
+    abortSignal?: AbortSignal
+  ): Promise<string> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');
+    }
+
+    if (abortSignal?.aborted) {
+      throw new Error('Request was interrupted by user');
     }
 
     debugLog('=== Starting non-streaming invoke ===');
@@ -106,7 +114,21 @@ export class GthLangChainAgent implements GthAgentInterface {
       const progress = new ProgressIndicator('Thinking.');
       try {
         debugLog('Calling agent.invoke...');
-        const response = await this.agent.invoke({ messages }, runConfig);
+
+        // Create a promise that rejects if aborted
+        const abortPromise = abortSignal
+          ? new Promise<never>((_, reject) => {
+              abortSignal.addEventListener('abort', () => {
+                reject(new Error('Request was interrupted by user'));
+              });
+            })
+          : null;
+
+        const invokePromise = this.agent.invoke({ messages }, runConfig);
+
+        const response = abortPromise
+          ? await Promise.race([invokePromise, abortPromise])
+          : await invokePromise;
 
         debugLog(`Response received with ${response.messages.length} messages`);
         debugLogObject('Full Response', response);
@@ -154,10 +176,15 @@ export class GthLangChainAgent implements GthAgentInterface {
    */
   async stream(
     messages: Message[],
-    runConfig: RunnableConfig
+    runConfig: RunnableConfig,
+    abortSignal?: AbortSignal
   ): Promise<IterableReadableStream<string>> {
     if (!this.agent || !this.config) {
       throw new Error('Agent not initialized. Call init() first.');
+    }
+
+    if (abortSignal?.aborted) {
+      throw new Error('Request was interrupted by user');
     }
 
     debugLog('=== Starting streaming invoke ===');
@@ -175,6 +202,10 @@ export class GthLangChainAgent implements GthAgentInterface {
           let totalChunks = 0;
 
           for await (const [chunk, _metadata] of stream) {
+            // Check for abortion during streaming
+            if (abortSignal?.aborted) {
+              throw new Error('Request was interrupted by user');
+            }
             debugLogObject('Stream chunk', { chunk, _metadata });
             if (isAIMessage(chunk)) {
               const text = chunk.text as string;

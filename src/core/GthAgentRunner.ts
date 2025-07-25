@@ -65,7 +65,7 @@ export class GthAgentRunner {
   /**
    * processMessages deals with both streaming and non-streaming approaches.
    */
-  async processMessages(messages: Message[]): Promise<string> {
+  async processMessages(messages: Message[], abortSignal?: AbortSignal): Promise<string> {
     if (!this.agent || !this.config || !this.runConfig) {
       throw new Error('AgentRunner not initialized. Call init() first.');
     }
@@ -80,10 +80,14 @@ export class GthAgentRunner {
       if (this.config.streamOutput) {
         // Use streaming
         debugLog('Using streaming mode');
-        const stream = await this.agent.stream(messages, this.runConfig);
+        const stream = await this.agent.stream(messages, this.runConfig, abortSignal);
         let result = '';
         try {
           for await (const chunk of stream) {
+            // Check for abortion during streaming
+            if (abortSignal?.aborted) {
+              throw new Error('Request was interrupted by user');
+            }
             debugLogObject('Stream chunk', chunk);
             result += chunk;
           }
@@ -99,7 +103,7 @@ export class GthAgentRunner {
       } else {
         // Use non-streaming
         debugLog('Using non-streaming mode');
-        const result = await this.agent.invoke(messages, this.runConfig);
+        const result = await this.agent.invoke(messages, this.runConfig, abortSignal);
         debugLog(`Non-stream response length: ${result.length}`);
         return result;
       }

@@ -14,7 +14,15 @@ export interface GthAgentInterface {
     checkpointSaver?: BaseCheckpointSaver | undefined
   ): Promise<void>;
 
-  invoke(messages: Message[], runConfig: RunnableConfig): Promise<string>;
+  invoke(
+    messages: Message[],
+    runConfig: RunnableConfig,
+    abortSignal?: AbortSignal
+  ): Promise<string>;
 
-  stream(messages: Message[], runConfig: RunnableConfig): Promise<IterableReadableStream<string>>;
+  stream(
+    messages: Message[],
+    runConfig: RunnableConfig,
+    abortSignal?: AbortSignal
+  ): Promise<IterableReadableStream<string>>;
 }
