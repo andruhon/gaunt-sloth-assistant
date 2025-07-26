@@ -2,5 +2,7 @@
   "llm": {
     "type": "openrouter",
     "model": "minimax/minimax-m1"
-  }
+  },
+  "canInterruptInferenceWithEsc": false,
+  "streamSessionInferenceLog": false
 }

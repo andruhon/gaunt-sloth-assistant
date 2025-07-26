@@ -56,7 +56,7 @@ The promise of Gaunt Sloth:
 - Ollama with JS config (some of the models, see https://github.com/andruhon/gaunt-sloth-assistant/discussions/107)
 - xAI;
 
-`*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#JavaScript-Configuration).
+`*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#javascript-configuration).
 
 ## Commands Overview
 
@@ -76,37 +76,37 @@ For detailed information about all commands, see [docs/COMMANDS.md](./docs/COMMA
 ### Quick Examples:
 
 **Initialize project:**
-```shell
+```bash
 gsloth init anthropic
 ```
 
 **Review PR with requirements:**
-```shell
+```bash
 gsloth pr 42 23  # Review PR #42 with GitHub issue #23
 ```
 
 **Review local changes:**
-```shell
+```bash
 git --no-pager diff | gsloth review
 ```
 
 **Review changes between a specific tag and the HEAD:**
-```shell
+```bash
 git --no-pager diff v0.8.3..HEAD | gth review
 ```
 
 **Review diff between head and previous release and head using a specific requirements provider (GitHub issue 38), not the one which is configured by default:
-```shell
+```bash
 git --no-pager diff v0.8.10 HEAD | npx gth review --requirements-provider github -r 38
 ```
 
 **Ask questions:**
-```shell
+```bash
 gsloth ask "What does this function do?" -f utils.js
 ```
 
 **Write release notes:**
-```shell
+```bash
 git --no-pager diff v0.8.3..HEAD | gth ask "inspect existing release notes in assets/release-notes/v0_8_2.md; inspect provided diff and write release notes to v0_8_4.md"
 ```
 
@@ -120,7 +120,7 @@ To write this to filesystem, you'd need to add filesystem access to the *ask* co
 
 
 **Interactive sessions:**
-```shell
+```bash
 gsloth chat  # Start chat session
 gsloth code  # Start coding session
 ```
@@ -130,7 +130,7 @@ gsloth code  # Start coding session
 Tested with Node 22 LTS.
 
 ### NPM
-```shell
+```bash
 npm install gaunt-sloth-assistant -g
 ```
 
@@ -149,7 +149,7 @@ More detailed information on configuration can be found in [CONFIGURATION.md](./
 
 ### Google GenAI (AI Studio)
 
-```shell
+```bash
 cd ./your-project
 gsloth init google-genai
 ```
@@ -158,7 +158,7 @@ It is recommended to obtain API key from Google AI Studio official website rathe
 
 ### Google Vertex AI
 
-```shell
+```bash
 cd ./your-project
 gsloth init vertexai
 gcloud auth login
@@ -167,7 +167,7 @@ gcloud auth application-default login
 
 ### Open Router
 
-```shell
+```bash
 cd ./your-project
 gsloth init openrouter
 ```
@@ -176,7 +176,7 @@ Make sure you either define `OPEN_ROUTER_API_KEY` environment variable or edit y
 
 ### Anthropic
 
-```shell
+```bash
 cd ./your-project
 gsloth init anthropic
 ```
@@ -184,14 +184,14 @@ gsloth init anthropic
 Make sure you either define `ANTHROPIC_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ### Groq
-```shell
+```bash
 cd ./your-project
 gsloth init groq
 ```
 Make sure you either define `GROQ_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ### DeepSeek
-```shell
+```bash
 cd ./your-project
 gsloth init deepseek
 ```
@@ -199,7 +199,7 @@ Make sure you either define `DEEPSEEK_API_KEY` environment variable or edit your
 It is recommended to obtain API key from DeepSeek official website rather than from a reseller.
 
 ### OpenAI
-```shell
+```bash
 cd ./your-project
 gsloth init openai
 ```
@@ -207,14 +207,14 @@ Make sure you either define `OPENAI_API_KEY` environment variable or edit your c
 
 ### OpenAI-compatible providers (Inception, etc.)
 For providers using OpenAI-compatible APIs:
-```shell
+```bash
 cd ./your-project
 gsloth init openai
 ```
 Then edit your configuration to add custom base URL and API key. See [CONFIGURATION.md](./docs/CONFIGURATION.md) for examples.
 
 ### xAI
-```shell
+```bash
 cd ./your-project
 gsloth init xai
 ```

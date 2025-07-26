@@ -10,7 +10,7 @@ import { initDebugLogging, debugLog, debugLogError, debugLogObject } from '#src/
 
 /**
  * Agent simplifies interaction with LLM and reduces it to calling a few methods
- * {@link #init} and {@link #processMessages}.
+ * {@link GthAgentRunner#init} and {@link GthAgentRunner#processMessages}.
  */
 export class GthAgentRunner {
   private statusUpdate: StatusUpdateCallback;

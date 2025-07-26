@@ -5,6 +5,7 @@ import { dirname, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentDir, getInstallDir, stdout } from '#src/systemUtils.js';
 import url from 'node:url';
+import { debugLog } from './debugUtils.js';
 
 export function toFileSafeString(string: string): string {
   return string.replace(/[^A-Za-z0-9]/g, '-');
@@ -250,6 +251,7 @@ export function formatToolCalls(
 ): string {
   const formatted = toolCalls
     .map((toolCall) => {
+      debugLog(JSON.stringify(toolCall));
       const formattedArgs = formatToolCallArgs(toolCall.args || {});
       return `${toolCall.name}(${formattedArgs})`;
     })

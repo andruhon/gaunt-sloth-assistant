@@ -3,5 +3,7 @@
     "type": "google-genai",
     "model": "gemini-2.5-pro",
     "temperature": 0
-  }
+  },
+  "canInterruptInferenceWithEsc": false,
+  "streamSessionInferenceLog": false
 }

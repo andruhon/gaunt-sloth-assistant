@@ -2,5 +2,7 @@
   "llm": {
     "type": "deepseek",
     "model": "deepseek-reasoner"
-  }
+  },
+  "canInterruptInferenceWithEsc": false,
+  "streamSessionInferenceLog": false
 }

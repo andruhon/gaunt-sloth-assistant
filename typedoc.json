@@ -3,29 +3,14 @@
   "name": "Gaunt Sloth Assistant",
   "entryPoints": ["src"],
   "entryPointStrategy": "expand",
-  "sort": ["source-order"],
   "categorizeByGroup": false,
   "out": "./docs-generated",
-  "projectDocuments": [
-    "docs/COMMANDS.md",
-    "docs/CONFIGURATION.md",
-    "docs/DEVELOPMENT.md"
-  ],
-  "searchCategoryBoosts": {
-    "Component": 2,
-    "Model": 1.2
-  },
-  "searchGroupBoosts": {
-    "Classes": 1.5
-  },
+  "projectDocuments": ["docs/COMMANDS.md", "docs/CONFIGURATION.md", "docs/DEVELOPMENT.md"],
+  "sourceLinkExternal": true,
   "navigationLinks": {
-    "GitHub": "https://github.com/andruhon/gaunt-sloth-assistant/"
+    "GitHub": "https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant"
   },
-  "highlightLanguages": [
-    "typescript",
-    "javascript",
-    "markdown"
-  ],
+  "highlightLanguages": ["typescript", "javascript", "markdown", "json", "bash"],
   "markdownItOptions": {
     "html": true
   },

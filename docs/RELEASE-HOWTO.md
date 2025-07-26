@@ -4,7 +4,7 @@
 
 Good habit is to ask Gaunt Sloth to review changes before releasing them:
 
-```shell
+```bash
 git --no-pager diff v0.8.3..HEAD | gth review
 ```
 
@@ -15,7 +15,7 @@ the `files` makes .npmignore ignored.
 
 For patch, e.g., from 0.0.8 to 0.0.9
 
-```shell
+```bash
 npm version patch -m "Release notes"
 git push
 git push --tags
@@ -23,7 +23,7 @@ git push --tags
 
 For minor, e.g., from 0.0.8 to 0.1.0
 
-```shell
+```bash
 npm version minor -m "Release notes"
 git push
 git push --tags
@@ -35,13 +35,13 @@ Type `\` and then Enter to type new line in message.
 
 Note the release version from pervious step and do
 
-```shell
+```bash
 gh release create --notes-from-tag
 ```
 
 or
 
-```shell
+```bash
 gh release create --notes-file pathToFile
 ```
 
@@ -51,7 +51,7 @@ Alternatively `gh release create --notes "notes"`
 
 This step is now automated, and GitHub action publishes any new release with Release action.
 
-```shell
+```bash
 npm login
 npm publish
 ```
@@ -62,7 +62,7 @@ Remember to review a list of files in the build, before confirming it.
 
 Configure KDE diff Kompare as github difftool
 
-```shell
+```bash
 # Configure default git diff tool
 git config --global diff.tool kompare
 # Compare all changed files
@@ -71,7 +71,7 @@ git difftool v0.9.3 HEAD -d
 
 Configure vimdiff
 
-```shell
+```bash
 # Configure default git diff tool
 git config --global diff.tool vimdiff
 # Compare changed files one by one
@@ -82,7 +82,7 @@ git difftool v0.9.3 HEAD
 
 Delete incidental remote and local tag
 
-```shell
+```bash
 git tag -d v0.3.0
 git push --delete origin v0.3.0
 ```

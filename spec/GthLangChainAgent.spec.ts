@@ -13,6 +13,8 @@ import type { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 
 const systemUtilsMock = {
   getCurrentDir: vi.fn(),
+  stopWaitingForEscape: vi.fn(),
+  waitForEscape: vi.fn(),
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
@@ -253,7 +255,7 @@ describe('GthLangChainAgent', () => {
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'info',
-        '\nRequested tools: read_file(), write_file()'
+        '\nRequested tools: read_file(), write_file()\n'
       );
     });
 
@@ -336,7 +338,7 @@ describe('GthLangChainAgent', () => {
       };
       await agent.invoke([new HumanMessage('test message')], runConfig);
 
-      expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nRequested tools: read_file()');
+      expect(statusUpdateCallback).toHaveBeenCalledWith('info', '\nRequested tools: read_file()\n');
     });
 
     it('should handle multiple tool calls in non-streaming mode', async () => {
@@ -384,7 +386,7 @@ describe('GthLangChainAgent', () => {
 
       expect(statusUpdateCallback).toHaveBeenCalledWith(
         'info',
-        '\nRequested tools: read_file(), write_file()'
+        '\nRequested tools: read_file(), write_file()\n'
       );
     });
 
@@ -481,7 +483,7 @@ describe('GthLangChainAgent', () => {
       };
       const stream = await agent.stream([new HumanMessage('test message')], runConfig);
 
-      const chunks = [];
+      const chunks: any[] = [];
       for await (const chunk of stream) {
         chunks.push(chunk);
       }

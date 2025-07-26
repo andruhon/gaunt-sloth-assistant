@@ -2,7 +2,7 @@
 
 Populate `.gsloth.guidelines.md` with your project details and quality requirements.
 A proper preamble is paramount for good inference.
-Check [.gsloth.guidelines.md](../.gsloth.guidelines.md) for example.
+Check [.gsloth.guidelines.md](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/blob/main/.gsloth.guidelines.md) for example.
 
 Your project should have the following files in order for gsloth to function:
 - Configuration file (one of):
@@ -38,49 +38,11 @@ If the `.gsloth` directory doesn't exist, gsloth will continue writing all files
 
 ## Configuration Object
 
-It is always worth checking sourcecode in [config.ts](../src/config.ts) for more insightful information.
+Refer to documentation site for [Configuration Interface](https://gaunt-sloth-assistant.github.io/docs/interfaces/config.GthConfig.html)
 
-| Parameter                                | Required                          | Default Value | Description                                                                                                                                                                                                                                               |
-|------------------------------------------|-----------------------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `llm`                                    | Required                          | -             | An object configuring LLM. In JS config could be actual instance of LangChainJS [BaseChatModel](https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html), allowing to use LLMs which do not have a preset. |
-| `llm.type`                               | Required (when using JSON config) | -             | LLM type or provider. Options currently available are `anthropic`, `groq`, `deepseek`, `openai`, `google-genai`, `vertexai` and `xai`. For providers using OpenAI format (like Inception), use `openai` type with custom configuration. To use other models supported by LangChainJS, please use JavaScript config.                                                                                     |
-| `llm.model`                              | Optional                          | -             | Particular LLM model string (Check in your provider documentation).                                                                                                                                                                                       |
-| `llm.apiKey`                             | Optional                          | -             | API key for the LLM provider. You can either use this parameter or use environment variable.                                                                                                                                                              |
-| `contentProvider`                        | Optional                          | `file`        | Default content provider used to get content for review. Options available are `github`, `file` and `text` (`text` provides text as it is).                                                                                                               |
-| `requirementsProvider`                   | Optional                          | `file`        | Default requirements provider used to get requirements for review. Options available are `jira`, `jira-legacy`, `github`, `file` and `text`.                                                                                                              |
-| `projectGuidelines`                      | Optional                          | `.gsloth.guidelines.md` | Path to the file containing project guidelines.                                                                                                                                                                                                           |
-| `projectReviewInstructions`              | Optional                          | `.gsloth.review.md` | Path to the file containing project review instructions.                                                                                                                                                                                                  |
-| `streamOutput`                           | Optional                          | `true`        | When set to `true`, AI responses are streamed to the console in real-time. When `false`, responses are displayed only after completion.                                                                                                                   |
-| `filesystem`                             | Optional                          | See note      | File system access configuration. Options: `'all'`, `'none'`, or an array of specific file operation names. Default is an array of read-only operations: `['read_file', 'read_multiple_files', 'list_directory', 'directory_tree', 'search_files', 'get_file_info', 'list_allowed_directories']`. |
-| `commands`                               | Optional                          | -             | Configuration for specific commands.                                                                                                                                                                                                                      |
-| `commands.pr`                            | Optional                          | -             | Configuration for the PR command.                                                                                                                                                                                                                         |
-| `commands.pr.contentProvider`            | Optional                          | `github`      | Content provider used for PR review (`gsloth pr`).                                                                                                                                                                                                        |
-| `commands.pr.requirementsProvider`       | Optional                          | `github`      | Requirements provider used for PR review. If not specified, falls back to the global `requirementsProvider`.                                                                                                                                              |
-| `commands.pr.filesystem`                 | Optional                          | -             | File system access configuration for PR command. Options: `'all'`, `'none'`, or specific file patterns for read-only access.                                                                                                                              |
-| `commands.review`                        | Optional                          | -             | Configuration for the review command.                                                                                                                                                                                                                     |
-| `commands.review.contentProvider`        | Optional                          | -             | Content provider specifically for the review command. If not specified, falls back to the global `contentProvider`.                                                                                                                                       |
-| `commands.review.requirementsProvider`   | Optional                          | -             | Requirements provider specifically for the review command. If not specified, falls back to the global `requirementsProvider`.                                                                                                                             |
-| `commands.review.filesystem`             | Optional                          | -             | File system access configuration for review command. Options: `'all'`, `'none'`, or specific file patterns for read-only access.                                                                                                                           |
-| `commands.ask`                           | Optional                          | -             | Configuration for the ask command.                                                                                                                                                                                                                        |
-| `commands.ask.filesystem`                | Optional                          | -             | File system access configuration for ask command. Options: `'all'`, `'none'`, or specific file patterns for read-only access.                                                                                                                              |
-| `commands.chat`                          | Optional                          | -             | Configuration for the chat command (interactive chat sessions).                                                                                                                                                                                           |
-| `commands.chat.filesystem`               | Optional                          | -             | File system access configuration for chat command. Options: `'all'`, `'none'`, or specific file patterns for read-only access.                                                                                                                             |
-| `commands.code`                          | Optional                          | -             | Configuration for the code command (interactive coding sessions with file system access).                                                                                                                                                                 |
-| `commands.code.filesystem`               | Optional                          | `all`         | File system access configuration for code command. Options: `'all'`, `'none'`, or specific file patterns. Default is `'all'` for full file system access.                                                                                                 |
-| `requirementsProviderConfig`             | Optional                          | -             | Configuration for requirements providers. Contains provider-specific configurations.                                                                                                                                                                      |
-| `requirementsProviderConfig.jira`        | Optional                          | -             | Configuration for the Jira requirements provider (Atlassian REST API v3 with Personal Access Token).                                                                                                                                                      |
-| `requirementsProviderConfig.jira.username` | Optional                          | -             | Jira username (email). Can also be set via JIRA_USERNAME environment variable.                                                                                                                                                                            |
-| `requirementsProviderConfig.jira.token`  | Optional                          | -             | Jira Personal Access Token. Can also be set via JIRA_API_PAT_TOKEN environment variable.                                                                                                                                                                  |
-| `requirementsProviderConfig.jira.cloudId` | Required for `jira`                | -             | Atlassian Cloud ID. Can also be set via JIRA_CLOUD_ID environment variable.                                                                                                                                                                               |
-| `requirementsProviderConfig.jira.displayUrl` | Optional                          | -             | Optional URL for displaying Jira issues (e.g., "https://yourcompany.atlassian.net/browse/").                                                                                                                                                              |
-| `requirementsProviderConfig.jira-legacy` | Optional                          | -             | Configuration for the Jira Legacy requirements provider (Atlassian REST API v2 with Legacy API Token).                                                                                                                                                    |
-| `requirementsProviderConfig.jira-legacy.username` | Optional                          | -             | Jira username (email). Can also be set via JIRA_USERNAME environment variable.                                                                                                                                                                            |
-| `requirementsProviderConfig.jira-legacy.token` | Optional                          | -             | Jira Legacy API Token. Can also be set via JIRA_LEGACY_API_TOKEN environment variable.                                                                                                                                                                    |
-| `requirementsProviderConfig.jira-legacy.baseUrl` | Required for `jira-legacy`          | -             | Base URL for the Jira API (e.g., "https://yourcompany.atlassian.net/rest/api/2/issue/").                                                                                                                                                                  |
-| `requirementsProviderConfig.jira-legacy.displayUrl` | Optional                          | -             | Optional URL for displaying Jira issues (e.g., "https://yourcompany.atlassian.net/browse/").                                                                                                                                                              |
-| `contentProviderConfig`                  | Optional                          | -             | Configuration for content providers. Currently, the available content providers (`github`, `file`, and `text`) don't require specific configuration.                                                                                                      |
-| `tools`                                  | Optional (JS config only)         | -             | Array of LangChain tools that can be used by the LLM. This option is only available when using JavaScript configuration, allowing you to extend functionality with custom tools.                                                                          |
-| `mcpServers`                              | Optional                          | -             | Configuration for Model Context Protocol (MCP) servers. This allows for enhanced context management.                                                                                                                               |
+Refer to documentation site for [Default Config Values](https://gaunt-sloth-assistant.github.io/docs/variables/config.DEFAULT_CONFIG.html)
+
+It is always worth checking sourcecode in [config.ts](../src/config.ts) for more insightful information.
 
 ## Config initialization
 Configuration can be created with `gsloth init [vendor]` command.
@@ -88,13 +50,13 @@ Currently, anthropic, groq, deepseek, openai, google-genai, vertexai and xai can
 For providers using OpenAI format (like Inception), use `gsloth init openai` and then modify the configuration.
 
 ### Google GenAI (AI Studio)
-```shell
+```bash
 cd ./your-project
 gsloth init google-genai
 ```
 
 ### Google Vertex AI
-```shell
+```bash
 cd ./your-project
 gsloth init vertexai
 gcloud auth login
@@ -102,21 +64,21 @@ gcloud auth application-default login
 ```
 
 ### Anthropic
-```shell
+```bash
 cd ./your-project
 gsloth init anthropic
 ```
 Make sure you either define `ANTHROPIC_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ### Groq
-```shell
+```bash
 cd ./your-project
 gsloth init groq
 ```
 Make sure you either define `GROQ_API_KEY` environment variable or edit your configuration file and set up your key.
 
 ### DeepSeek
-```shell
+```bash
 cd ./your-project
 gsloth init deepseek
 ```
@@ -124,7 +86,7 @@ Make sure you either define `DEEPSEEK_API_KEY` environment variable or edit your
 (note this meant to be an API key from deepseek.com, rather than from a distributor like TogetherAI)
 
 ### OpenAI
-```shell
+```bash
 cd ./your-project
 gsloth init openai
 ```
@@ -132,7 +94,7 @@ Make sure you either define `OPENAI_API_KEY` environment variable or edit your c
 
 ### Open Router
 
-```shell
+```bash
 cd ./your-project
 gsloth init openrouter
 ```
@@ -141,7 +103,7 @@ Make sure you either define `OPEN_ROUTER_API_KEY` environment variable or edit y
 
 ### Other OpenAI-compatible providers (Inception, etc.)
 For providers that use OpenAI-compatible APIs:
-```shell
+```bash
 cd ./your-project
 gsloth init openai
 ```
@@ -162,7 +124,7 @@ Then edit your configuration file to add the custom base URL and API key. For ex
 * apiKeyEnvironmentVariable property can be used to point to the correct API key environment variable.
 
 ### xAI
-```shell
+```bash
 cd ./your-project
 gsloth init xai
 ```
@@ -399,7 +361,7 @@ export async function configure() {
 }
 ```
 
-**Example of .gsloth.config.mjs for VertexAI**  
+**Example of .gsloth.config.mjs for VertexAI**
 VertexAI usually needs `gcloud auth application-default login`
 (or both `gcloud auth login` and `gcloud auth application-default login`) and does not need any separate API keys.
 ```javascript
@@ -522,7 +484,7 @@ Gaunt Sloth supports GitHub issues as a requirements provider using the GitHub C
 
 The command syntax is `gsloth pr <prId> [githubIssueId]`. For example:
 
-```shell
+```bash
 gsloth pr 42 23
 ```
 
@@ -530,7 +492,7 @@ This will review PR #42 and include GitHub issue #23 as requirements.
 
 To explicitly specify the GitHub issue provider:
 
-```shell
+```bash
 gsloth pr 42 23 -p github
 ```
 
@@ -765,7 +727,7 @@ Some AI providers provide integrated server tools, such as web search.
 }
 ```
 
-**.gsloth.config.json for Anthropic Web Search** 
+**.gsloth.config.json for Anthropic Web Search**
 ```json
 {
   "llm": {

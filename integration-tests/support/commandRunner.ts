@@ -48,7 +48,7 @@ export async function runCommandWithArgs(
       if (code === 0) {
         resolve(stdout.trim());
       } else {
-        reject(new Error(`Command failed with code ${code}\n${stderr}`));
+        reject(new Error(`Command failed with code ${code}\n${stderr}\n${stdout}`));
       }
     });
   });

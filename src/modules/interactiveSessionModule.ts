@@ -1,12 +1,16 @@
 import { CommandLineConfigOverrides, initConfig } from '#src/config.js';
 import {
-  defaultStatusCallbacks,
+  defaultStatusCallback,
   display,
   displayInfo,
+  flushSessionLog,
   formatInputPrompt,
+  initSessionLogging,
+  stopSessionLogging,
 } from '#src/consoleUtils.js';
-import { MemorySaver } from '@langchain/langgraph';
-import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
+import { getGslothFilePath } from '#src/filePathUtils.js';
+import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import {
   createInterface,
   error,
@@ -14,11 +18,9 @@ import {
   stdin as input,
   stdout as output,
 } from '#src/systemUtils.js';
-import { getGslothFilePath } from '#src/filePathUtils.js';
 import { appendToFile, generateStandardFileName } from '#src/utils.js';
-import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
-import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
-import { StatusLevel } from '#src/core/types.js';
+import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { MemorySaver } from '@langchain/langgraph';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';
@@ -38,11 +40,8 @@ export async function createInteractiveSession(
   // Initialize Runner
 
   const logFileName = getGslothFilePath(generateStandardFileName(sessionConfig.mode.toUpperCase()));
-  const statusCallback = (level: StatusLevel, message: string) => {
-    appendToFile(logFileName, message); // TODO this should probably be some sort of buffer
-    defaultStatusCallbacks(level, message);
-  };
-  const runner = new GthAgentRunner(statusCallback);
+  initSessionLogging(logFileName, config.streamSessionInferenceLog);
+  const runner = new GthAgentRunner(defaultStatusCallback);
 
   try {
     await runner.init(sessionConfig.mode, config, checkpointSaver);
@@ -55,6 +54,7 @@ export async function createInteractiveSession(
     const processMessage = async (userInput: string) => {
       const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n`;
       appendToFile(logFileName, logEntry);
+      flushSessionLog(); // Ensure user input is immediately written to file
       const messages: BaseMessage[] = [];
       if (isFirstMessage) {
         const systemPromptParts = [readBackstory(), readGuidelines(config.projectGuidelines)];
@@ -70,7 +70,10 @@ export async function createInteractiveSession(
       }
       messages.push(new HumanMessage(userInput));
 
-      await runner.processMessages(messages);
+      const response = await runner.processMessages(messages);
+      if (!config.streamSessionInferenceLog) {
+        appendToFile(logFileName, response);
+      }
 
       isFirstMessage = false;
     };
@@ -85,6 +88,7 @@ export async function createInteractiveSession(
         if (lowerInput === 'exit' || lowerInput === '/exit') {
           shouldExit = true;
           await runner.cleanup();
+          stopSessionLogging();
           rl.close();
           return;
         }
@@ -128,6 +132,7 @@ export async function createInteractiveSession(
     if (!shouldExit) await askQuestion();
   } catch (err) {
     await runner.cleanup();
+    stopSessionLogging();
     error(`Error in ${sessionConfig.mode} command: ${err}`);
     exit(1);
   }

@@ -2,5 +2,7 @@
   "llm": {
     "type": "xai",
     "model": "grok-4-0709"
-  }
+  },
+  "canInterruptInferenceWithEsc": false,
+  "streamSessionInferenceLog": false
 }

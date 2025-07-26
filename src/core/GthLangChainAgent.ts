@@ -1,21 +1,25 @@
-import { AIMessage, isAIMessage } from '@langchain/core/messages';
+import { getDefaultTools } from '#src/builtInToolsConfig.js';
 import { GthConfig, ServerTool } from '#src/config.js';
+import { displayInfo } from '#src/consoleUtils.js';
+import { GthAgentInterface, GthCommand, StatusLevel } from '#src/core/types.js';
+import { debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
+import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
+import type { Message } from '#src/modules/types.js';
+import { stopWaitingForEscape, waitForEscape } from '#src/systemUtils.js';
+import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
+import { isAIMessage } from '@langchain/core/messages';
+import { RunnableConfig } from '@langchain/core/runnables';
+import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
+import { IterableReadableStream } from '@langchain/core/utils/stream';
+import {
+  BaseCheckpointSaver,
+  CompiledStateGraph,
+  StateDefinition,
+  StateType,
+} from '@langchain/langgraph';
+import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient, StreamableHTTPConnection } from '@langchain/mcp-adapters';
-import { createReactAgent } from '@langchain/langgraph/prebuilt';
-import { BaseCheckpointSaver, CompiledStateGraph } from '@langchain/langgraph';
-import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
-import { ToolCall } from '@langchain/core/messages/tool';
-import { GthAgentInterface, GthCommand, StatusLevel } from '#src/core/types.js';
-import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
-import { getDefaultTools } from '#src/builtInToolsConfig.js';
-import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
-import { displayInfo } from '#src/consoleUtils.js';
-import { IterableReadableStream } from '@langchain/core/utils/stream';
-import { RunnableConfig } from '@langchain/core/runnables';
-import type { Message } from '#src/modules/types.js';
-import { debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
-import { stopWaitingForEscape, waitForEscape } from '#src/systemUtils.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -82,7 +86,24 @@ export class GthLangChainAgent implements GthAgentInterface {
       llm: this.config.llm,
       tools,
       checkpointSaver,
-      postModelHook: configIn.hooks?.postModelHook,
+      postModelHook: (state: StateType<StateDefinition>) => {
+        debugLogObject('postModel state', state);
+        const lastMessage = state.messages[state.messages.length - 1];
+        if (
+          isAIMessage(lastMessage) &&
+          lastMessage.tool_calls &&
+          lastMessage.tool_calls?.length > 0
+        ) {
+          this.statusUpdate(
+            'info',
+            `\nRequested tools: ${formatToolCalls(lastMessage.tool_calls)}\n`
+          );
+        }
+        if (configIn.hooks?.postModelHook) {
+          return configIn.hooks.postModelHook(state);
+        }
+        return state;
+      },
       preModelHook: configIn.hooks?.preModelHook,
     });
     debugLog('React agent created successfully');
@@ -109,21 +130,7 @@ export class GthLangChainAgent implements GthAgentInterface {
         debugLog('Calling agent.invoke...');
         const response = await this.agent.invoke({ messages }, runConfig);
 
-        debugLog(`Response received with ${response.messages.length} messages`);
-        debugLogObject('Full Response', response);
-
         const aiMessage = response.messages[response.messages.length - 1].content as string;
-        debugLogObject('LLM Response', aiMessage);
-
-        const toolCalls = response.messages
-          .filter((msg: AIMessage) => msg.tool_calls && msg.tool_calls.length > 0)
-          .flatMap((msg: AIMessage) => msg.tool_calls ?? [])
-          .filter((tc: ToolCall) => tc.name);
-
-        if (toolCalls.length > 0) {
-          debugLogObject('Tool Calls', toolCalls);
-          this.statusUpdate('info', `\nRequested tools: ${formatToolCalls(toolCalls)}`);
-        }
 
         this.statusUpdate('display', aiMessage);
         return aiMessage;
@@ -170,9 +177,7 @@ export class GthLangChainAgent implements GthAgentInterface {
 
     const statusUpdate = this.statusUpdate;
     const interruptState = { escape: false };
-    if (this.config.canInterruptInferenceWithEsc) {
-      waitForEscape(() => (interruptState.escape = true));
-    }
+    waitForEscape(() => (interruptState.escape = true), this.config.canInterruptInferenceWithEsc);
 
     return new IterableReadableStream({
       async start(controller) {
@@ -188,14 +193,9 @@ export class GthLangChainAgent implements GthAgentInterface {
 
               statusUpdate('stream', text);
               controller.enqueue(text);
-
-              const toolCalls = chunk.tool_calls?.filter((tc) => tc.name);
-              if (toolCalls && toolCalls.length > 0) {
-                statusUpdate('info', `\nRequested tools: ${formatToolCalls(toolCalls)}`);
-              }
             }
             if (interruptState.escape) {
-              statusUpdate('warning', '\nInterrupted by user, exiting');
+              statusUpdate('warning', '\n\nInterrupted by user, exiting\n\n');
               break;
             }
           }

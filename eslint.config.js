@@ -17,6 +17,7 @@ const globalIgnores = [
   '**/node_modules/**',
   '**/dist/**',
   '**/test-data/**',
+  'docs-generated/**',
   'coverage/**',
   '.git/**',
 ];

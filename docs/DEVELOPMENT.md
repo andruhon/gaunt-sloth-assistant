@@ -4,7 +4,7 @@
 
 Install dev version globally
 
-```shell
+```bash
 git clone https://github.com/andruhon/gaunt-sloth.git
 npm install
 npm install -g ./
@@ -15,7 +15,7 @@ Unit tests are implemented with [Vitest](https://vitest.dev/).
 
 Running unit tests:
 
-```shell
+```bash
 npm run test
 ```
 

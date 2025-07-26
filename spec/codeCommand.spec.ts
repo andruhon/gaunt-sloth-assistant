@@ -7,7 +7,6 @@ import { createInterface } from 'node:readline/promises';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
-import { appendToFile } from '#src/utils.js';
 import type { GthConfig } from '#src/config.js';
 
 // Mock modules
@@ -22,19 +21,37 @@ vi.mock('#src/config.js', () => ({
   initConfig: vi.fn().mockResolvedValue({
     projectGuidelines: 'Mock guidelines',
     llm: 'Mock LLM',
+    streamSessionInferenceLog: true,
   }),
 }));
 
-vi.mock('#src/consoleUtils.js', () => ({
-  display: vi.fn(),
-  displayError: vi.fn(),
-  displaySuccess: vi.fn(),
-  displayInfo: vi.fn(),
-  displayWarning: vi.fn(),
-  displayDebug: vi.fn(),
-  defaultStatusCallbacks: vi.fn(),
-  formatInputPrompt: vi.fn().mockImplementation((v) => v),
-}));
+vi.mock('#src/consoleUtils.js', async () => {
+  const actual = await vi.importActual('#src/consoleUtils.js');
+  return {
+    ...actual,
+    display: vi.fn(),
+    displayError: vi.fn(),
+    displaySuccess: vi.fn(),
+    displayInfo: vi.fn(),
+    displayWarning: vi.fn(),
+    displayDebug: vi.fn(),
+    defaultStatusCallbacks: vi.fn(),
+    formatInputPrompt: vi.fn().mockImplementation((v) => v),
+    initSessionLogging: vi.fn(),
+    stopSessionLogging: vi.fn(),
+    flushSessionLog: vi.fn(),
+  };
+});
+
+vi.mock('#src/systemUtils.js', async () => {
+  const actual = await vi.importActual('#src/systemUtils.js');
+  return {
+    ...actual,
+    initLogStream: vi.fn(),
+    writeToLogStream: vi.fn(),
+    closeLogStream: vi.fn(),
+  };
+});
 
 vi.mock('#src/filePathUtils.js', () => ({
   getGslothFilePath: vi.fn().mockReturnValue('mock/code/file.txt'),
@@ -97,7 +114,7 @@ describe('codeCommand', () => {
   });
 
   it('Should display help correctly', () => {
-    codeCommand(program);
+    codeCommand(program, {});
     expect(program.commands[0].description()).toBe(
       'Interactively write code with sloth (has full file system access within your project)'
     );
@@ -135,7 +152,7 @@ describe('codeCommand', () => {
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
 
-    codeCommand(program);
+    codeCommand(program, {});
     await program.parseAsync(['na', 'na', 'code', 'test message']);
 
     expect(gthAgentRunnerInstanceMock.init).toHaveBeenCalledWith(
@@ -190,7 +207,7 @@ describe('codeCommand', () => {
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
 
-    codeCommand(program);
+    codeCommand(program, {});
     await program.parseAsync(['na', 'na', 'code']);
 
     expect(mockReadline.question).toHaveBeenCalledWith('  > ');
@@ -237,9 +254,9 @@ describe('codeCommand', () => {
     } as unknown as ReadlineInterface;
 
     vi.mocked(createInterface).mockReturnValue(mockReadline);
-    vi.mocked(display).mockImplementation(vi.fn());
+    vi.mocked(display).mockImplementation(() => {});
 
-    codeCommand(program);
+    codeCommand(program, {});
     await program.parseAsync(['na', 'na', 'code']);
 
     expect(mockReadline.question).toHaveBeenCalledWith('  > ');
@@ -262,6 +279,7 @@ describe('codeCommand', () => {
       requirementsProvider: 'file',
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none' as const,
+      streamSessionInferenceLog: true,
     } as Partial<GthConfig>;
     const { initConfig } = await import('#src/config.js');
     vi.mocked(initConfig).mockResolvedValue(mockConfig as GthConfig);
@@ -289,7 +307,7 @@ describe('codeCommand', () => {
     ]);
   });
 
-  it('Should save the conversation to a file', async () => {
+  it('Should configure logging for the session', async () => {
     const mockConfig = {
       projectGuidelines: 'Mock guidelines',
       llm: new FakeStreamingChatModel({}),
@@ -298,10 +316,11 @@ describe('codeCommand', () => {
       requirementsProvider: 'file',
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none' as const,
+      streamSessionInferenceLog: true,
     } as Partial<GthConfig>;
     const { initConfig } = await import('#src/config.js');
     vi.mocked(initConfig).mockResolvedValue(mockConfig as GthConfig);
-    vi.mocked(invoke).mockResolvedValue('Mock response');
+    const { initSessionLogging } = await import('#src/consoleUtils.js');
     const messages = ['first message', 'exit'];
     let messageIndex = 0;
     const mockReadline = {
@@ -311,11 +330,36 @@ describe('codeCommand', () => {
       close: vi.fn(),
     };
     vi.mocked(createInterface).mockReturnValue(mockReadline as any);
-    codeCommand(program);
+    codeCommand(program, {});
     await program.parseAsync(['na', 'na', 'code']); // Start code session
-    expect(vi.mocked(appendToFile)).toHaveBeenCalledWith(
-      'mock/code/file.txt',
-      '## User\n\nfirst message\n\n## Assistant\n\nMock response\n\n'
-    );
+    expect(vi.mocked(initSessionLogging)).toHaveBeenCalledWith('mock/code/file.txt', true);
+  });
+
+  it('Should flush session log after processing user input', async () => {
+    const mockConfig = {
+      projectGuidelines: 'Mock guidelines',
+      llm: new FakeStreamingChatModel({}),
+      streamOutput: false,
+      contentProvider: 'file',
+      requirementsProvider: 'file',
+      projectReviewInstructions: '.gsloth.review.md',
+      filesystem: 'none' as const,
+      streamSessionInferenceLog: true,
+    } as Partial<GthConfig>;
+    const { initConfig } = await import('#src/config.js');
+    vi.mocked(initConfig).mockResolvedValue(mockConfig as GthConfig);
+    const { flushSessionLog } = await import('#src/consoleUtils.js');
+    const messages = ['test message', 'exit'];
+    let messageIndex = 0;
+    const mockReadline = {
+      question: vi.fn().mockImplementation(() => {
+        return Promise.resolve(messages[messageIndex++]);
+      }),
+      close: vi.fn(),
+    };
+    vi.mocked(createInterface).mockReturnValue(mockReadline as any);
+    codeCommand(program, {});
+    await program.parseAsync(['na', 'na', 'code']); // Start code session
+    expect(vi.mocked(flushSessionLog)).toHaveBeenCalled();
   });
 });

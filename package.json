@@ -25,7 +25,8 @@
     "lint": "eslint . --ext .js,.ts",
     "lint-n-fix": "eslint . --ext .js,.ts --fix",
     "format": "prettier --write 'src/**/*.{js,ts}'",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "typedoc": "typedoc"
   },
   "bin": {
     "gaunt-sloth-assistant": "cli.js",

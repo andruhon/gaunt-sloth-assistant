@@ -1,3 +1,11 @@
+/**
+ * @packageDocumentation
+ * Gaunt Sloth Configuration.
+ *
+ * Refer to {@link GthConfig} to find all possible configuration properties.
+ *
+ * Refer to {@link DEFAULT_CONFIG} for default configuration.
+ */
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
@@ -22,9 +30,16 @@ import { StateDefinition, StateType } from '@langchain/langgraph';
 
 /**
  * This is a processed Gaunt Sloth config ready to be passed down into components.
+ *
+ * Default values can be found in {@link DEFAULT_CONFIG}
  */
-export interface GthConfig extends BaseGthConfig {
+export interface GthConfig {
   llm: BaseChatModel;
+  /**
+   * Content Provider. Provider used to fetch content (usually diff) for `review` or `pr` command.
+   *
+   * {@link DEFAULT_CONFIG#contentProvider}
+   */
   contentProvider: string;
   requirementsProvider: string;
   projectGuidelines: string;
@@ -55,62 +70,35 @@ export interface GthConfig extends BaseGthConfig {
      */
     postModelHook?: LangChainHook;
   };
+  /**
+   * Stream output. Some models do not support streaming. Set value to `false` for them.
+   *
+   * {@link DEFAULT_CONFIG#streamOutput}
+   */
   streamOutput: boolean;
+  /**
+   * Use colour in ouptut
+   */
   useColour: boolean;
+  /**
+   * Stream session log instead of writing it when inference streaming is complete.
+   * (only works when {@link streamOutput} is true)
+   */
+  streamSessionInferenceLog: boolean;
+  /**
+   * Allow inference to be interrupted with esc.
+   */
   canInterruptInferenceWithEsc: boolean;
-}
-
-/**
- * Server tools such as Anthropic Web Search.
- * These tools are meant to be magic objects like
- * `{"type": "web_search_20250305", "name": "web_search", "max_uses": 10}`,
- * AI Provider does the rest of the magic on their side.
- */
-export interface ServerTool extends Record<string, unknown> {
-  type: string;
-  name?: string;
-}
-
-type LangChainHook = (state: StateType<StateDefinition>) => StateType<StateDefinition>;
-
-type RunnerHook = (runner: GthAgentRunner) => Promise<void>;
-
-type BeforeMessageHook = (
-  runner: GthAgentRunner,
-  message: Message[],
-  runConfig: RunnableConfig
-) => Promise<void>;
-
-/**
- * Raw, unprocessed Gaunt Sloth config.
- */
-export interface RawGthConfig extends BaseGthConfig {
-  llm: LLMConfig;
-  preModelHook?: LangChainHook | 'skip';
-  postModelHook?: LangChainHook | 'skip';
-}
-
-/**
- * Do not export this one.
- * This is a basic interface for Gaunt Sloth config.
- */
-interface BaseGthConfig {
+  /**
+   * Log messages and events to gaunt-sloth.log,
+   * use llm.verbose or `gth --verbose` as more intrusive option, setting verbose to LangChain / LangGraph
+   */
   debugLog?: boolean;
-  llm: unknown;
-  contentProvider?: string;
-  requirementsProvider?: string;
-  projectGuidelines?: string;
-  projectReviewInstructions?: string;
-  streamOutput?: boolean;
-  useColour?: boolean;
-  filesystem?: string[] | 'all' | 'read' | 'none';
   customToolsConfig?: CustomToolsConfig;
   requirementsProviderConfig?: Record<string, unknown>;
   contentProviderConfig?: Record<string, unknown>;
   mcpServers?: Record<string, Connection>;
-  builtInTools?: string[];
   builtInToolsConfig?: BuiltInToolsConfig;
-  tools?: StructuredToolInterface[] | BaseToolkit[] | ServerTool[];
   commands?: {
     pr?: {
       contentProvider?: string;
@@ -139,6 +127,36 @@ interface BaseGthConfig {
       devTools?: GthDevToolsConfig;
     };
   };
+}
+
+/**
+ * Server tools such as Anthropic Web Search.
+ * These tools are meant to be magic objects like
+ * `{"type": "web_search_20250305", "name": "web_search", "max_uses": 10}`,
+ * AI Provider does the rest of the magic on their side.
+ */
+export interface ServerTool extends Record<string, unknown> {
+  type: string;
+  name?: string;
+}
+
+type LangChainHook = (state: StateType<StateDefinition>) => StateType<StateDefinition>;
+
+type RunnerHook = (runner: GthAgentRunner) => Promise<void>;
+
+type BeforeMessageHook = (
+  runner: GthAgentRunner,
+  message: Message[],
+  runConfig: RunnableConfig
+) => Promise<void>;
+
+/**
+ * Raw, unprocessed Gaunt Sloth config.
+ */
+export interface RawGthConfig extends Omit<GthConfig, 'llm'> {
+  llm: LLMConfig;
+  preModelHook?: LangChainHook | 'skip';
+  postModelHook?: LangChainHook | 'skip';
 }
 
 export type CustomToolsConfig = Record<string, object>;
@@ -209,22 +227,29 @@ export interface CommandLineConfigOverrides {
   verbose?: boolean;
 }
 
-export const DEFAULT_CONFIG: Partial<GthConfig> = {
-  llm: undefined,
+/**
+ * Default config
+ */
+export const DEFAULT_CONFIG = {
   contentProvider: 'file',
   requirementsProvider: 'file',
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   filesystem: 'read',
-  /**
-   * Log messages and events to gaunt-sloth.log,
-   * use llm.verbose or `gth --verbose` as more intrusive option, setting verbose to LangChain / LangGraph
-   */
   debugLog: false,
+  /**
+   * Default provider for both requirements and content is GitHub.
+   * It needs GitHub CLI (gh).
+   *
+   * `github` content provider uses `gh pr diff NN` internally. {@link src/providers/ghPrDiffProvider.ts!}
+   *
+   *
+   * `github` requirements provider `gh issue view NN` internally
+   */
   commands: {
     pr: {
-      contentProvider: 'github', // gh pr diff NN
-      requirementsProvider: 'github', // gh issue view NN
+      contentProvider: 'github',
+      requirementsProvider: 'github',
     },
     code: {
       filesystem: 'all',
@@ -232,8 +257,16 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
   },
   streamOutput: true,
   useColour: true,
+  streamSessionInferenceLog: true,
   canInterruptInferenceWithEsc: true,
-};
+} as const;
+
+/**
+ * Needed DEFAULT_CONFIG to be plain const to be picked up by typedoc,
+ * this cast here is just for typecheck.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+DEFAULT_CONFIG as GthConfig;
 
 /**
  * Initialize configuration by loading from available config files

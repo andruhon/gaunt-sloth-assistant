@@ -10,7 +10,7 @@ Gaunt Sloth Assistant provides several commands to help with code review, analys
 
 Initialize Gaunt Sloth Assistant in your project.
 
-```shell
+```bash
 gsloth init <type>
 ```
 
@@ -23,7 +23,7 @@ Creates the necessary configuration files for your project. If a `.gsloth` direc
 - `.gsloth.guidelines.md` - Project guidelines file
 
 ### Examples
-```shell
+```bash
 gsloth init vertexai
 gsloth init anthropic
 gsloth init groq
@@ -33,7 +33,7 @@ gsloth init groq
 
 Review a Pull Request in the current directory.
 
-```shell
+```bash
 gsloth pr <prId> [requirementsId]
 ```
 
@@ -53,7 +53,7 @@ gsloth pr <prId> [requirementsId]
 Reviews a pull request using GitHub as the default content provider. Can integrate with issue tracking systems to include requirements in the review.
 
 ### Examples
-```shell
+```bash
 # Review PR #42
 gsloth pr 42
 
@@ -71,7 +71,7 @@ gsloth pr 42 -f architecture.md notes.txt
 
 Review any diff or content provided via stdin, files, or content providers.
 
-```shell
+```bash
 gsloth review [contentId]
 ```
 
@@ -89,7 +89,7 @@ gsloth review [contentId]
 Flexible review command that can process content from various sources including stdin, files, or configured providers.
 
 ### Examples
-```shell
+```bash
 # Review current git changes
 git --no-pager diff | gsloth review
 
@@ -107,7 +107,7 @@ git diff | gsloth review -m "Please focus on security implications"
 
 Ask questions about code or general programming topics.
 
-```shell
+```bash
 gsloth ask [message]
 ```
 
@@ -121,7 +121,7 @@ gsloth ask [message]
 Ask questions with optional file context. At least one input source (message, file, or stdin) is required.
 
 ### Examples
-```shell
+```bash
 # Ask a general question
 gsloth ask "which types of primitives are available in JavaScript?"
 
@@ -139,7 +139,7 @@ cat error.log | gsloth ask "What might be causing these errors?"
 
 Start an interactive chat session with Gaunt Sloth.
 
-```shell
+```bash
 gsloth chat [message]
 ```
 
@@ -155,7 +155,7 @@ Opens an interactive chat session where you can have a conversation with the AI.
 - Chat history automatically saved
 
 ### Examples
-```shell
+```bash
 # Start a chat session
 gsloth chat
 
@@ -167,7 +167,7 @@ gsloth chat "Let's discuss the architecture of this project"
 
 Write code interactively with full file system access within your project.
 
-```shell
+```bash
 gsloth code [message]
 ```
 
@@ -185,7 +185,7 @@ Opens an interactive coding session where the AI has full read access to your pr
 - Streaming disabled for better interactive experience
 
 ### Examples
-```shell
+```bash
 # Start a code session
 gsloth code
 
