@@ -117,6 +117,7 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         debugLog: false,
+        canInterruptInferenceWithEsc: true,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -173,6 +174,7 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         debugLog: false,
+        canInterruptInferenceWithEsc: true,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -229,6 +231,7 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         debugLog: false,
+        canInterruptInferenceWithEsc: true,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -381,8 +384,9 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayWarning).not.toHaveBeenCalled();
       expect(consoleUtilsMock.display).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
-      expect(consoleUtilsMock.displayInfo).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
+
+      expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith('Model: test-model');
 
       expect(config).toEqual({
         llm: mockLlm,
@@ -390,6 +394,7 @@ describe('config', async () => {
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
+        canInterruptInferenceWithEsc: true,
         streamOutput: true,
         useColour: true,
         filesystem: 'read',
@@ -693,6 +698,7 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         debugLog: false,
+        canInterruptInferenceWithEsc: true,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -733,6 +739,7 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         debugLog: false,
+        canInterruptInferenceWithEsc: true,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },
@@ -773,6 +780,7 @@ describe('config', async () => {
         useColour: true,
         filesystem: 'read',
         debugLog: false,
+        canInterruptInferenceWithEsc: true,
         commands: {
           pr: { contentProvider: 'github', requirementsProvider: 'github' },
           code: { filesystem: 'all' },

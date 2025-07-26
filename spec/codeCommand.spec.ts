@@ -276,7 +276,7 @@ describe('codeCommand', () => {
     };
     vi.mocked(createInterface).mockReturnValue(mockReadline as any);
 
-    codeCommand(program);
+    codeCommand(program, {});
     await program.parseAsync(['na', 'na', 'code']); // Start code session
 
     expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledTimes(2);
