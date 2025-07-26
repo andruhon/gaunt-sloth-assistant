@@ -1,6 +1,7 @@
 import * as su from '#src/systemUtils.js';
 import { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 import { StatusLevel } from '#src/core/types.js';
+import { stream } from '#src/systemUtils.js';
 
 // ANSI color codes
 const ANSI_COLORS = {
@@ -78,7 +79,7 @@ export const defaultStatusCallbacks: StatusUpdateCallback = (
       display(message);
       break;
     case 'stream':
-      process.stdout.write(message);
+      stream(message);
       break;
   }
 };

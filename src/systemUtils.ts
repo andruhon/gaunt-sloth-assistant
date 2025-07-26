@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { Command } from 'commander';
 import { ProgressIndicator } from '#src/utils.js';
 import { createInterface, type Interface as ReadLineInterface } from 'node:readline/promises';
+import { displayInfo, displayWarning } from './consoleUtils.js';
 
 /**
  * This file contains all system functions and objects that are globally available
@@ -17,12 +18,42 @@ interface InnerState {
   installDir: string | null | undefined;
   stringFromStdin: string;
   useColour: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  waitForEscapeCallback?: (_: any, key: any) => void;
 }
 
 const innerState: InnerState = {
   installDir: undefined,
   stringFromStdin: '',
   useColour: false,
+  waitForEscapeCallback: undefined,
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const interuptHandler = (callback: () => void) => (_: any, key: any) => {
+  if (key?.name === 'escape') {
+    displayWarning('\nInterrupting...');
+    callback();
+  }
+};
+
+export const waitForEscape = (callback: () => void) => {
+  process.stdin.setRawMode(true);
+  innerState.waitForEscapeCallback = interuptHandler(callback);
+  process.stdin.on('keypress', innerState.waitForEscapeCallback);
+  displayInfo(`
+  ┌---------------------------------┐
+  │ Press Escape to interrupt Agent │
+  └---------------------------------┘
+  `);
+};
+
+export const stopWaitingForEscape = () => {
+  process.stdin.setRawMode(false);
+  if (innerState.waitForEscapeCallback) {
+    process.stdin.off('keypress', innerState.waitForEscapeCallback);
+    innerState.waitForEscapeCallback = undefined;
+  }
 };
 
 // Process-related functions and objects
@@ -105,3 +136,4 @@ export const error = (message: string): void => console.error(message);
 export const warn = (message: string): void => console.warn(message);
 export const info = (message: string): void => console.info(message);
 export const debug = (message: string): void => console.debug(message);
+export const stream = (chunk: string): boolean => process.stdout.write(chunk);

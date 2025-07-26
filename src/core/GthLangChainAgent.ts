@@ -15,6 +15,7 @@ import { IterableReadableStream } from '@langchain/core/utils/stream';
 import { RunnableConfig } from '@langchain/core/runnables';
 import type { Message } from '#src/modules/types.js';
 import { debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
+import { stopWaitingForEscape, waitForEscape } from '#src/systemUtils.js';
 
 export type StatusUpdateCallback = (level: StatusLevel, message: string) => void;
 
@@ -169,17 +170,9 @@ export class GthLangChainAgent implements GthAgentInterface {
 
     const statusUpdate = this.statusUpdate;
     const interruptState = { escape: false };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const interuptHandler = (_: any, key: any) => {
-      if (key?.name === 'escape') {
-        interruptState.escape = true;
-        statusUpdate('warning', '\nInterrupting...');
-      }
-    };
-    // TODO create special method in system utils
-    process.stdin.setRawMode(true);
-    process.stdin.on('keypress', interuptHandler);
-    this.statusUpdate('info', 'Press Escape to interrupt agent\n');
+    if (this.config.canInterruptInferenceWithEsc) {
+      waitForEscape(() => (interruptState.escape = true));
+    }
 
     return new IterableReadableStream({
       async start(controller) {
@@ -206,13 +199,11 @@ export class GthLangChainAgent implements GthAgentInterface {
               break;
             }
           }
-          process.stdin.setRawMode(false);
-          process.stdin.off('keypress', interuptHandler);
+          stopWaitingForEscape();
           debugLog(`Stream completed. Total chunks: ${totalChunks}`);
           controller.close();
         } catch (error) {
-          process.stdin.setRawMode(false);
-          process.stdin.off('keypress', interuptHandler);
+          stopWaitingForEscape();
           debugLogError('stream processing', error);
           if (error instanceof Error) {
             if (error?.name === 'ToolException') {
@@ -223,8 +214,7 @@ export class GthLangChainAgent implements GthAgentInterface {
         }
       },
       async cancel() {
-        process.stdin.setRawMode(false);
-        process.stdin.off('keypress', interuptHandler);
+        stopWaitingForEscape();
         // Clean up the underlying stream if it has a cancel method
         if (stream && typeof stream.cancel === 'function') {
           await stream.cancel();

@@ -29,8 +29,6 @@ export interface GthConfig extends BaseGthConfig {
   requirementsProvider: string;
   projectGuidelines: string;
   projectReviewInstructions: string;
-  streamOutput: boolean;
-  useColour: boolean;
   filesystem: string[] | 'all' | 'read' | 'none';
   builtInTools?: string[];
   tools?: StructuredToolInterface[] | BaseToolkit[] | ServerTool[];
@@ -57,6 +55,9 @@ export interface GthConfig extends BaseGthConfig {
      */
     postModelHook?: LangChainHook;
   };
+  streamOutput: boolean;
+  useColour: boolean;
+  canInterruptInferenceWithEsc: boolean;
 }
 
 /**
@@ -214,8 +215,6 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
   requirementsProvider: 'file',
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
-  streamOutput: true,
-  useColour: true,
   filesystem: 'read',
   /**
    * Log messages and events to gaunt-sloth.log,
@@ -231,6 +230,9 @@ export const DEFAULT_CONFIG: Partial<GthConfig> = {
       filesystem: 'all',
     },
   },
+  streamOutput: true,
+  useColour: true,
+  canInterruptInferenceWithEsc: true,
 };
 
 /**
