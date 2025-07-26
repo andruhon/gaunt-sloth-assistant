@@ -1,5 +1,5 @@
 # Gaunt Sloth Assistant
-[![Tests and Lint](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistantgaunt-sloth-assistant/actions/workflows/unit-tests.yml/badge.svg?event=push)](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistantgaunt-sloth-assistant/actions/workflows/unit-tests.yml) [![Integration Tests](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistantgaunt-sloth-assistant/actions/workflows/integration-tests.yml/badge.svg?event=push)](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistantgaunt-sloth-assistant/actions/workflows/integration-tests.yml)
+[![Tests and Lint](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/actions/workflows/unit-tests.yml) [![Integration Tests](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/actions/workflows/integration-tests.yml/badge.svg?event=push)](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/actions/workflows/integration-tests.yml)
 
 Gaunt Sloth Assistant is a lightweight **command line AI assistant**
 built with TypeScript (JavaScript) and distributed via NPM with minimum dependencies.
@@ -55,7 +55,7 @@ The promise of Gaunt Sloth:
 - Google AI Studio and Google Vertex AI;
 - Anthropic;
 - OpenAI (and other providers using OpenAI format, such as Inception);
-- Ollama with JS config (some of the models, see https://github.com/Galvanized-Pukeko/gaunt-sloth-assistantgaunt-sloth-assistant/discussions/107)
+- Ollama with JS config (some of the models, see https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/discussions/107)
 - xAI;
 
 `*` Any other provider supported by LangChain.JS should also work with [JS config](./docs/CONFIGURATION.md#javascript-configuration).
