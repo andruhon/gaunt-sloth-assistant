@@ -1,9 +1,20 @@
+# Release HOWTO
+
+## Creating npm version
+
+Good habit is to ask Gaunt Sloth to review changes before releasing them:
+
+```shell
+git --no-pager diff v0.8.3..HEAD | gth review
+```
+
 Make sure `npm config set git-tag-version true`
 
 ! Important ! The `files` block of package.json strictly controls what is actually released,
 the `files` makes .npmignore ignored.
 
 For patch, e.g., from 0.0.8 to 0.0.9
+
 ```shell
 npm version patch -m "Release notes"
 git push
@@ -11,24 +22,35 @@ git push --tags
 ```
 
 For minor, e.g., from 0.0.8 to 0.1.0
+
 ```shell
 npm version minor -m "Release notes"
 git push
 git push --tags
 ```
+
 Type `\` and then Enter to type new line in message.
 
-Note the release version and do
+## Publish Release to GitHub
+
+Note the release version from pervious step and do
+
 ```shell
 gh release create --notes-from-tag
 ```
+
 or
+
 ```shell
 gh release create --notes-file pathToFile
 ```
+
 Alternatively `gh release create --notes "notes"`
 
-Publish to NPM
+## Publish to NPM (optional)
+
+This step is now automated, and GitHub action publishes any new release with Release action.
+
 ```shell
 npm login
 npm publish
@@ -36,7 +58,30 @@ npm publish
 
 Remember to review a list of files in the build, before confirming it.
 
+## Viewing diff side by side
+
+Configure KDE diff Kompare as github difftool
+
+```shell
+# Configure default git diff tool
+git config --global diff.tool kompare
+# Compare all changed files
+git difftool v0.9.3 HEAD -d
+```
+
+Configure vimdiff
+
+```shell
+# Configure default git diff tool
+git config --global diff.tool vimdiff
+# Compare changed files one by one
+git difftool v0.9.3 HEAD
+```
+
+## Cleaning up the mess
+
 Delete incidental remote and local tag
+
 ```shell
 git tag -d v0.3.0
 git push --delete origin v0.3.0
