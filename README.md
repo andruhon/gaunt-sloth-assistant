@@ -8,6 +8,8 @@ built with TypeScript (JavaScript) and distributed via NPM with minimum dependen
 
 Based on [LangChain.js](https://github.com/langchain-ai/langchainjs)
 
+(Documentation)[https://gaunt-sloth-assistant.github.io/docs/] | (Oficial Site)[https://gaunt-sloth-assistant.github.io/] | (NPM)[https://www.npmjs.com/package/gaunt-sloth-assistant] | (GitHub)[https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant]
+
 ## Why?
 
 There are many Open Source command line AI assistants available, such as Aider and Goose;

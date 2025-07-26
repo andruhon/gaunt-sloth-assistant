@@ -143,6 +143,8 @@ Start an interactive chat session with Gaunt Sloth.
 gsloth chat [message]
 ```
 
+It is possible to press Escape during inference to interrupt it.
+
 ### Arguments
 - `[message]` - Initial message to start the chat
 
@@ -170,6 +172,8 @@ Write code interactively with full file system access within your project.
 ```bash
 gsloth code [message]
 ```
+
+It is possible to press Escape during inference to interrupt it.
 
 ### Arguments
 - `[message]` - Initial message to start the code session
