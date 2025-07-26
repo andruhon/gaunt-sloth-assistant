@@ -5,7 +5,7 @@
 Install dev version globally
 
 ```bash
-git clone https://github.com/andruhon/gaunt-sloth.git
+git clone https://github.com/Galvanized-Pukeko/gaunt-sloth-assistanthttps://github.com/Galvanized-Pukeko/gaunt-sloth-assistant.git
 npm install
 npm install -g ./
 ```
