@@ -21,12 +21,10 @@ const defaultHttpHeaders = {
  */
 async function gthWebFetchImpl(url: string): Promise<string> {
   try {
-    // Validate that the input is a valid URL
     if (!url || typeof url !== 'string' || !url.trim()) {
       throw new Error('Invalid URL provided');
     }
 
-    // Basic URL validation - check if it starts with http/https
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       throw new Error('URL must start with http:// or https://');
     }
@@ -47,7 +45,7 @@ async function gthWebFetchImpl(url: string): Promise<string> {
     // graceful error handling and returning
     let message = "";
     if (error instanceof Error) {
-      message = `Error occurred while fetching fetching content from ${url}: ${error.message}`;
+      message = `Error occurred while fetching content from ${url}: ${error.message}`;
     } else {
       message =  `Unknown error occurred while fetching content from ${url}: ${error}`;
     }
