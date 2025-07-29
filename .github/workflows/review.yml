@@ -10,6 +10,7 @@ on:
 jobs:
   ai-code-review:
     runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.head_ref, 'dependabot') }}
     
     steps:
       - uses: actions/checkout@v4
