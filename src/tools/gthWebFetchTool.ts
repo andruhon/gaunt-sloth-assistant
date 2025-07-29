@@ -23,11 +23,11 @@ const defaultHttpHeaders = {
 async function gthWebFetchImpl(url: string): Promise<string> {
   try {
     if (!url || typeof url !== 'string' || !url.trim()) {
-      throw new Error('Invalid URL provided');
+      return Promise.reject('Invalid URL provided');
     }
 
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      throw new Error('URL must start with http:// or https://');
+      return Promise.reject('URL must start with http:// or https://');
     }
 
     const response = await fetch(url, {
@@ -37,7 +37,7 @@ async function gthWebFetchImpl(url: string): Promise<string> {
     });
 
     if (!response.ok) {
-      throw new Error(
+      return Promise.reject(
         `Failed to fetch data from ${url} with status: ${response.status} - ${response.statusText}`
       );
     }
@@ -45,13 +45,7 @@ async function gthWebFetchImpl(url: string): Promise<string> {
     return response.text();
   } catch (error) {
     // graceful error handling and returning
-    let message = '';
-    if (error instanceof Error) {
-      message = `Error occurred while fetching content from ${url}: ${error.message}`;
-    } else {
-      message = `Unknown error occurred while fetching content from ${url}: ${error}`;
-    }
-    return message;
+    return Promise.reject(`Unknown error occurred while fetching content from ${url}: ${error}`);
   }
 }
 
