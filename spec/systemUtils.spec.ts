@@ -69,7 +69,7 @@ describe('systemUtils', () => {
       expect(processMock.stdin.setRawMode).toHaveBeenCalledWith(true);
       expect(processMock.stdin.on).toHaveBeenCalledWith('keypress', expect.any(Function));
       expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith(
-        expect.stringContaining('Press Escape to interrupt Agent')
+        expect.stringContaining('Press Escape or Q to interrupt Agent')
       );
     });
 

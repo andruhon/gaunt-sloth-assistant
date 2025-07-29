@@ -15,6 +15,7 @@ import {
   createInterface,
   error,
   exit,
+  setRawMode,
   stdin as input,
   stdout as output,
 } from '#src/systemUtils.js';
@@ -80,12 +81,14 @@ export async function createInteractiveSession(
 
     const askQuestion = async () => {
       while (!shouldExit) {
+        setRawMode(true); // resume raw mode for user input (without it every user input is parroted)
         const userInput = await rl.question(formatInputPrompt('  > '));
         if (!userInput.trim()) {
           continue; // Skip inference if no input
         }
         const lowerInput = userInput.toLowerCase();
         if (lowerInput === 'exit' || lowerInput === '/exit') {
+          console.log('Exiting...');
           shouldExit = true;
           await runner.cleanup();
           stopSessionLogging();

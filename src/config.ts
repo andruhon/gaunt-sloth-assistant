@@ -9,7 +9,7 @@
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { error, exit, setUseColour } from '#src/systemUtils.js';
+import { error, exit, isTTY, setUseColour } from '#src/systemUtils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
 import type { Connection } from '@langchain/mcp-adapters';
@@ -86,7 +86,7 @@ export interface GthConfig {
    */
   streamSessionInferenceLog: boolean;
   /**
-   * Allow inference to be interrupted with esc.
+   * Allow inference to be interrupted with esc. Only has an effect in TTY mode.
    */
   canInterruptInferenceWithEsc: boolean;
   /**
@@ -504,6 +504,8 @@ function mergeConfig(
 
   // Set the useColour value in systemUtils
   setUseColour(mergedConfig.useColour);
+
+  mergedConfig.canInterruptInferenceWithEsc = mergedConfig.canInterruptInferenceWithEsc && isTTY();
 
   return mergedConfig;
 }
