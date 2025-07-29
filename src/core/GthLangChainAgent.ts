@@ -5,7 +5,7 @@ import { GthAgentInterface, GthCommand, StatusLevel } from '#src/core/types.js';
 import { debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
 import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
 import type { Message } from '#src/modules/types.js';
-import { stopWaitingForEscape, waitForEscape } from '#src/systemUtils.js';
+import { isTTY, stopWaitingForEscape, waitForEscape } from '#src/systemUtils.js';
 import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
 import { isAIMessage } from '@langchain/core/messages';
 import { RunnableConfig } from '@langchain/core/runnables';
@@ -177,7 +177,10 @@ export class GthLangChainAgent implements GthAgentInterface {
 
     const statusUpdate = this.statusUpdate;
     const interruptState = { escape: false };
-    waitForEscape(() => (interruptState.escape = true), this.config.canInterruptInferenceWithEsc);
+    waitForEscape(
+      () => (interruptState.escape = true),
+      this.config.canInterruptInferenceWithEsc && isTTY()
+    );
 
     return new IterableReadableStream({
       async start(controller) {
