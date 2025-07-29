@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { get } from '#src/tools/gthWebFetchTool.js'; 
+import { get } from '#src/tools/gthWebFetchTool.js';
 import { GthConfig } from '#src/config.js';
 
 const mockFetch = vi.fn();
@@ -24,7 +24,9 @@ describe('gth_web_fetch tool', () => {
     });
 
     it('should have correct tool description', () => {
-      expect(tool.description).toBe('Fetch content from a web URL. Provide a valid HTTP/HTTPS URL and get the content as text.');
+      expect(tool.description).toBe(
+        'Fetch content from a web URL. Provide a valid HTTP/HTTPS URL and get the content as text.'
+      );
     });
   });
 
@@ -33,12 +35,12 @@ describe('gth_web_fetch tool', () => {
       const result = await tool.invoke(undefined);
       expect(result).toContain('Invalid URL provided');
     });
-    
+
     it('should return error message for empty string URL', async () => {
       const result = await tool.invoke('');
       expect(result).toContain('Invalid URL provided');
     });
-    
+
     it('should return error message for whitespace-only URL', async () => {
       const result = await tool.invoke('   ');
       expect(result).toContain('Invalid URL provided');
@@ -62,9 +64,9 @@ describe('gth_web_fetch tool', () => {
     it('should accept valid HTTP URL', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('test content')
+        text: vi.fn().mockResolvedValue('test content'),
       });
-      
+
       const result = await tool.invoke('http://example.com');
       expect(result).toBe('test content');
     });
@@ -72,9 +74,9 @@ describe('gth_web_fetch tool', () => {
     it('should accept valid HTTPS URL', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('test content')
+        text: vi.fn().mockResolvedValue('test content'),
       });
-      
+
       const result = await tool.invoke('https://example.com');
       expect(result).toBe('test content');
     });
@@ -84,7 +86,7 @@ describe('gth_web_fetch tool', () => {
     it('should call fetch with correct URL', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('content')
+        text: vi.fn().mockResolvedValue('content'),
       });
 
       await tool.invoke('https://example.com');
@@ -94,7 +96,7 @@ describe('gth_web_fetch tool', () => {
     it('should include Accept header in request', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('content')
+        text: vi.fn().mockResolvedValue('content'),
       });
 
       await tool.invoke('https://example.com');
@@ -102,8 +104,8 @@ describe('gth_web_fetch tool', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Accept': 'text/*'
-          })
+            Accept: 'text/*',
+          }),
         })
       );
     });
@@ -111,7 +113,7 @@ describe('gth_web_fetch tool', () => {
     it('should include Accept-Language header in request', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('content')
+        text: vi.fn().mockResolvedValue('content'),
       });
 
       await tool.invoke('https://example.com');
@@ -119,8 +121,8 @@ describe('gth_web_fetch tool', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Accept-Language': 'en-US,en;q=0.9'
-          })
+            'Accept-Language': 'en-US,en;q=0.9',
+          }),
         })
       );
     });
@@ -128,7 +130,7 @@ describe('gth_web_fetch tool', () => {
     it('should include Accept-Encoding header in request', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('content')
+        text: vi.fn().mockResolvedValue('content'),
       });
 
       await tool.invoke('https://example.com');
@@ -136,8 +138,8 @@ describe('gth_web_fetch tool', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Accept-Encoding': 'gzip, deflate, br'
-          })
+            'Accept-Encoding': 'gzip, deflate, br',
+          }),
         })
       );
     });
@@ -148,7 +150,7 @@ describe('gth_web_fetch tool', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        text: vi.fn().mockResolvedValue('success content')
+        text: vi.fn().mockResolvedValue('success content'),
       });
 
       const result = await tool.invoke('https://example.com');
@@ -159,39 +161,45 @@ describe('gth_web_fetch tool', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
-        statusText: 'Not Found'
+        statusText: 'Not Found',
       });
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Failed to fetch data from https://example.com with status: 404 - Not Found');
+      expect(result).toContain(
+        'Failed to fetch data from https://example.com with status: 404 - Not Found'
+      );
     });
 
     it('should return error message for 500 response', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
-        statusText: 'Internal Server Error'
+        statusText: 'Internal Server Error',
       });
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Failed to fetch data from https://example.com with status: 500 - Internal Server Error');
+      expect(result).toContain(
+        'Failed to fetch data from https://example.com with status: 500 - Internal Server Error'
+      );
     });
 
     it('should return error message for 403 response', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 403,
-        statusText: 'Forbidden'
+        statusText: 'Forbidden',
       });
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Failed to fetch data from https://example.com with status: 403 - Forbidden');
+      expect(result).toContain(
+        'Failed to fetch data from https://example.com with status: 403 - Forbidden'
+      );
     });
 
     it('should handle empty response content', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('')
+        text: vi.fn().mockResolvedValue(''),
       });
 
       const result = await tool.invoke('https://example.com');
@@ -202,7 +210,7 @@ describe('gth_web_fetch tool', () => {
       const htmlContent = '<html><body>Test</body></html>';
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue(htmlContent)
+        text: vi.fn().mockResolvedValue(htmlContent),
       });
 
       const result = await tool.invoke('https://example.com');
@@ -213,7 +221,7 @@ describe('gth_web_fetch tool', () => {
       const jsonContent = '{"key": "value"}';
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue(jsonContent)
+        text: vi.fn().mockResolvedValue(jsonContent),
       });
 
       const result = await tool.invoke('https://example.com');
@@ -224,7 +232,7 @@ describe('gth_web_fetch tool', () => {
       const largeContent = 'a'.repeat(10000);
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue(largeContent)
+        text: vi.fn().mockResolvedValue(largeContent),
       });
 
       const result = await tool.invoke('https://example.com');
@@ -238,7 +246,9 @@ describe('gth_web_fetch tool', () => {
       mockFetch.mockRejectedValueOnce(timeoutError);
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Error occurred while fetching content from https://example.com: Network timeout');
+      expect(result).toContain(
+        'Error occurred while fetching content from https://example.com: Network timeout'
+      );
     });
 
     it('should handle DNS resolution error', async () => {
@@ -246,7 +256,9 @@ describe('gth_web_fetch tool', () => {
       mockFetch.mockRejectedValueOnce(dnsError);
 
       const result = await tool.invoke('https://nonexistent.domain');
-      expect(result).toContain('Error occurred while fetching content from https://nonexistent.domain: getaddrinfo ENOTFOUND');
+      expect(result).toContain(
+        'Error occurred while fetching content from https://nonexistent.domain: getaddrinfo ENOTFOUND'
+      );
     });
 
     it('should handle connection refused error', async () => {
@@ -254,7 +266,9 @@ describe('gth_web_fetch tool', () => {
       mockFetch.mockRejectedValueOnce(connectionError);
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Error occurred while fetching content from https://example.com: connect ECONNREFUSED');
+      expect(result).toContain(
+        'Error occurred while fetching content from https://example.com: connect ECONNREFUSED'
+      );
     });
 
     it('should handle SSL certificate error', async () => {
@@ -262,35 +276,45 @@ describe('gth_web_fetch tool', () => {
       mockFetch.mockRejectedValueOnce(sslError);
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Error occurred while fetching content from https://example.com: certificate verify failed');
+      expect(result).toContain(
+        'Error occurred while fetching content from https://example.com: certificate verify failed'
+      );
     });
 
     it('should handle non-Error thrown objects', async () => {
       mockFetch.mockRejectedValueOnce('string error');
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Unknown error occurred while fetching content from https://example.com: string error');
+      expect(result).toContain(
+        'Unknown error occurred while fetching content from https://example.com: string error'
+      );
     });
 
     it('should handle null thrown objects', async () => {
       mockFetch.mockRejectedValueOnce(null);
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Unknown error occurred while fetching content from https://example.com: null');
+      expect(result).toContain(
+        'Unknown error occurred while fetching content from https://example.com: null'
+      );
     });
 
     it('should handle undefined thrown objects', async () => {
       mockFetch.mockRejectedValueOnce(undefined);
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Unknown error occurred while fetching content from https://example.com: undefined');
+      expect(result).toContain(
+        'Unknown error occurred while fetching content from https://example.com: undefined'
+      );
     });
 
     it('should handle numeric thrown objects', async () => {
       mockFetch.mockRejectedValueOnce(404);
 
       const result = await tool.invoke('https://example.com');
-      expect(result).toContain('Unknown error occurred while fetching content from https://example.com: 404');
+      expect(result).toContain(
+        'Unknown error occurred while fetching content from https://example.com: 404'
+      );
     });
   });
 
@@ -298,7 +322,7 @@ describe('gth_web_fetch tool', () => {
     it('should handle URL with query parameters', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('query content')
+        text: vi.fn().mockResolvedValue('query content'),
       });
 
       const result = await tool.invoke('https://example.com?param=value&other=test');
@@ -308,7 +332,7 @@ describe('gth_web_fetch tool', () => {
     it('should handle URL with fragment identifier', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('fragment content')
+        text: vi.fn().mockResolvedValue('fragment content'),
       });
 
       const result = await tool.invoke('https://example.com#section');
@@ -318,7 +342,7 @@ describe('gth_web_fetch tool', () => {
     it('should handle URL with port number', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('port content')
+        text: vi.fn().mockResolvedValue('port content'),
       });
 
       const result = await tool.invoke('https://example.com:8080');
@@ -328,7 +352,7 @@ describe('gth_web_fetch tool', () => {
     it('should handle URL with authentication credentials', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('auth content')
+        text: vi.fn().mockResolvedValue('auth content'),
       });
 
       const result = await tool.invoke('https://user:pass@example.com');
@@ -338,7 +362,7 @@ describe('gth_web_fetch tool', () => {
     it('should handle URL with international domain name', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('international content')
+        text: vi.fn().mockResolvedValue('international content'),
       });
 
       const result = await tool.invoke('https://例え.テスト');
@@ -349,7 +373,7 @@ describe('gth_web_fetch tool', () => {
       const longUrl = 'https://example.com/' + 'a'.repeat(2000);
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('long url content')
+        text: vi.fn().mockResolvedValue('long url content'),
       });
 
       const result = await tool.invoke(longUrl);
@@ -359,7 +383,7 @@ describe('gth_web_fetch tool', () => {
     it('should handle URL with special characters', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('special char content')
+        text: vi.fn().mockResolvedValue('special char content'),
       });
 
       const result = await tool.invoke('https://example.com/path with spaces');
@@ -369,7 +393,7 @@ describe('gth_web_fetch tool', () => {
     it('should handle localhost URL', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('localhost content')
+        text: vi.fn().mockResolvedValue('localhost content'),
       });
 
       const result = await tool.invoke('http://localhost:3000');
@@ -379,7 +403,7 @@ describe('gth_web_fetch tool', () => {
     it('should handle IP address URL', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: vi.fn().mockResolvedValue('ip content')
+        text: vi.fn().mockResolvedValue('ip content'),
       });
 
       const result = await tool.invoke('http://192.168.1.1');

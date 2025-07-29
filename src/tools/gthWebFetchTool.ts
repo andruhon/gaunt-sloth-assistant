@@ -3,15 +3,16 @@ import { tool } from '@langchain/core/tools';
 import { GthConfig } from '#src/config.js';
 
 const toolDefinition = {
-    name: 'gth_web_fetch',
-    description: 'Fetch content from a web URL. Provide a valid HTTP/HTTPS URL and get the content as text.',
-    schema: z.string().describe('URL to make HTTP request'),
+  name: 'gth_web_fetch',
+  description:
+    'Fetch content from a web URL. Provide a valid HTTP/HTTPS URL and get the content as text.',
+  schema: z.string().describe('URL to make HTTP request'),
 };
 
 const defaultHttpHeaders = {
-        'Accept': 'text/*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br'
+  Accept: 'text/*',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'Accept-Encoding': 'gzip, deflate, br',
 };
 
 /**
@@ -31,30 +32,31 @@ async function gthWebFetchImpl(url: string): Promise<string> {
 
     const response = await fetch(url, {
       headers: {
-        ...defaultHttpHeaders
-      }
+        ...defaultHttpHeaders,
+      },
     });
-    
+
     if (!response.ok) {
-      throw new Error(`Failed to fetch data from ${url} with status: ${response.status} - ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch data from ${url} with status: ${response.status} - ${response.statusText}`
+      );
     }
-        
+
     return response.text();
-    
   } catch (error) {
     // graceful error handling and returning
-    let message = "";
+    let message = '';
     if (error instanceof Error) {
       message = `Error occurred while fetching content from ${url}: ${error.message}`;
     } else {
-      message =  `Unknown error occurred while fetching content from ${url}: ${error}`;
+      message = `Unknown error occurred while fetching content from ${url}: ${error}`;
     }
     return message;
   }
 }
 
-const toolImpl = async ( url: string )  => {
-    return await gthWebFetchImpl(url);
+const toolImpl = async (url: string) => {
+  return await gthWebFetchImpl(url);
 };
 
 export function get(_: GthConfig) {
