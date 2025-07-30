@@ -93,7 +93,7 @@ export async function createInteractiveSession(
           await runner.cleanup();
           stopSessionLogging();
           rl.close();
-          return;
+          break;
         }
 
         let shouldRetry = false;
@@ -133,6 +133,11 @@ export async function createInteractiveSession(
       displayInfo(sessionConfig.exitMessage);
     }
     if (!shouldExit) await askQuestion();
+    if (shouldExit) {
+      setTimeout(() => {
+        exit();
+      }, 500);
+    }
   } catch (err) {
     await runner.cleanup();
     stopSessionLogging();

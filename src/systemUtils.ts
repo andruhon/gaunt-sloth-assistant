@@ -33,10 +33,11 @@ const innerState: InnerState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const interuptHandler = (callback: () => void) => (_: any, key: any) => {
+const keypressHandler = (callback: () => void) => (_: any, key: any) => {
   if (key?.name === 'escape' || key?.name === 'q') {
     displayWarning('\nInterrupting...');
     callback();
+    return;
   }
 };
 
@@ -45,7 +46,7 @@ export const waitForEscape = (callback: () => void, enabled: boolean) => {
     return;
   }
   process.stdin.setRawMode(true);
-  innerState.waitForEscapeCallback = interuptHandler(callback);
+  innerState.waitForEscapeCallback = keypressHandler(callback);
   process.stdin.on('keypress', innerState.waitForEscapeCallback);
   displayInfo(`
   ┌--------------------------------------┐
