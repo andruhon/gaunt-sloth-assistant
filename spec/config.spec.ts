@@ -41,6 +41,7 @@ const systemUtilsMock = {
   getCurrentDir: vi.fn(),
   getInstallDir: vi.fn(),
   setUseColour: vi.fn(),
+  isTTY: vi.fn(),
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
@@ -59,6 +60,7 @@ describe('config', async () => {
     // Reset and set up systemUtils mocks
     systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
     systemUtilsMock.getInstallDir.mockReturnValue('/mock/install/dir');
+    systemUtilsMock.isTTY.mockReturnValue(true);
   });
 
   const customPathPrefix =
@@ -553,7 +555,7 @@ describe('config', async () => {
           },
         },
         builtInTools: ['jira', 'github'],
-      } as RawGthConfig;
+      } as Partial<RawGthConfig>;
 
       vi.doMock('#src/presets/vertexai.js', () => ({
         processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
@@ -561,7 +563,7 @@ describe('config', async () => {
       }));
 
       const { tryJsonConfig } = await import('#src/config.js');
-      const config = await tryJsonConfig(jsonConfig, {});
+      const config = await tryJsonConfig(jsonConfig as RawGthConfig, {});
 
       expect(config.mcpServers).toBeDefined();
       expect(config.mcpServers!.filesystem).toEqual({
