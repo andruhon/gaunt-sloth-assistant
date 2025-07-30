@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Built-in tools config. {@link AVAILABLE_BUILT_IN_TOOLS} has a list of available tools.
+ */
 import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
 import { StructuredToolInterface } from '@langchain/core/tools';
 import { GthDevToolsConfig, GthConfig } from '#src/config.js';
@@ -6,12 +10,30 @@ import { getCurrentDir } from '#src/systemUtils.js';
 import { GthCommand } from '#src/core/types.js';
 import GthDevToolkit from '#src/tools/GthDevToolkit.js';
 
-const AVAILABLE_BUILT_IN_TOOLS = {
+/**
+ * Available built-in tools may be configured in JSON config, see `builtInTools` of {@link GthConfig}.
+ *
+ * Does not include `filesystem`, because filesystem has its own cofnig in {@link GthConfig}.
+ */
+export const AVAILABLE_BUILT_IN_TOOLS = {
+  /**
+   * Reference tool. Simply prints provided argument to the screen.
+   */
   gth_status_update: '#src/tools/gthStatusUpdateTool.js',
+  /**
+   * Tool allowing to log work against specific Jira issue.
+   * Needs JIRA_CLOUD_ID, JIRA_USERNAME and JIRA_API_PAT_TOKEN environemtn variables
+   */
   gth_jira_log_work: '#src/tools/gthJiraLogWorkTool.js',
+  /**
+   * Sequential thinking. LLM can use this as a scratchpad for thinking.
+   */
   gth_sequential_thinking: '#src/tools/gthSequentialThinkingTool.js',
+  /**
+   * Web fetch tool.
+   */
   gth_web_fetch: '#src/tools/gthWebFetchTool.js',
-};
+} as const;
 
 /**
  * Get default tools based on filesystem and built-in tools configuration

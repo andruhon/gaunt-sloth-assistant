@@ -1,3 +1,6 @@
+/**
+ * @module GthDevToolkit
+ */
 import { BaseToolkit, StructuredToolInterface, tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { spawn } from 'child_process';
