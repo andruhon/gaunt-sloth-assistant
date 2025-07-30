@@ -155,7 +155,7 @@ export const setUseColour = (useColour: boolean): void => {
   innerState.useColour = useColour;
 };
 
-export const isTTY = () => stdin.isTTY;
+export const isTTY = (): boolean => !!stdin.isTTY;
 
 export const exit = (code?: number): never => process.exit(code || 0);
 export const stdin = process.stdin;
