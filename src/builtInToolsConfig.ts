@@ -13,7 +13,7 @@ import GthDevToolkit from '#src/tools/GthDevToolkit.js';
 /**
  * Available built-in tools may be configured in JSON config, see `builtInTools` of {@link GthConfig}.
  *
- * Does not include `filesystem`, because filesystem has its own cofnig in {@link GthConfig}.
+ * Does not include `filesystem`, because filesystem has its own config in {@link GthConfig}.
  */
 export const AVAILABLE_BUILT_IN_TOOLS = {
   /**
@@ -21,8 +21,8 @@ export const AVAILABLE_BUILT_IN_TOOLS = {
    */
   gth_status_update: '#src/tools/gthStatusUpdateTool.js',
   /**
-   * Tool allowing to log work against specific Jira issue.
-   * Needs JIRA_CLOUD_ID, JIRA_USERNAME and JIRA_API_PAT_TOKEN environemtn variables
+   * Tool allowing to log work against a specific Jira issue.
+   * Needs JIRA_CLOUD_ID, JIRA_USERNAME and JIRA_API_PAT_TOKEN environment variables
    */
   gth_jira_log_work: '#src/tools/gthJiraLogWorkTool.js',
   /**
