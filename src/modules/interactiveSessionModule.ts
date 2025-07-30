@@ -88,7 +88,7 @@ export async function createInteractiveSession(
         }
         const lowerInput = userInput.toLowerCase();
         if (lowerInput === 'exit' || lowerInput === '/exit') {
-          console.log('Exiting...');
+          display('Exiting...');
           shouldExit = true;
           await runner.cleanup();
           stopSessionLogging();
