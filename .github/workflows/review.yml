@@ -66,7 +66,7 @@ jobs:
             // Find and hide older AI review comments
             const aiComments = comments.data.filter(comment => 
               comment.user.login === 'github-actions[bot]' && 
-              comment.body.includes(AI_REVIEW_IDENTIFIER)
+              comment.body.startsWith(AI_REVIEW_IDENTIFIER)
             );
 
             // Hide older comments by wrapping them in a collapsible section
