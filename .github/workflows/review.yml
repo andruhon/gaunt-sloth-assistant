@@ -45,16 +45,54 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      - name: Leave comment
+      - name: Hide older AI review comments and post new one
         uses: actions/github-script@v7
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const fs = require('fs');
             const review = fs.readFileSync('review.md', 'utf8');
+
+            // Define a unique identifier for AI review comments
+            const AI_REVIEW_IDENTIFIER = '<!-- AI-PR-REVIEW-BOT -->';
+
+            // Get all comments on this PR
+            const comments = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            // Find and hide older AI review comments
+            const aiComments = comments.data.filter(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes(AI_REVIEW_IDENTIFIER)
+            );
+
+            // Hide older comments by wrapping them in a collapsible section
+            for (const comment of aiComments) {
+              const hiddenBody = `<details>
+            <summary>🤖 Previous AI Review (Click to expand)</summary>
+
+            ${comment.body}
+            </details>`;
+
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment.id,
+                body: hiddenBody
+              });
+            }
+
+            // Create new comment with the identifier
+            const newCommentBody = `${AI_REVIEW_IDENTIFIER}
+
+            ${review}`;
+            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: review
+              body: newCommentBody
             });
