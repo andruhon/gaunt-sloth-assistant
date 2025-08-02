@@ -22,7 +22,10 @@ program
       'Consider using debugLog from config.ts for less intrusive debug logging.'
   )
   .option('-c, --config <path>', 'Path to custom configuration file')
-  .option('-w, --write-output-to-file <boolean>', 'Write output to file true/false')
+  .option(
+    '-w, --write-output-to-file <boolean>',
+    'Write output to file true/false. Use -wn as shortcut for false.'
+  )
   .addOption(new Option('--nopipe').hideHelp(true));
 
 const cliConfigOverrides: CommandLineConfigOverrides = {};
@@ -41,10 +44,18 @@ if (program.getOptionValue('config')) {
   // Set a custom config path
   cliConfigOverrides.customConfigPath = program.getOptionValue('config');
 }
-if (program.getOptionValue('write-output-to-file')) {
+
+const writeToFile = program.getOptionValue('writeOutputToFile');
+
+// Commander does interesting thing, if shortcut like -w exist,
+// Everything else gowing after this shortcut without space goes as value,
+// e.g. -wn comes with value 'n', -whithere will come as 'hithere'
+if (writeToFile) {
   if (
-    'false' === program.getOptionValue('write-output-to-file').toLowerCase() &&
-    '0' === program.getOptionValue('write-output-to-file')
+    'false' === String(writeToFile).toLowerCase() ||
+    '0' === writeToFile ||
+    'n' === writeToFile ||
+    'no' === writeToFile
   ) {
     cliConfigOverrides.writeOutputToFile = false;
   }

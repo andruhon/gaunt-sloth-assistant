@@ -5,6 +5,8 @@
  * Refer to {@link GthConfig} to find all possible configuration properties.
  *
  * Refer to {@link DEFAULT_CONFIG} for default configuration.
+ *
+ * Some config params can be overriden from command line, see {@link CommandLineConfigOverrides}
  */
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
 import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
@@ -232,7 +234,8 @@ export interface CommandLineConfigOverrides {
   verbose?: boolean;
   /**
    * Should the output be written to md file.
-   * (e.g. gth_2025-07-26_22-59-06_REVIEW.md)
+   * (e.g. gth_2025-07-26_22-59-06_REVIEW.md).
+   * Can be set to false with `-wn` or `-w0`
    */
   writeOutputToFile?: boolean;
 }

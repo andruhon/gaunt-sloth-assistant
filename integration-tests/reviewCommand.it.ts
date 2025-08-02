@@ -7,10 +7,14 @@ describe('Review Command Integration Tests', () => {
   it('should provide positive review for good code', async () => {
     const output = await runCommandWithArgs('npx', [
       'gth',
+      '-wn',
       'review',
       'test-data/filewithgoodcode.js',
     ]);
 
+    expect(output, '-wn should disable session logging').not.toContain(
+      'This report can be found in'
+    );
     // Check for positive feedback in the review (score >= 5)
     const score = extractReviewScore(output);
     expect(score).not.toBeNull();
@@ -25,6 +29,7 @@ describe('Review Command Integration Tests', () => {
       'test-data/filewithbadcode.js',
     ]);
 
+    expect(output).toContain('This report can be found in');
     // Check for issue identification in the review (score < 5)
     const score = extractReviewScore(output);
     expect(score).not.toBeNull();
