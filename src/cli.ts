@@ -22,6 +22,7 @@ program
       'Consider using debugLog from config.ts for less intrusive debug logging.'
   )
   .option('-c, --config <path>', 'Path to custom configuration file')
+  .option('-w, --write-output-to-file <boolean>', 'Write output to file true/false')
   .addOption(new Option('--nopipe').hideHelp(true));
 
 const cliConfigOverrides: CommandLineConfigOverrides = {};
@@ -39,6 +40,14 @@ if (program.getOptionValue('verbose')) {
 if (program.getOptionValue('config')) {
   // Set a custom config path
   cliConfigOverrides.customConfigPath = program.getOptionValue('config');
+}
+if (program.getOptionValue('write-output-to-file')) {
+  if (
+    'false' === program.getOptionValue('write-output-to-file').toLowerCase() &&
+    '0' === program.getOptionValue('write-output-to-file')
+  ) {
+    cliConfigOverrides.writeOutputToFile = false;
+  }
 }
 
 // Initialize all commands - they will handle their own config loading

@@ -230,6 +230,11 @@ export interface CommandLineConfigOverrides {
    * debugLog from config.ts may be a less intrusive option.
    */
   verbose?: boolean;
+  /**
+   * Should the output be written to md file.
+   * (e.g. gth_2025-07-26_22-59-06_REVIEW.md)
+   */
+  writeOutputToFile?: boolean;
 }
 
 /**

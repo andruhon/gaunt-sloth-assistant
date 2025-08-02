@@ -27,6 +27,9 @@ export async function askQuestion(
   if (!config.streamOutput) {
     display('\n' + outputContent);
   }
+  if (!config.writeOutputToFile) {
+    display('\n'); // something going on in some terminals, they swallow last line of output
+  }
   if (config.writeOutputToFile) {
     try {
       writeFileSync(filePath, outputContent);
