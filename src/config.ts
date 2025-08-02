@@ -77,6 +77,11 @@ export interface GthConfig {
    */
   streamOutput: boolean;
   /**
+   * Should the output be written to md file.
+   * (e.g. gth_2025-07-26_22-59-06_REVIEW.md)
+   */
+  writeOutputToFile: boolean;
+  /**
    * Use colour in ouptut
    */
   useColour: boolean;
@@ -256,6 +261,7 @@ export const DEFAULT_CONFIG = {
     },
   },
   streamOutput: true,
+  writeOutputToFile: true,
   useColour: true,
   streamSessionInferenceLog: true,
   canInterruptInferenceWithEsc: true,

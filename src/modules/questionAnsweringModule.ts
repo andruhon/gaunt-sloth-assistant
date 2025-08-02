@@ -27,13 +27,15 @@ export async function askQuestion(
   if (!config.streamOutput) {
     display('\n' + outputContent);
   }
-  try {
-    writeFileSync(filePath, outputContent);
-    displaySuccess(`\n\nThis report can be found in ${filePath}`);
-  } catch (error) {
-    displayError(`Failed to write answer to file: ${filePath}`);
-    displayError(error instanceof Error ? error.message : String(error));
-    // TODO Consider if we want to exit or just log the error
-    // exit(1);
+  if (config.writeOutputToFile) {
+    try {
+      writeFileSync(filePath, outputContent);
+      displaySuccess(`\n\nThis report can be found in ${filePath}`);
+    } catch (error) {
+      displayError(`Failed to write answer to file: ${filePath}`);
+      displayError(error instanceof Error ? error.message : String(error));
+      // TODO Consider if we want to exit or just log the error
+      // exit(1);
+    }
   }
 }

@@ -22,13 +22,15 @@ export async function review(
   if (!config.streamOutput) {
     display('\n' + outputContent);
   }
-  try {
-    writeFileSync(filePath, outputContent);
-    displaySuccess(`\n\nThis report can be found in ${filePath}`);
-  } catch (error) {
-    displayDebug(error instanceof Error ? error : String(error));
-    displayError(`Failed to write review to file: ${filePath}`);
-    // Consider if you want to exit or just log the error
-    // exit(1);
+  if (config.writeOutputToFile) {
+    try {
+      writeFileSync(filePath, outputContent);
+      displaySuccess(`\n\nThis report can be found in ${filePath}`);
+    } catch (error) {
+      displayDebug(error instanceof Error ? error : String(error));
+      displayError(`Failed to write review to file: ${filePath}`);
+      // Consider if you want to exit or just log the error
+      // exit(1);
+    }
   }
 }

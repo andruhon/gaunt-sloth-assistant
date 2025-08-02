@@ -40,8 +40,12 @@ export async function createInteractiveSession(
   const checkpointSaver = new MemorySaver();
   // Initialize Runner
 
-  const logFileName = getGslothFilePath(generateStandardFileName(sessionConfig.mode.toUpperCase()));
-  initSessionLogging(logFileName, config.streamSessionInferenceLog);
+  const logFileName = config.writeOutputToFile
+    ? getGslothFilePath(generateStandardFileName(sessionConfig.mode.toUpperCase()))
+    : null;
+  if (logFileName) {
+    initSessionLogging(logFileName, config.streamSessionInferenceLog);
+  }
   const runner = new GthAgentRunner(defaultStatusCallback);
 
   try {
@@ -50,11 +54,15 @@ export async function createInteractiveSession(
     let isFirstMessage = true;
     let shouldExit = false;
 
-    displayInfo(`${sessionConfig.mode} session will be logged to ${logFileName}\n`);
+    if (logFileName) {
+      displayInfo(`${sessionConfig.mode} session will be logged to ${logFileName}\n`);
+    }
 
     const processMessage = async (userInput: string) => {
       const logEntry = `## User\n\n${userInput}\n\n## Assistant\n\n`;
-      appendToFile(logFileName, logEntry);
+      if (logFileName) {
+        appendToFile(logFileName, logEntry);
+      }
       flushSessionLog(); // Ensure user input is immediately written to file
       const messages: BaseMessage[] = [];
       if (isFirstMessage) {
@@ -73,7 +81,9 @@ export async function createInteractiveSession(
 
       const response = await runner.processMessages(messages);
       if (!config.streamSessionInferenceLog) {
-        appendToFile(logFileName, response);
+        if (logFileName) {
+          appendToFile(logFileName, response);
+        }
       }
 
       isFirstMessage = false;
