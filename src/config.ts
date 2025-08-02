@@ -231,8 +231,8 @@ export interface CommandLineConfigOverrides {
  * Default config
  */
 export const DEFAULT_CONFIG = {
-  contentProvider: 'zobo',
-  requirementsProvider: 'trololo',
+  contentProvider: 'test',
+  requirementsProvider: 'test',
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   filesystem: 'read',
