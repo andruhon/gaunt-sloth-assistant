@@ -69,6 +69,7 @@ const mockConfig = {
   },
   filesystem: 'none',
   useColour: false,
+  writeOutputToFile: true,
 } as GthConfig;
 
 // Mock config module
@@ -173,6 +174,7 @@ describe('questionAnsweringModule', () => {
       llm: new FakeStreamingChatModel({
         responses: ['Different LLM Response' as unknown as BaseMessage],
       }),
+      writeOutputToFile: true,
     } as GthConfig;
 
     // Set a different response for this specific test

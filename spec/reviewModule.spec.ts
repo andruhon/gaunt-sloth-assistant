@@ -84,6 +84,7 @@ const mockConfig = {
   },
   filesystem: 'none',
   useColour: false,
+  writeOutputToFile: true,
 } as GthConfig;
 
 // Mock config module
@@ -176,6 +177,7 @@ describe('reviewModule', () => {
       llm: new FakeListChatModel({
         responses: ['Different LLM Response'],
       }),
+      writeOutputToFile: true,
     } as GthConfig;
 
     // Set a different response for this specific test

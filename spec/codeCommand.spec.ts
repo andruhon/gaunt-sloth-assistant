@@ -22,6 +22,7 @@ vi.mock('#src/config.js', () => ({
     projectGuidelines: 'Mock guidelines',
     llm: 'Mock LLM',
     streamSessionInferenceLog: true,
+    writeOutputToFile: true,
   }),
 }));
 
@@ -319,7 +320,7 @@ describe('codeCommand', () => {
       streamSessionInferenceLog: true,
     } as Partial<GthConfig>;
     const { initConfig } = await import('#src/config.js');
-    vi.mocked(initConfig).mockResolvedValue(mockConfig as GthConfig);
+    vi.mocked(initConfig).mockResolvedValue({ ...mockConfig, writeOutputToFile: true } as GthConfig);
     const { initSessionLogging } = await import('#src/consoleUtils.js');
     const messages = ['first message', 'exit'];
     let messageIndex = 0;
