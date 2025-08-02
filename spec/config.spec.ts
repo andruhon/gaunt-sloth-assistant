@@ -277,6 +277,124 @@ describe('config', async () => {
     });
   });
 
+  describe('writeOutputToFile configuration', () => {
+    it('Should set writeOutputToFile to true by default in config', async () => {
+      // Create a test config
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+        },
+      } as RawGthConfig;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test
+      const config = await initConfig({});
+
+      // Verify that writeOutputToFile is true by default
+      expect(config.writeOutputToFile).toBe(true);
+    });
+
+    it('Should respect writeOutputToFile setting when explicitly set to false', async () => {
+      // Create a test config with writeOutputToFile set to false
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+        },
+        writeOutputToFile: false,
+      } as RawGthConfig;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test
+      const config = await initConfig({});
+
+      // Verify that writeOutputToFile is false when explicitly set
+      expect(config.writeOutputToFile).toBe(false);
+    });
+
+    it('Should override writeOutputToFile from CLI parameter', async () => {
+      // Create a test config with writeOutputToFile set to true
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+        },
+        writeOutputToFile: true,
+      } as RawGthConfig;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test with CLI override
+      const config = await initConfig({ writeOutputToFile: false });
+
+      // Verify that CLI override takes precedence
+      expect(config.writeOutputToFile).toBe(false);
+    });
+  });
+
   describe('useColour configuration', () => {
     it('Should set useColour to true by default in config', async () => {
       // Create a test config

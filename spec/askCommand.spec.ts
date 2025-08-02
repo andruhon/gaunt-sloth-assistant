@@ -177,4 +177,32 @@ describe('askCommand', () => {
       'At least one of the following is required: file, stdin, or message'
     );
   });
+
+  it('Should pass writeOutputToFile config parameter through to askQuestion module', async () => {
+    // Create a config with writeOutputToFile set to false
+    const configWithWriteOutputDisabled = {
+      ...mockConfig,
+      writeOutputToFile: false,
+    };
+
+    // Mock initConfig to return our test config
+    configMock.initConfig.mockResolvedValue(configWithWriteOutputDisabled);
+
+    const { askCommand } = await import('#src/commands/askCommand.js');
+    const program = new Command();
+    askCommand(program);
+    await program.parseAsync(['na', 'na', 'ask', 'integration test message']);
+
+    // Verify that askQuestion was called with the config containing writeOutputToFile: false
+    expect(askQuestion).toHaveBeenCalledWith(
+      'ASK',
+      'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
+      'integration test message',
+      configWithWriteOutputDisabled
+    );
+
+    // Specifically verify the writeOutputToFile parameter was passed through
+    const calledConfig = askQuestion.mock.calls[0][3];
+    expect(calledConfig.writeOutputToFile).toBe(false);
+  });
 });

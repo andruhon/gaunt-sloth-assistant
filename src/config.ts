@@ -513,6 +513,10 @@ function mergeConfig(
     mergedConfig.llm.verbose = commandLineConfigOverrides.verbose;
   }
 
+  if (commandLineConfigOverrides.writeOutputToFile !== undefined) {
+    mergedConfig.writeOutputToFile = commandLineConfigOverrides.writeOutputToFile;
+  }
+
   // Set the useColour value in systemUtils
   setUseColour(mergedConfig.useColour);
 

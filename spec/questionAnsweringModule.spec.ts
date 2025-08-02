@@ -70,7 +70,7 @@ const mockConfig = {
   filesystem: 'none',
   useColour: false,
   writeOutputToFile: true,
-} as GthConfig;
+} as Partial<GthConfig> as GthConfig;
 
 // Mock config module
 vi.mock('#src/config.js', () => ({
@@ -201,5 +201,39 @@ describe('questionAnsweringModule', () => {
 
     // Since streamOutput is true, display should not be called
     expect(consoleUtilsMock.display).not.toHaveBeenCalled();
+  });
+
+  it('should not write to file when writeOutputToFile is false', async () => {
+    const testConfig = {
+      ...mockConfig,
+      writeOutputToFile: false,
+      streamOutput: false,
+      llm: new FakeStreamingChatModel({
+        responses: ['LLM Response No File' as unknown as BaseMessage],
+      }),
+    } as GthConfig;
+
+    llmUtilsMock.invoke.mockResolvedValue('LLM Response No File');
+
+    // Import the module after setting up mocks
+    const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
+
+    // Call askQuestion with writeOutputToFile disabled
+    await askQuestion('test-source', 'test-preamble', 'test-content', testConfig);
+
+    // Verify that writeFileSync was NOT called
+    expect(fsMock.writeFileSync).not.toHaveBeenCalled();
+
+    // Verify that displaySuccess was NOT called (no file written message)
+    expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
+
+    // Verify that regular display was called with content
+    expect(consoleUtilsMock.display).toHaveBeenCalledWith('\nLLM Response No File');
+
+    // Verify that an extra newline was displayed for terminal compatibility
+    expect(consoleUtilsMock.display).toHaveBeenCalledWith('\n');
+
+    // Verify that ProgressIndicator.stop() was still called
+    expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
   });
 });
