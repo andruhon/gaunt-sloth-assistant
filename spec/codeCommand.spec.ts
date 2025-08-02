@@ -318,9 +318,10 @@ describe('codeCommand', () => {
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none' as const,
       streamSessionInferenceLog: true,
+      writeOutputToFile: true,
     } as Partial<GthConfig>;
     const { initConfig } = await import('#src/config.js');
-    vi.mocked(initConfig).mockResolvedValue({ ...mockConfig, writeOutputToFile: true } as GthConfig);
+    vi.mocked(initConfig).mockResolvedValue({ ...mockConfig } as GthConfig);
     const { initSessionLogging } = await import('#src/consoleUtils.js');
     const messages = ['first message', 'exit'];
     let messageIndex = 0;
