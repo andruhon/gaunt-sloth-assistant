@@ -231,8 +231,8 @@ export interface CommandLineConfigOverrides {
  * Default config
  */
 export const DEFAULT_CONFIG = {
-  contentProvider: 'file',
-  requirementsProvider: 'file',
+  contentProvider: 'github',
+  requirementsProvider: 'github',
   projectGuidelines: PROJECT_GUIDELINES,
   projectReviewInstructions: PROJECT_REVIEW_INSTRUCTIONS,
   filesystem: 'read',
