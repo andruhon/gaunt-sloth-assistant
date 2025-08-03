@@ -21,8 +21,6 @@ describe('PR Command Integration Tests', () => {
       '133',
     ]);
 
-    console.log(output);
-
     // Assert that built-in file writing is enabled and advertised
     expect(output).toContain('This report can be found in');
 
@@ -31,6 +29,7 @@ describe('PR Command Integration Tests', () => {
     expect(score).not.toBeNull();
     expect(score).toBeGreaterThanOrEqual(5);
     const testreview = fs.readFileSync(path.join(__dirname, 'testreview.md'), { encoding: 'utf8' });
+    expect(testreview).toContain('Model:');
     expect(testreview).toContain('<REVIEW>');
   });
 

@@ -3,6 +3,16 @@ import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import type { GthConfig } from '#src/config.js';
 import { BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 
+const gthAgentRunnerMock = vi.fn();
+const gthAgentRunnerInstanceMock = {
+  init: vi.fn(),
+  processMessages: vi.fn(),
+  cleanup: vi.fn(),
+};
+vi.mock('#src/core/GthAgentRunner.js', () => ({
+  GthAgentRunner: gthAgentRunnerMock,
+}));
+
 // Mock fs module
 const fsMock = {
   writeFileSync: vi.fn(),
@@ -27,6 +37,10 @@ const consoleUtilsMock = {
   display: vi.fn(),
   displaySuccess: vi.fn(),
   displayError: vi.fn(),
+  defaultStatusCallback: vi.fn(),
+  initSessionLogging: vi.fn(),
+  flushSessionLog: vi.fn(),
+  stopSessionLogging: vi.fn(),
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
@@ -34,7 +48,9 @@ vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 const filePathUtilsMock = {
   getGslothFilePath: vi.fn(),
   gslothDirExists: vi.fn(),
+  getCommandOutputFilePath: vi.fn(),
 };
+vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
 vi.mock('#src/filePathUtils.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('#src/filePathUtils.js')>();
   return {
@@ -57,6 +73,8 @@ const utilsMock = {
   createSystemMessage: vi.fn(),
   createHumanMessage: vi.fn(),
   generateStandardFileName: vi.fn(),
+  appendToFile: vi.fn(),
+  executeHooks: vi.fn().mockResolvedValue(undefined),
 };
 utilsMock.ProgressIndicator.prototype.stop = vi.fn();
 utilsMock.ProgressIndicator.prototype.indicate = vi.fn();
@@ -123,21 +141,26 @@ describe('questionAnsweringModule', () => {
     });
     testConfig.llm.bindTools = vi.fn();
 
+    // Prepare runner mocks
+    gthAgentRunnerMock.mockImplementation(() => gthAgentRunnerInstanceMock);
+    gthAgentRunnerInstanceMock.init.mockResolvedValue(undefined);
+    gthAgentRunnerInstanceMock.processMessages.mockResolvedValue('LLM Response');
+    gthAgentRunnerInstanceMock.cleanup.mockResolvedValue(undefined);
+
     // Import the module after setting up mocks
     const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
 
     // Call askQuestion with config (prop drilling)
     await askQuestion('test-source', 'test-preamble', 'test-content', testConfig);
 
-    // Verify that invoke was called with correct parameters
-    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      'ask',
-      [new SystemMessage('test-preamble'), new HumanMessage('test-content')],
-      testConfig
-    );
+    // Verify that runner was called with correct parameters
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
+      new SystemMessage('test-preamble'),
+      new HumanMessage('test-content'),
+    ]);
 
-    // Verify that writeFileSync was called
-    expect(fsMock.writeFileSync).toHaveBeenCalled();
+    // Verify that content was appended to the session log file
+    expect(utilsMock.appendToFile).toHaveBeenCalled();
 
     // Verify that display was called
     expect(consoleUtilsMock.display).toHaveBeenCalled();
@@ -157,9 +180,15 @@ describe('questionAnsweringModule', () => {
 
     // Mock file write to throw an error
     const error = new Error('File write error');
-    fsMock.writeFileSync.mockImplementation(() => {
+    utilsMock.appendToFile.mockImplementation(() => {
       throw error;
     });
+
+    // Prepare runner mocks
+    gthAgentRunnerMock.mockImplementation(() => gthAgentRunnerInstanceMock);
+    gthAgentRunnerInstanceMock.init.mockResolvedValue(undefined);
+    gthAgentRunnerInstanceMock.processMessages.mockResolvedValue('LLM Response');
+    gthAgentRunnerInstanceMock.cleanup.mockResolvedValue(undefined);
 
     // Import the module after setting up mocks
     const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
@@ -192,6 +221,12 @@ describe('questionAnsweringModule', () => {
     // Set a different response for this specific test
     llmUtilsMock.invoke.mockResolvedValue('Different LLM Response');
 
+    // Prepare runner mocks
+    gthAgentRunnerMock.mockImplementation(() => gthAgentRunnerInstanceMock);
+    gthAgentRunnerInstanceMock.init.mockResolvedValue(undefined);
+    gthAgentRunnerInstanceMock.processMessages.mockResolvedValue('Different LLM Response');
+    gthAgentRunnerInstanceMock.cleanup.mockResolvedValue(undefined);
+
     // Import the module after setting up mocks
     const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');
 
@@ -199,14 +234,13 @@ describe('questionAnsweringModule', () => {
     await askQuestion('test-source', 'test-preamble', 'test-content', differentConfig);
 
     // Verify the different config was used
-    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      'ask',
-      [new SystemMessage('test-preamble'), new HumanMessage('test-content')],
-      differentConfig
-    );
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
+      new SystemMessage('test-preamble'),
+      new HumanMessage('test-content'),
+    ]);
 
     // Verify the output matches what we expect
-    expect(fsMock.writeFileSync).toHaveBeenCalledWith(
+    expect(utilsMock.appendToFile).toHaveBeenCalledWith(
       'test-file-path.md',
       'Different LLM Response'
     );
@@ -226,6 +260,12 @@ describe('questionAnsweringModule', () => {
     } as GthConfig;
 
     llmUtilsMock.invoke.mockResolvedValue('LLM Response No File');
+
+    // Prepare runner mocks
+    gthAgentRunnerMock.mockImplementation(() => gthAgentRunnerInstanceMock);
+    gthAgentRunnerInstanceMock.init.mockResolvedValue(undefined);
+    gthAgentRunnerInstanceMock.processMessages.mockResolvedValue('LLM Response No File');
+    gthAgentRunnerInstanceMock.cleanup.mockResolvedValue(undefined);
 
     // Import the module after setting up mocks
     const { askQuestion } = await import('#src/modules/questionAnsweringModule.js');

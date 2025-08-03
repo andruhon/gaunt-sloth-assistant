@@ -48,7 +48,8 @@ try {
   process.exit(1);
 }
 
-if (fs.existsSync('testreview.md')) {
-  fs.unlinkSync('testreview.md');
+const reviewPath = path.join(__dirname, 'testreview.md');
+if (fs.existsSync(reviewPath)) {
+  fs.unlinkSync(reviewPath);
   console.log(`Removed testreview.md`);
 }

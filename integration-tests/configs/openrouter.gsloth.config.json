@@ -3,6 +3,5 @@
     "type": "openrouter",
     "model": "openrouter/horizon-beta"
   },
-  "canInterruptInferenceWithEsc": false,
-  "streamSessionInferenceLog": false
+  "canInterruptInferenceWithEsc": false
 }

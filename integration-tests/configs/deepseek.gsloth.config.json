@@ -3,6 +3,5 @@
     "type": "deepseek",
     "model": "deepseek-reasoner"
   },
-  "canInterruptInferenceWithEsc": false,
-  "streamSessionInferenceLog": false
+  "canInterruptInferenceWithEsc": false
 }

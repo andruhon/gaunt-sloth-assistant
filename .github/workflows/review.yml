@@ -3,7 +3,7 @@ name: AI PR Review (Anthropic)
 # The pull_request_target is an important feature. It is running on files from `main`.
 on:
   pull_request_target:
-    types: [ opened, synchronize, reopened ]
+    types: [opened, synchronize, reopened]
     branches:
       - 'main'
 
@@ -11,7 +11,7 @@ jobs:
   ai-code-review:
     runs-on: ubuntu-latest
     if: ${{ !startsWith(github.head_ref, 'dependabot') }}
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -37,9 +37,9 @@ jobs:
           if [ -z "${{ steps.extract_issue.outputs.issue_number }}" ]; then
             echo "ℹ️ **Tip:** To link this PR to an issue, start your PR title with the issue number followed by a space (e.g., '123 Fix authentication bug')" | tee review.md
             echo "" >> review.md
-            gth --nopipe -c ".github/workflows/.gsloth.config.json" pr ${{ github.event.pull_request.number }} | tee -a review.md
+            gth --nopipe -c ".github/workflows/.gsloth.config.json" pr ${{ github.event.pull_request.number }}
           else
-            gth --nopipe -c ".github/workflows/.gsloth.config.json" pr ${{ github.event.pull_request.number }} ${{ steps.extract_issue.outputs.issue_number }} | tee review.md
+            gth --nopipe -c ".github/workflows/.gsloth.config.json" pr ${{ github.event.pull_request.number }} ${{ steps.extract_issue.outputs.issue_number }}
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -64,8 +64,8 @@ jobs:
             });
 
             // Find and hide older AI review comments
-            const aiComments = comments.data.filter(comment => 
-              comment.user.login === 'github-actions[bot]' && 
+            const aiComments = comments.data.filter(comment =>
+              comment.user.login === 'github-actions[bot]' &&
               comment.body.startsWith(AI_REVIEW_IDENTIFIER)
             );
 
@@ -89,7 +89,7 @@ jobs:
             const newCommentBody = `${AI_REVIEW_IDENTIFIER}
 
             ${review}`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

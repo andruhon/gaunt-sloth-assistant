@@ -1,9 +1,17 @@
 import type { GthConfig } from '#src/config.js';
-import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
+import {
+  defaultStatusCallback,
+  display,
+  displayError,
+  displaySuccess,
+  flushSessionLog,
+  initSessionLogging,
+  stopSessionLogging,
+} from '#src/consoleUtils.js';
 import { getCommandOutputFilePath } from '#src/filePathUtils.js';
-import { ProgressIndicator } from '#src/utils.js';
-import { writeFileSync } from 'node:fs';
-import { invoke } from '#src/llmUtils.js';
+import { ProgressIndicator, appendToFile } from '#src/utils.js';
+import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
+import { MemorySaver } from '@langchain/langgraph';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 /**
@@ -20,9 +28,27 @@ export async function askQuestion(
 ): Promise<void> {
   const progressIndicator = config.streamOutput ? undefined : new ProgressIndicator('Thinking.');
   const messages = [new SystemMessage(preamble), new HumanMessage(content)];
-  const outputContent = await invoke('ask', messages, config);
-  progressIndicator?.stop();
+
+  // Resolve output path and initialize session logging if enabled
   const filePath = getCommandOutputFilePath(config, source);
+  if (filePath) {
+    initSessionLogging(filePath, config.streamSessionInferenceLog);
+  }
+
+  // Run via Agent Runner (consistent with interactive session)
+  const runner = new GthAgentRunner(defaultStatusCallback);
+  let outputContent = '';
+  try {
+    await runner.init('ask', config, new MemorySaver());
+    outputContent = await runner.processMessages(messages);
+  } catch (err) {
+    displayError(`Failed to get answer: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    await runner.cleanup();
+  }
+
+  progressIndicator?.stop();
+
   if (!config.streamOutput) {
     display('\n' + outputContent);
   }
@@ -31,13 +57,13 @@ export async function askQuestion(
   }
   if (filePath) {
     try {
-      writeFileSync(filePath, outputContent);
+      appendToFile(filePath, outputContent);
+      flushSessionLog();
+      stopSessionLogging();
       displaySuccess(`\n\nThis report can be found in ${filePath}`);
     } catch (error) {
       displayError(`Failed to write answer to file: ${filePath}`);
       displayError(error instanceof Error ? error.message : String(error));
-      // TODO Consider if we want to exit or just log the error
-      // exit(1);
     }
   }
 }

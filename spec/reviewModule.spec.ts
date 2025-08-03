@@ -7,6 +7,16 @@ import {
   BaseChatModelCallOptions,
 } from '@langchain/core/language_models/chat_models';
 
+const gthAgentRunnerMock = vi.fn();
+const gthAgentRunnerInstanceMock = {
+  init: vi.fn(),
+  processMessages: vi.fn(),
+  cleanup: vi.fn(),
+};
+vi.mock('#src/core/GthAgentRunner.js', () => ({
+  GthAgentRunner: gthAgentRunnerMock,
+}));
+
 // Mock fs module
 const fsMock = {
   writeFileSync: vi.fn(),
@@ -38,6 +48,10 @@ const consoleUtilsMock = {
   displaySuccess: vi.fn(),
   displayError: vi.fn(),
   displayDebug: vi.fn(),
+  defaultStatusCallback: vi.fn(),
+  initSessionLogging: vi.fn(),
+  flushSessionLog: vi.fn(),
+  stopSessionLogging: vi.fn(),
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
@@ -55,6 +69,7 @@ const utilsMock = {
   toFileSafeString: vi.fn(),
   fileSafeLocalDate: vi.fn(),
   generateStandardFileName: vi.fn(),
+  appendToFile: vi.fn(),
 };
 utilsMock.ProgressIndicator.prototype.stop = vi.fn();
 utilsMock.ProgressIndicator.prototype.indicate = vi.fn();
@@ -141,7 +156,10 @@ describe('reviewModule', () => {
       }
     );
 
-    llmUtilsMock.invoke.mockResolvedValue('LLM Review Response');
+    gthAgentRunnerMock.mockImplementation(() => gthAgentRunnerInstanceMock);
+    gthAgentRunnerInstanceMock.init.mockResolvedValue(undefined);
+    gthAgentRunnerInstanceMock.processMessages.mockResolvedValue('LLM Review Response');
+    gthAgentRunnerInstanceMock.cleanup.mockResolvedValue(undefined);
   });
 
   it('should invoke LLM and write review to file using prop drilling', async () => {
@@ -151,15 +169,14 @@ describe('reviewModule', () => {
     // Call review function with config (prop drilling)
     await review('test-source', 'test-preamble', 'test-diff', mockConfig);
 
-    // Verify that invoke was called with correct parameters
-    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      'review',
-      [new SystemMessage('test-preamble'), new HumanMessage('test-diff')],
-      mockConfig
-    );
+    // Verify that runner was called with correct parameters
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
+      new SystemMessage('test-preamble'),
+      new HumanMessage('test-diff'),
+    ]);
 
-    // Verify that writeFileSync was called
-    expect(fsMock.writeFileSync).toHaveBeenCalledWith(
+    // Verify that content was appended to the session log file
+    expect(utilsMock.appendToFile).toHaveBeenCalledWith(
       'test-review-file-path.md',
       'LLM Review Response'
     );
@@ -202,25 +219,24 @@ describe('reviewModule', () => {
     await review('test-source', 'test-preamble', 'test-diff', configWithStringPath);
 
     // Assert
-    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      'review',
-      [new SystemMessage('test-preamble'), new HumanMessage('test-diff')],
-      configWithStringPath
-    );
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
+      new SystemMessage('test-preamble'),
+      new HumanMessage('test-diff'),
+    ]);
     expect(filePathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
       expect.objectContaining({ writeOutputToFile: 'custom/review.md' }),
       'test-source'
     );
-    expect(fsMock.writeFileSync).toHaveBeenCalledWith('custom/review.md', 'LLM Review Response');
+    expect(utilsMock.appendToFile).toHaveBeenCalledWith('custom/review.md', 'LLM Review Response');
     expect(consoleUtilsMock.displaySuccess).toHaveBeenCalledWith(
       expect.stringContaining('custom/review.md')
     );
   });
 
   it('should handle file write errors with prop drilling', async () => {
-    // Mock file write to throw an error
+    // Mock file append to throw an error (session logging flow)
     const error = new Error('File write error');
-    fsMock.writeFileSync.mockImplementation(() => {
+    utilsMock.appendToFile.mockImplementation(() => {
       throw error;
     });
 
@@ -246,13 +262,11 @@ describe('reviewModule', () => {
     const differentConfig: GthConfig = {
       ...BASE_GTH_CONFIG,
       streamOutput: true, // Different from default mockConfig
-      llm: new FakeListChatModel({
-        responses: ['Different LLM Response'],
-      }),
+      llm: {} as BaseChatModel, // Model shoudn't matter here, because agent runner is mocked
     };
 
     // Set a different response for this specific test
-    llmUtilsMock.invoke.mockResolvedValue('Different LLM Response');
+    gthAgentRunnerInstanceMock.processMessages.mockResolvedValue('Different LLM Response');
 
     // Import the module after setting up mocks
     const { review } = await import('#src/modules/reviewModule.js');
@@ -261,14 +275,13 @@ describe('reviewModule', () => {
     await review('test-source', 'test-preamble', 'test-diff', differentConfig);
 
     // Verify the different config was used
-    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      'review',
-      [new SystemMessage('test-preamble'), new HumanMessage('test-diff')],
-      differentConfig
-    );
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
+      new SystemMessage('test-preamble'),
+      new HumanMessage('test-diff'),
+    ]);
 
     // Verify the output matches what we expect
-    expect(fsMock.writeFileSync).toHaveBeenCalledWith(
+    expect(utilsMock.appendToFile).toHaveBeenCalledWith(
       'test-review-file-path.md',
       'Different LLM Response'
     );
@@ -295,11 +308,10 @@ describe('reviewModule', () => {
     await review('test-source', 'test-preamble', 'test-diff', configWithStringPath);
 
     // Assert
-    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
-      'review',
-      [new SystemMessage('test-preamble'), new HumanMessage('test-diff')],
-      configWithStringPath
-    );
+    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
+      new SystemMessage('test-preamble'),
+      new HumanMessage('test-diff'),
+    ]);
 
     // getCommandOutputFilePath should be called with the provided filename in config
     expect(filePathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
@@ -308,7 +320,7 @@ describe('reviewModule', () => {
     );
 
     // And the file should be written to that path
-    expect(fsMock.writeFileSync).toHaveBeenCalledWith('custom/review.md', 'LLM Review Response');
+    expect(utilsMock.appendToFile).toHaveBeenCalledWith('custom/review.md', 'LLM Review Response');
 
     expect(consoleUtilsMock.displaySuccess).toHaveBeenCalledWith(
       expect.stringContaining('custom/review.md')

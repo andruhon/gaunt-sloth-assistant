@@ -7,6 +7,5 @@
       "baseURL": "https://api.inceptionlabs.ai/v1"
     }
   },
-  "canInterruptInferenceWithEsc": false,
-  "streamSessionInferenceLog": false
+  "canInterruptInferenceWithEsc": false
 }

@@ -4,5 +4,6 @@
     "model": "claude-sonnet-4-20250514"
   },
   "filesystem": "none",
-  "useColour": false
+  "useColour": false,
+  "writeOutputToFile": "review.md"
 }

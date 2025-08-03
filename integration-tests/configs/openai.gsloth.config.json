@@ -3,6 +3,5 @@
     "type": "openai",
     "model": "gpt-4o"
   },
-  "canInterruptInferenceWithEsc": false,
-  "streamSessionInferenceLog": false
+  "canInterruptInferenceWithEsc": false
 }

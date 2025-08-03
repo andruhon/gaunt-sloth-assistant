@@ -1,52 +1,5 @@
-import type { Message } from '#src/modules/types.js';
-import { GthConfig } from '#src/config.js';
-import { display, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
-import { stdout } from '#src/systemUtils.js';
-import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
-import { StatusLevel } from '#src/core/types.js';
-import { randomUUID } from 'crypto';
 import { RunnableConfig } from '@langchain/core/runnables';
-
-/**
- * @deprecated prefer using src/core/GthAgentRunner.ts directly
- */
-export async function invoke(
-  command: 'ask' | 'pr' | 'review' | 'chat' | 'code' | undefined,
-  messages: Message[],
-  config: GthConfig
-): Promise<string> {
-  const statusUpdate = (level: StatusLevel, message: string) => {
-    switch (level) {
-      case 'display':
-        display(message);
-        break;
-      case 'info':
-        displayInfo(message);
-        break;
-      case 'warning':
-        displayWarning(message);
-        break;
-      case 'error':
-        displayError(message);
-        break;
-      case 'stream':
-        stdout.write(message, 'utf-8');
-        break;
-      default:
-        display(message);
-        break;
-    }
-  };
-
-  const runner = new GthAgentRunner(statusUpdate);
-
-  try {
-    await runner.init(command, config);
-    return await runner.processMessages(messages);
-  } finally {
-    await runner.cleanup();
-  }
-}
+import { randomUUID } from 'crypto';
 
 /**
  * Creates new runnable config.

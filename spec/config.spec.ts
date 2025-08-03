@@ -671,10 +671,9 @@ describe('config', async () => {
       expect(consoleUtilsMock.displayError).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displaySuccess).not.toHaveBeenCalled();
 
-      expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith('Model: test-model');
-
       expect(config).toEqual({
         llm: mockLlm,
+        modelDisplayName: 'test-model',
         contentProvider: 'file',
         requirementsProvider: 'file',
         projectGuidelines: '.gsloth.guidelines.md',
