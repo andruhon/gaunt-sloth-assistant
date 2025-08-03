@@ -3,7 +3,9 @@
   "compilerOptions": {
     "paths": {
       "#src/*": ["../src/*"]
-    }
+    },
+    "rootDir": ".."
   },
-  "include": ["../src/**/*"]
+  "include": ["../spec/**/*"],
+  "exclude": ["../src"]
 }

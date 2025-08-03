@@ -88,7 +88,7 @@ describe('predefined AI provider configurations', () => {
     const { initConfig } = await import('#src/config.js');
 
     // Call the function
-    const config = await initConfig();
+    const config = await initConfig({});
 
     // Verify no warnings or errors were displayed
     expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -149,7 +149,7 @@ describe('predefined AI provider configurations', () => {
     const { initConfig } = await import('#src/config.js');
 
     // Call the function
-    const config = await initConfig();
+    const config = await initConfig({});
 
     // Verify no warnings or errors were displayed
     expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();
@@ -210,7 +210,7 @@ describe('predefined AI provider configurations', () => {
     const { initConfig } = await import('#src/config.js');
 
     // Call the function
-    const config = await initConfig();
+    const config = await initConfig({});
 
     // Verify no warnings or errors were displayed
     expect(consoleUtilsMock.displayDebug).not.toHaveBeenCalled();

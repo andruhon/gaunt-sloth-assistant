@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && vitest run",
+    "test": "npx tsc -p spec/tsconfig.json --noEmit && npm run build && vitest run",
     "it": "npm run build && node it.js",
     "lint": "eslint . --ext .js,.ts",
     "lint-n-fix": "eslint . --ext .js,.ts --fix",

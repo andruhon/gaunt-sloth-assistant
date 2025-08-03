@@ -54,7 +54,7 @@ const consoleUtilsMock = {
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
 describe('GthLangChainAgent', () => {
-  let GthLangChainAgent: typeof import('#src/core/GthLangChainAgent.ts').GthLangChainAgent;
+  let GthLangChainAgent: typeof import('#src/core/GthLangChainAgent.js').GthLangChainAgent;
   let statusUpdateCallback: Mock<StatusUpdateCallback>;
   let mockConfig: GthConfig;
 
@@ -83,6 +83,9 @@ describe('GthLangChainAgent', () => {
       projectReviewInstructions: '.gsloth.review.md',
       filesystem: 'none',
       useColour: false,
+      writeOutputToFile: true,
+      streamSessionInferenceLog: true,
+      canInterruptInferenceWithEsc: true,
     };
 
     ({ GthLangChainAgent } = await import('#src/core/GthLangChainAgent.js'));

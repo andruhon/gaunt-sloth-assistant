@@ -43,6 +43,11 @@ const mockConfig = {
     },
     review: {},
   },
+  filesystem: 'none',
+  useColour: false,
+  writeOutputToFile: true,
+  streamSessionInferenceLog: true,
+  canInterruptInferenceWithEsc: true,
 };
 
 const configMock = {
@@ -75,7 +80,7 @@ describe('reviewCommand', () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
 
-    reviewCommand(program);
+    reviewCommand(program, {});
     await program.parseAsync(['na', 'na', 'review', '-f', 'test.file']);
 
     expect(review).toHaveBeenCalledWith(
@@ -93,7 +98,7 @@ describe('reviewCommand', () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
 
-    reviewCommand(program);
+    reviewCommand(program, {});
 
     utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue(
       'test.file:\n```\nFILE TO REVIEW\n```\n\ntest2.file:\n```\nFILE2 TO REVIEW\n```'
@@ -122,7 +127,7 @@ describe('reviewCommand', () => {
       writeErr: (str: string) => (testOutput.text += str),
     });
 
-    reviewCommand(program);
+    reviewCommand(program, {});
 
     const commandUnderTest = program.commands.find((c) => c.name() === 'review');
     expect(commandUnderTest).toBeDefined();
@@ -173,7 +178,7 @@ describe('reviewCommand', () => {
       get: jiraProvider,
     }));
 
-    reviewCommand(program);
+    reviewCommand(program, {});
     await program.parseAsync(['na', 'na', 'review', 'content-id', '-r', 'JIRA-123']);
 
     expect(review).toHaveBeenCalledWith(
@@ -217,7 +222,7 @@ describe('reviewCommand', () => {
       get: ghProvider,
     }));
 
-    reviewCommand(program);
+    reviewCommand(program, {});
     await program.parseAsync(['na', 'na', 'review', '123']);
 
     expect(review).toHaveBeenCalledWith(
@@ -236,7 +241,7 @@ describe('reviewCommand', () => {
     const { reviewCommand } = await import('#src/commands/reviewCommand.js');
     const program = new Command();
 
-    reviewCommand(program);
+    reviewCommand(program, {});
     await program.parseAsync([
       'na',
       'na',
@@ -276,7 +281,7 @@ describe('reviewCommand', () => {
       get: ghProvider,
     }));
 
-    reviewCommand(program);
+    reviewCommand(program, {});
     await program.parseAsync(['na', 'na', 'review', '123', '-m', 'Focus on code style']);
 
     expect(review).toHaveBeenCalledWith(

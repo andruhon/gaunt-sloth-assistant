@@ -43,6 +43,11 @@ const mockConfig = {
     },
     review: {},
   },
+  filesystem: 'none',
+  useColour: false,
+  writeOutputToFile: true,
+  streamSessionInferenceLog: true,
+  canInterruptInferenceWithEsc: true,
 };
 
 const configMock = {
@@ -100,7 +105,7 @@ describe('prCommand', () => {
       get: ghProvider,
     }));
 
-    prCommand(program);
+    prCommand(program, {});
     await program.parseAsync(['na', 'na', 'pr', '123']);
 
     expect(review).toHaveBeenCalledWith(
@@ -147,7 +152,7 @@ describe('prCommand', () => {
       get: textProvider,
     }));
 
-    prCommand(program);
+    prCommand(program, {});
     await program.parseAsync(['na', 'na', 'pr', '123', 'req-456']);
 
     expect(review).toHaveBeenCalledWith(
@@ -201,7 +206,7 @@ describe('prCommand', () => {
       writeErr: (str: string) => (testOutput.text += str),
     });
 
-    prCommand(program);
+    prCommand(program, {});
 
     await expect(program.parseAsync(['na', 'na', 'pr', 'content-id', 'JIRA-123'])).rejects.toThrow(
       'Missing JIRA Legacy API token. ' +
@@ -220,7 +225,7 @@ describe('prCommand', () => {
       writeErr: (str: string) => (testOutput.text += str),
     });
 
-    prCommand(program);
+    prCommand(program, {});
 
     const commandUnderTest = program.commands.find((c) => c.name() === 'pr');
     expect(commandUnderTest).toBeDefined();
@@ -260,7 +265,7 @@ describe('prCommand', () => {
       get: ghProvider,
     }));
 
-    prCommand(program);
+    prCommand(program, {});
     await program.parseAsync([
       'na',
       'na',
@@ -314,7 +319,7 @@ describe('prCommand', () => {
       get: textProvider,
     }));
 
-    prCommand(program);
+    prCommand(program, {});
     await program.parseAsync(['na', 'na', 'pr', '123', 'req-456', '-m', 'Focus on performance']);
 
     expect(review).toHaveBeenCalledWith(

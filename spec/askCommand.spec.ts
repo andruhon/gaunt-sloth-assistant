@@ -37,6 +37,11 @@ const mockConfig = {
       requirementsProvider: 'github',
     },
   },
+  filesystem: 'none',
+  useColour: false,
+  writeOutputToFile: true,
+  streamSessionInferenceLog: true,
+  canInterruptInferenceWithEsc: true,
 };
 
 // Set up static mocks
@@ -86,7 +91,7 @@ describe('askCommand', () => {
   it('Should call askQuestion with message', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    askCommand(program);
+    askCommand(program, {});
     await program.parseAsync(['na', 'na', 'ask', 'test message']);
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
@@ -99,7 +104,7 @@ describe('askCommand', () => {
   it('Should call askQuestion with message and file content', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    askCommand(program);
+    askCommand(program, {});
     await program.parseAsync(['na', 'na', 'ask', 'test message', '-f', 'test.file']);
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
@@ -112,7 +117,7 @@ describe('askCommand', () => {
   it('Should call askQuestion with message and multiple file contents', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    askCommand(program);
+    askCommand(program, {});
     utilsMock.readMultipleFilesFromCurrentDir.mockImplementation((files: string[]) => {
       if (files.includes('test.file') && files.includes('test2.file')) {
         return 'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```';
@@ -131,7 +136,7 @@ describe('askCommand', () => {
   it('Should display help correctly', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    askCommand(program);
+    askCommand(program, {});
     expect(program.commands[0].name()).toEqual('ask');
     expect(program.commands[0].description()).toEqual('Ask a question');
   });
@@ -139,7 +144,7 @@ describe('askCommand', () => {
   it('Should call askQuestion with file content only (no message)', async () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    askCommand(program);
+    askCommand(program, {});
     await program.parseAsync(['na', 'na', 'ask', '-f', 'test.file']);
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
@@ -155,7 +160,7 @@ describe('askCommand', () => {
 
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    askCommand(program);
+    askCommand(program, {});
     await program.parseAsync(['na', 'na', 'ask']);
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
@@ -171,7 +176,7 @@ describe('askCommand', () => {
 
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    askCommand(program);
+    askCommand(program, {});
 
     await expect(program.parseAsync(['na', 'na', 'ask'])).rejects.toThrow(
       'At least one of the following is required: file, stdin, or message'
@@ -190,7 +195,7 @@ describe('askCommand', () => {
 
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
-    askCommand(program);
+    askCommand(program, {});
     await program.parseAsync(['na', 'na', 'ask', 'integration test message']);
 
     // Verify that askQuestion was called with the config containing writeOutputToFile: false

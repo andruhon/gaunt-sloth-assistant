@@ -27,6 +27,31 @@ describe('GthAgentRunner', () => {
   let statusUpdateCallback: Mock<StatusUpdateCallback>;
   let mockConfig: GthConfig;
 
+  const BASE_GTH_CONFIG: Pick<
+    GthConfig,
+    | 'projectGuidelines'
+    | 'streamOutput'
+    | 'contentProvider'
+    | 'requirementsProvider'
+    | 'projectReviewInstructions'
+    | 'filesystem'
+    | 'useColour'
+    | 'writeOutputToFile'
+    | 'streamSessionInferenceLog'
+    | 'canInterruptInferenceWithEsc'
+  > = {
+    projectGuidelines: 'test guidelines',
+    streamOutput: false,
+    contentProvider: 'file',
+    requirementsProvider: 'file',
+    projectReviewInstructions: '.gsloth.review.md',
+    filesystem: 'none',
+    useColour: false,
+    writeOutputToFile: true,
+    streamSessionInferenceLog: true,
+    canInterruptInferenceWithEsc: true,
+  };
+
   beforeEach(async () => {
     vi.resetAllMocks();
 
@@ -40,17 +65,11 @@ describe('GthAgentRunner', () => {
     statusUpdateCallback = vi.fn();
 
     mockConfig = {
-      projectGuidelines: 'test guidelines',
+      ...BASE_GTH_CONFIG,
       llm: {
         _llmType: vi.fn().mockReturnValue('test'),
         verbose: false,
       } as any,
-      streamOutput: false,
-      contentProvider: 'file',
-      requirementsProvider: 'file',
-      projectReviewInstructions: '.gsloth.review.md',
-      filesystem: 'none',
-      useColour: false,
     };
 
     ({ GthAgentRunner } = await import('#src/core/GthAgentRunner.js'));

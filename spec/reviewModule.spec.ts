@@ -67,10 +67,20 @@ const llmUtilsMock = {
 vi.mock('#src/llmUtils.js', () => llmUtilsMock);
 
 // Create a complete mock config for prop drilling
-const mockConfig = {
-  llm: new FakeListChatModel({
-    responses: ['LLM Review Response'],
-  }),
+const BASE_GTH_CONFIG: Pick<
+  GthConfig,
+  | 'contentProvider'
+  | 'requirementsProvider'
+  | 'projectGuidelines'
+  | 'projectReviewInstructions'
+  | 'streamOutput'
+  | 'commands'
+  | 'filesystem'
+  | 'useColour'
+  | 'writeOutputToFile'
+  | 'streamSessionInferenceLog'
+  | 'canInterruptInferenceWithEsc'
+> = {
   contentProvider: 'file',
   requirementsProvider: 'file',
   projectGuidelines: '.gsloth.guidelines.md',
@@ -85,7 +95,16 @@ const mockConfig = {
   filesystem: 'none',
   useColour: false,
   writeOutputToFile: true,
-} as GthConfig;
+  streamSessionInferenceLog: true,
+  canInterruptInferenceWithEsc: true,
+};
+
+const mockConfig: GthConfig = {
+  ...BASE_GTH_CONFIG,
+  llm: new FakeListChatModel({
+    responses: ['LLM Review Response'],
+  }),
+};
 
 // Mock config module
 vi.mock('#src/config.js', () => ({
@@ -171,14 +190,13 @@ describe('reviewModule', () => {
   // Specific test to verify that prop drilling works with different config objects
   it('should work with different config objects via prop drilling', async () => {
     // Create a different config object to prove prop drilling works
-    const differentConfig = {
-      ...mockConfig,
+    const differentConfig: GthConfig = {
+      ...BASE_GTH_CONFIG,
       streamOutput: true, // Different from default mockConfig
       llm: new FakeListChatModel({
         responses: ['Different LLM Response'],
       }),
-      writeOutputToFile: true,
-    } as GthConfig;
+    };
 
     // Set a different response for this specific test
     llmUtilsMock.invoke.mockResolvedValue('Different LLM Response');
