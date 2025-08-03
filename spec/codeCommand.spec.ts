@@ -1,7 +1,6 @@
 import { Command } from 'commander';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { display, displayInfo } from '#src/consoleUtils.js';
-import { invoke } from '#src/llmUtils.js';
 import type { Interface as ReadlineInterface } from 'node:readline/promises';
 import { createInterface } from 'node:readline/promises';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
@@ -107,7 +106,6 @@ describe('codeCommand', () => {
     vi.resetModules();
     ({ codeCommand } = await import('#src/commands/codeCommand.js'));
     program = new Command();
-    vi.mocked(invoke).mockReset();
     vi.clearAllMocks();
 
     // Set up GthAgentRunner mock implementation
@@ -219,7 +217,6 @@ describe('codeCommand', () => {
     await program.parseAsync(['na', 'na', 'code']);
 
     expect(mockReadline.question).toHaveBeenCalledWith('  > ');
-    expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
   });
 
@@ -274,7 +271,6 @@ describe('codeCommand', () => {
     expect(vi.mocked(displayInfo)).toHaveBeenCalledWith(
       "Type 'exit' or hit Ctrl+C to exit code session\n"
     );
-    expect(vi.mocked(invoke)).not.toHaveBeenCalled();
     expect(mockReadline.close).toHaveBeenCalled();
   });
 
