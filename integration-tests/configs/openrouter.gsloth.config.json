@@ -1,7 +1,7 @@
 {
   "llm": {
     "type": "openrouter",
-    "model": "minimax/minimax-m1"
+    "model": "openrouter/horizon-beta"
   },
   "canInterruptInferenceWithEsc": false,
   "streamSessionInferenceLog": false

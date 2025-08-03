@@ -321,9 +321,10 @@ describe('config', async () => {
       const jsonConfig = {
         llm: {
           type: 'vertexai',
+          model: 'test-model',
         },
         writeOutputToFile: false,
-      } as RawGthConfig;
+      } as Partial<RawGthConfig>;
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -360,9 +361,10 @@ describe('config', async () => {
       const jsonConfig = {
         llm: {
           type: 'vertexai',
+          model: 'test-model',
         },
         writeOutputToFile: true,
-      } as RawGthConfig;
+      } as Partial<RawGthConfig>;
 
       // Set up fs mocks for this specific test
       fsMock.existsSync.mockImplementation((path: string) => {
@@ -392,6 +394,163 @@ describe('config', async () => {
 
       // Verify that CLI override takes precedence
       expect(config.writeOutputToFile).toBe(false);
+    });
+
+    it('Should allow writeOutputToFile to be a string in config (explicit path)', async () => {
+      // Create a test config with writeOutputToFile set to a string path
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+          model: 'test-model',
+        },
+        writeOutputToFile: 'review.md',
+      } as Partial<RawGthConfig>;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test
+      const config = await initConfig({});
+
+      // Verify string value is preserved
+      expect(config.writeOutputToFile).toBe('review.md');
+    });
+
+    it('Should allow CLI override with string path and preserve value', async () => {
+      // Create a baseline test config
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+          model: 'test-model',
+        },
+        writeOutputToFile: true,
+      } as Partial<RawGthConfig>;
+
+      // Set up fs mocks for this specific test
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module to process the config
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Function under test with CLI override to string
+      const config = await initConfig({ writeOutputToFile: 'out/review.md' });
+
+      // Verify that CLI string override takes precedence and is preserved
+      expect(config.writeOutputToFile).toBe('out/review.md');
+    });
+
+    it('Should interpret CLI -wn and -w0 as false (backward compatible)', async () => {
+      // Simulate config default true and CLI override false-like values
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+          model: 'test-model',
+        },
+        writeOutputToFile: true,
+      } as Partial<RawGthConfig>;
+
+      // Set up fs mocks
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      // Ensure filePathUtils mock is properly configured for this test
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      // Mock the vertexai config module
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
+      }));
+
+      // Import the module under test
+      const { initConfig } = await import('#src/config.js');
+
+      // Verify -wn equivalent handling (we simulate by passing false explicitly)
+      const config1 = await initConfig({ writeOutputToFile: false });
+      expect(config1.writeOutputToFile).toBe(false);
+
+      // Verify -w0 equivalent handling (again, equivalent to explicit false in overrides)
+      const config2 = await initConfig({ writeOutputToFile: false });
+      expect(config2.writeOutputToFile).toBe(false);
+    });
+
+    it('Should accept CLI string for bare filename and absolute/relative paths', async () => {
+      const jsonConfig = {
+        llm: {
+          type: 'vertexai',
+          model: 'test-model',
+        },
+        writeOutputToFile: true,
+      } as Partial<RawGthConfig>;
+
+      fsMock.existsSync.mockImplementation((path: string) => {
+        return path && path.includes('.gsloth.config.json');
+      });
+      fsMock.readFileSync.mockImplementation((path: string) => {
+        if (path && path.includes('.gsloth.config.json')) return JSON.stringify(jsonConfig);
+        return '';
+      });
+
+      filePathUtilsMock.getGslothConfigReadPath.mockImplementation((filename: string) => {
+        return `/mock/read/${filename}`;
+      });
+
+      vi.doMock('#src/presets/vertexai.js', () => ({
+        processJsonConfig: vi.fn().mockResolvedValue({ type: 'vertexai' }),
+        postProcessJsonConfig: undefined,
+      }));
+
+      const { initConfig } = await import('#src/config.js');
+
+      const c1 = await initConfig({ writeOutputToFile: 'review.md' });
+      expect(c1.writeOutputToFile).toBe('review.md');
+
+      const c2 = await initConfig({ writeOutputToFile: 'out/rev.md' });
+      expect(c2.writeOutputToFile).toBe('out/rev.md');
     });
   });
 

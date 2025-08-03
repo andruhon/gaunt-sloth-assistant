@@ -82,7 +82,7 @@ export interface GthConfig {
    * Should the output be written to md file.
    * (e.g. gth_2025-07-26_22-59-06_REVIEW.md)
    */
-  writeOutputToFile: boolean;
+  writeOutputToFile: boolean | string;
   /**
    * Use colour in ouptut
    */
@@ -134,6 +134,7 @@ export interface GthConfig {
       devTools?: GthDevToolsConfig;
     };
   };
+  modelDisplayName?: string;
 }
 
 /**
@@ -236,8 +237,9 @@ export interface CommandLineConfigOverrides {
    * Should the output be written to md file.
    * (e.g. gth_2025-07-26_22-59-06_REVIEW.md).
    * Can be set to false with `-wn` or `-w0`
+   * Can be set to a specific filename or path by passing a string (e.g. `-wreview.md`)
    */
-  writeOutputToFile?: boolean;
+  writeOutputToFile?: boolean | string;
 }
 
 /**
@@ -536,8 +538,6 @@ function mergeRawConfig(
   llm: BaseChatModel,
   commandLineConfigOverrides: CommandLineConfigOverrides
 ): GthConfig {
-  if (config.llm?.model) {
-    displayInfo(`Model: ${config.llm.model}`);
-  }
-  return mergeConfig({ ...config, llm }, commandLineConfigOverrides);
+  const modelDisplayName: string | undefined = config.llm?.model;
+  return mergeConfig({ ...config, llm, modelDisplayName }, commandLineConfigOverrides);
 }

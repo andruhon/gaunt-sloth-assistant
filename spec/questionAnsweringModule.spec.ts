@@ -35,7 +35,19 @@ const filePathUtilsMock = {
   getGslothFilePath: vi.fn(),
   gslothDirExists: vi.fn(),
 };
-vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
+vi.mock('#src/filePathUtils.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#src/filePathUtils.js')>();
+  return {
+    ...actual,
+    getGslothFilePath: filePathUtilsMock.getGslothFilePath,
+    gslothDirExists: filePathUtilsMock.gslothDirExists,
+    resolveOutputPath: vi.fn((writeOutputToFile: boolean | string, defaultFileName: string) => {
+      if (writeOutputToFile === false) return null;
+      if (writeOutputToFile === true) return actual.getGslothFilePath(defaultFileName);
+      return actual.getGslothFilePath(String(writeOutputToFile));
+    }),
+  };
+});
 
 // Mock utils module
 const utilsMock = {

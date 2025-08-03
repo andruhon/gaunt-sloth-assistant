@@ -33,6 +33,7 @@ export async function runCommandWithArgs(
 
     childProcess.stdout.on('data', (data) => {
       stdout += data.toString();
+      process.stdout.write(data.toString());
       if (endOutput && data.toString().includes(endOutput)) {
         childProcess.kill();
         resolve(stdout.trim());
@@ -42,6 +43,7 @@ export async function runCommandWithArgs(
 
     childProcess.stderr.on('data', (data) => {
       stderr += data.toString();
+      process.stdout.write(data.toString());
     });
 
     childProcess.on('close', (code) => {

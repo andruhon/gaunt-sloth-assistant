@@ -9,7 +9,7 @@ import {
   stopSessionLogging,
 } from '#src/consoleUtils.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
-import { getGslothFilePath } from '#src/filePathUtils.js';
+import { getCommandOutputFilePath } from '#src/filePathUtils.js';
 import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import {
   createInterface,
@@ -19,7 +19,7 @@ import {
   stdin as input,
   stdout as output,
 } from '#src/systemUtils.js';
-import { appendToFile, generateStandardFileName } from '#src/utils.js';
+import { appendToFile } from '#src/utils.js';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
 
@@ -40,9 +40,7 @@ export async function createInteractiveSession(
   const checkpointSaver = new MemorySaver();
   // Initialize Runner
 
-  const logFileName = config.writeOutputToFile
-    ? getGslothFilePath(generateStandardFileName(sessionConfig.mode.toUpperCase()))
-    : null;
+  const logFileName = getCommandOutputFilePath(config, sessionConfig.mode);
   if (logFileName) {
     initSessionLogging(logFileName, config.streamSessionInferenceLog);
   }

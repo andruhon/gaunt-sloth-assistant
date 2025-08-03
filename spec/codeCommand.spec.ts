@@ -56,6 +56,13 @@ vi.mock('#src/systemUtils.js', async () => {
 
 vi.mock('#src/filePathUtils.js', () => ({
   getGslothFilePath: vi.fn().mockReturnValue('mock/code/file.txt'),
+  getCommandOutputFilePath: vi.fn((config: any, _source: string) => {
+    // Preserve previous test expectation: when writeOutputToFile is true,
+    // the path used is 'mock/code/file.txt'
+    if (config.writeOutputToFile === false) return null;
+    if (config.writeOutputToFile === true) return 'mock/code/file.txt';
+    return String(config.writeOutputToFile);
+  }),
 }));
 
 vi.mock('#src/utils.js', () => ({

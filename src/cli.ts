@@ -8,6 +8,7 @@ import { codeCommand } from '#src/commands/codeCommand.js';
 import { getSlothVersion } from '#src/utils.js';
 import { argv, readStdin } from '#src/systemUtils.js';
 import type { CommandLineConfigOverrides } from '#src/config.js';
+import { coerceBooleanOrString } from '#src/cliUtils.js';
 
 const program = new Command();
 
@@ -23,8 +24,8 @@ program
   )
   .option('-c, --config <path>', 'Path to custom configuration file')
   .option(
-    '-w, --write-output-to-file <boolean>',
-    'Write output to file true/false. Use -wn as shortcut for false.'
+    '-w, --write-output-to-file <value>',
+    'Write output to file. Accepts true/false or a filename. Shortcuts: -wn or -w0 for false.'
   )
   .addOption(new Option('--nopipe').hideHelp(true));
 
@@ -47,18 +48,12 @@ if (program.getOptionValue('config')) {
 
 const writeToFile = program.getOptionValue('writeOutputToFile');
 
-// Commander does interesting thing, if shortcut like -w exist,
-// Everything else gowing after this shortcut without space goes as value,
-// e.g. -wn comes with value 'n', -whithere will come as 'hithere'
-if (writeToFile) {
-  if (
-    'false' === String(writeToFile).toLowerCase() ||
-    '0' === writeToFile ||
-    'n' === writeToFile ||
-    'no' === writeToFile
-  ) {
-    cliConfigOverrides.writeOutputToFile = false;
-  }
+// Commander does an interesting thing: if a shortcut like -w exists,
+// everything after this shortcut without a space becomes the value.
+// Examples: -wn comes with value 'n', -w0 => '0', -wreview.md => 'review.md'
+const coerced = coerceBooleanOrString(writeToFile);
+if (coerced !== undefined) {
+  cliConfigOverrides.writeOutputToFile = coerced;
 }
 
 // Initialize all commands - they will handle their own config loading

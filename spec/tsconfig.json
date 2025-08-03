@@ -6,6 +6,6 @@
     },
     "rootDir": ".."
   },
-  "include": ["../spec/**/*"],
-  "exclude": ["../src"]
+  "include": ["../src/**/*", "../spec/**/*"],
+  "exclude": ["../src", "../integration-tests"]
 }

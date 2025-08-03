@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { runCommandWithArgs } from './support/commandRunner';
-import { extractReviewScore } from './support/reviewScoreExtractor';
+import { runCommandWithArgs } from './support/commandRunner.ts';
+import { extractReviewScore } from './support/reviewScoreExtractor.ts';
 
 describe('Review Command Integration Tests', () => {
   // Test for reviewing good code

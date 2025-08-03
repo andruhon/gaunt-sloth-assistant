@@ -47,3 +47,8 @@ try {
   console.error(`Error copying config file: ${error.message}`);
   process.exit(1);
 }
+
+if (fs.existsSync('testreview.md')) {
+  fs.unlinkSync('testreview.md');
+  console.log(`Removed testreview.md`);
+}

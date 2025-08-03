@@ -3,6 +3,7 @@
 /req/
 /gth_*
 /integration-tests/gth_*
+/integration-tests/testreview.md
 /integration-tests/.gsloth.config.json
 /docs-generated
 .junie

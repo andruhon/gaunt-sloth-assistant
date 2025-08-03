@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
 import type { GthConfig } from '#src/config.js';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { AIMessageChunk, HumanMessage, SystemMessage } from '@langchain/core/messages';
+import {
+  BaseChatModel,
+  BaseChatModelCallOptions,
+} from '@langchain/core/language_models/chat_models';
 
 // Mock fs module
 const fsMock = {
@@ -41,6 +45,7 @@ vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 const filePathUtilsMock = {
   getGslothFilePath: vi.fn(),
   gslothDirExists: vi.fn(),
+  getCommandOutputFilePath: vi.fn(),
 };
 vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
 
@@ -103,8 +108,8 @@ const mockConfig: GthConfig = {
   ...BASE_GTH_CONFIG,
   llm: new FakeListChatModel({
     responses: ['LLM Review Response'],
-  }),
-};
+  }) as BaseChatModel<BaseChatModelCallOptions, AIMessageChunk>,
+} as GthConfig;
 
 // Mock config module
 vi.mock('#src/config.js', () => ({
@@ -128,6 +133,13 @@ describe('reviewModule', () => {
     // Setup filePathUtils mocks
     filePathUtilsMock.getGslothFilePath.mockReturnValue('test-review-file-path.md');
     filePathUtilsMock.gslothDirExists.mockReturnValue(false);
+    filePathUtilsMock.getCommandOutputFilePath.mockImplementation(
+      (config: any, _source: string) => {
+        if (config.writeOutputToFile === false) return null;
+        if (config.writeOutputToFile === true) return 'test-review-file-path.md';
+        return String(config.writeOutputToFile);
+      }
+    );
 
     llmUtilsMock.invoke.mockResolvedValue('LLM Review Response');
   });
@@ -151,6 +163,10 @@ describe('reviewModule', () => {
       'test-review-file-path.md',
       'LLM Review Response'
     );
+    expect(filePathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
+      expect.objectContaining({ writeOutputToFile: true }),
+      'test-source'
+    );
 
     // Verify that display was called
     expect(consoleUtilsMock.display).toHaveBeenCalledWith('\nLLM Review Response');
@@ -162,6 +178,43 @@ describe('reviewModule', () => {
 
     // Verify that ProgressIndicator.stop() was called
     expect(utilsMock.ProgressIndicator.prototype.stop).toHaveBeenCalled();
+  });
+
+  it('should write review to a specified string path when writeOutputToFile is a string', async () => {
+    // Arrange: configure to use a specific filename via string path
+    const configWithStringPath = {
+      ...mockConfig,
+      writeOutputToFile: 'custom/review.md',
+    } as unknown as GthConfig;
+
+    // Mock resolver to respect provided path as-is
+    filePathUtilsMock.getGslothFilePath.mockReturnValue('custom/review.md');
+    filePathUtilsMock.getCommandOutputFilePath.mockImplementation(
+      (config: any, _source: string) => {
+        if (config.writeOutputToFile === false) return null;
+        if (config.writeOutputToFile === true) return 'test-review-file-path.md';
+        return String(config.writeOutputToFile);
+      }
+    );
+
+    // Act
+    const { review } = await import('#src/modules/reviewModule.js');
+    await review('test-source', 'test-preamble', 'test-diff', configWithStringPath);
+
+    // Assert
+    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
+      'review',
+      [new SystemMessage('test-preamble'), new HumanMessage('test-diff')],
+      configWithStringPath
+    );
+    expect(filePathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
+      expect.objectContaining({ writeOutputToFile: 'custom/review.md' }),
+      'test-source'
+    );
+    expect(fsMock.writeFileSync).toHaveBeenCalledWith('custom/review.md', 'LLM Review Response');
+    expect(consoleUtilsMock.displaySuccess).toHaveBeenCalledWith(
+      expect.stringContaining('custom/review.md')
+    );
   });
 
   it('should handle file write errors with prop drilling', async () => {
@@ -222,5 +275,43 @@ describe('reviewModule', () => {
 
     // Since streamOutput is true, display should not be called
     expect(consoleUtilsMock.display).not.toHaveBeenCalled();
+  });
+
+  it('should write review to a specified string path when writeOutputToFile is a string', async () => {
+    // Arrange: configure to use a specific filename via string path
+    const configWithStringPath = {
+      ...mockConfig,
+      writeOutputToFile: 'custom/review.md',
+    } as GthConfig;
+
+    // Ensure we don't use auto-naming when explicit path is provided
+    utilsMock.generateStandardFileName.mockClear();
+
+    // Mock resolver should be called with the provided filename
+    filePathUtilsMock.getGslothFilePath.mockReturnValue('custom/review.md');
+
+    // Act
+    const { review } = await import('#src/modules/reviewModule.js');
+    await review('test-source', 'test-preamble', 'test-diff', configWithStringPath);
+
+    // Assert
+    expect(llmUtilsMock.invoke).toHaveBeenCalledWith(
+      'review',
+      [new SystemMessage('test-preamble'), new HumanMessage('test-diff')],
+      configWithStringPath
+    );
+
+    // getCommandOutputFilePath should be called with the provided filename in config
+    expect(filePathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
+      expect.objectContaining({ writeOutputToFile: 'custom/review.md' }),
+      'test-source'
+    );
+
+    // And the file should be written to that path
+    expect(fsMock.writeFileSync).toHaveBeenCalledWith('custom/review.md', 'LLM Review Response');
+
+    expect(consoleUtilsMock.displaySuccess).toHaveBeenCalledWith(
+      expect.stringContaining('custom/review.md')
+    );
   });
 });

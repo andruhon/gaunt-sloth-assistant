@@ -1,7 +1,7 @@
 import type { GthConfig } from '#src/config.js';
 import { display, displayError, displaySuccess } from '#src/consoleUtils.js';
-import { getGslothFilePath } from '#src/filePathUtils.js';
-import { generateStandardFileName, ProgressIndicator } from '#src/utils.js';
+import { getCommandOutputFilePath } from '#src/filePathUtils.js';
+import { ProgressIndicator } from '#src/utils.js';
 import { writeFileSync } from 'node:fs';
 import { invoke } from '#src/llmUtils.js';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
@@ -22,15 +22,14 @@ export async function askQuestion(
   const messages = [new SystemMessage(preamble), new HumanMessage(content)];
   const outputContent = await invoke('ask', messages, config);
   progressIndicator?.stop();
-  const filename = generateStandardFileName(source);
-  const filePath = getGslothFilePath(filename);
+  const filePath = getCommandOutputFilePath(config, source);
   if (!config.streamOutput) {
     display('\n' + outputContent);
   }
-  if (!config.writeOutputToFile) {
+  if (config.writeOutputToFile === false) {
     display('\n'); // something going on in some terminals, they swallow last line of output
   }
-  if (config.writeOutputToFile) {
+  if (filePath) {
     try {
       writeFileSync(filePath, outputContent);
       displaySuccess(`\n\nThis report can be found in ${filePath}`);

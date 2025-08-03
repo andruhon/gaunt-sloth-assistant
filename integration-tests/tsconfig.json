@@ -2,7 +2,9 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
   },
   "include": ["./**/*"]
 }

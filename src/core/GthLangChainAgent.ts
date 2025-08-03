@@ -52,6 +52,10 @@ export class GthLangChainAgent implements GthAgentInterface {
       debugLog: this.config.debugLog,
     });
 
+    if (this.config.modelDisplayName) {
+      this.statusUpdate('info', `Model: ${this.config.modelDisplayName}`);
+    }
+
     this.mcpClient = await this.getMcpClient(this.config);
 
     // Get default filesystem tools (filtered based on config)

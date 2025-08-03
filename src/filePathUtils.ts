@@ -1,8 +1,10 @@
 import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { getCurrentDir } from '#src/systemUtils.js';
 import { GSLOTH_DIR, GSLOTH_SETTINGS_DIR } from '#src/constants.js';
+import type { GthConfig } from '#src/config.js';
+import { generateStandardFileName } from '#src/utils.js';
 
 /**
  * Checks if .gsloth directory exists in the project root
@@ -53,6 +55,57 @@ export function getGslothConfigWritePath(filename: string): string {
   }
 
   return resolve(currentDir, filename);
+}
+
+/**
+ * Resolve an explicit output path string to an absolute file path.
+ * Concerned only with string values:
+ * - If the string includes a path separator, resolve relative to project root and ensure parent directories exist.
+ * - If it's a bare filename, place it under .gsloth/ when present, otherwise project root.
+ */
+export function resolveOutputPath(writeOutputToFile: string): string {
+  const currentDir = getCurrentDir();
+  const provided = String(writeOutputToFile).trim();
+
+  // Detect if provided path contains path separators (cross-platform)
+  const hasSeparator = provided.includes('/') || provided.includes('\\');
+
+  // If no separators, treat as bare filename: prefer .gsloth/ when present
+  if (!hasSeparator) {
+    return getGslothFilePath(provided);
+  }
+
+  // If path contains directories, respect as-is and ensure parent dirs
+  const absolutePath = resolve(currentDir, provided);
+  const parentDir = dirname(absolutePath);
+  if (!existsSync(parentDir)) {
+    mkdirSync(parentDir, { recursive: true });
+  }
+  return absolutePath;
+}
+
+/**
+ * Returns the output file path for a given command execution based on configuration.
+ * - If writeOutputToFile is false, returns null.
+ * - If writeOutputToFile is a string, resolves it without generating a default filename.
+ * - If writeOutputToFile is true, generates a standard filename from source and resolves it under .gsloth/ (when present) or project root.
+ */
+export function getCommandOutputFilePath(config: GthConfig, source: string): string | null {
+  const setting = config.writeOutputToFile;
+
+  if (setting === false) {
+    return null;
+  }
+
+  if (typeof setting === 'string') {
+    const trimmed = setting.trim();
+    if (trimmed.length === 0) return null;
+    return resolveOutputPath(trimmed);
+  }
+
+  // setting === true -> generate filename and place it using getGslothFilePath
+  const filename = generateStandardFileName(source.toUpperCase());
+  return getGslothFilePath(filename);
 }
 
 /**
