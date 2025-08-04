@@ -80,7 +80,9 @@ export interface GthConfig {
   streamOutput: boolean;
   /**
    * Should the output be written to md file.
-   * (e.g. gth_2025-07-26_22-59-06_REVIEW.md)
+   * (e.g. gth_2025-07-26_22-59-06_REVIEW.md).
+   * Can be set to false with `-wn` or `-w0`
+   * Can be set to a specific filename or path by passing a string (e.g. `-wreview.md`)
    */
   writeOutputToFile: boolean | string;
   /**
