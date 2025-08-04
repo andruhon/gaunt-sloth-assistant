@@ -289,5 +289,4 @@ describe('reviewModule', () => {
     // Since streamOutput is true, display should not be called
     expect(consoleUtilsMock.display).not.toHaveBeenCalled();
   });
-
 });
