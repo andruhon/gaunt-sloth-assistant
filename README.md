@@ -1,8 +1,8 @@
 # Gaunt Sloth Assistant
 [![Tests and Lint](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/actions/workflows/unit-tests.yml) [![Integration Tests](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/actions/workflows/integration-tests.yml/badge.svg?event=push)](https://github.com/Galvanized-Pukeko/gaunt-sloth-assistant/actions/workflows/integration-tests.yml)
 
-Gaunt Sloth Assistant is a lightweight **command line AI assistant**
-built with TypeScript (JavaScript) and distributed via NPM with minimum dependencies.
+Gaunt Sloth Assistant is a lightweight command-line AI code review tool that also provides general-purpose AI capabilities.
+Built with TypeScript and distributed via NPM, Gaunt Sloth maintains minimal dependencies for easy integration.
 
 ![GSloth Banner](assets/gaunt-sloth-logo.png)
 
@@ -29,8 +29,7 @@ The promise of Gaunt Sloth:
 - **No vendor lock-in**. Just BYO API keys.
 - **Easy installation via NPM**.
 - **All prompts are editable** via markdown files.
-- **No UI**. Command Line only, with intent to be used as a dependency, potentially in your build pipeline.
-  Of course, you can use Gaunt Sloth as a dependency and hook your own UI.
+- **No UI**. Command Line only, with intent to be used in build pipeline, or as a dependency to help in nodejs projects.
 
 ## What GSloth does:
 
