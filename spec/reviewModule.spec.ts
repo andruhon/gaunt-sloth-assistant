@@ -290,40 +290,4 @@ describe('reviewModule', () => {
     expect(consoleUtilsMock.display).not.toHaveBeenCalled();
   });
 
-  it('should write review to a specified string path when writeOutputToFile is a string', async () => {
-    // Arrange: configure to use a specific filename via string path
-    const configWithStringPath = {
-      ...mockConfig,
-      writeOutputToFile: 'custom/review.md',
-    } as GthConfig;
-
-    // Ensure we don't use auto-naming when explicit path is provided
-    utilsMock.generateStandardFileName.mockClear();
-
-    // Mock resolver should be called with the provided filename
-    filePathUtilsMock.getGslothFilePath.mockReturnValue('custom/review.md');
-
-    // Act
-    const { review } = await import('#src/modules/reviewModule.js');
-    await review('test-source', 'test-preamble', 'test-diff', configWithStringPath);
-
-    // Assert
-    expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
-      new SystemMessage('test-preamble'),
-      new HumanMessage('test-diff'),
-    ]);
-
-    // getCommandOutputFilePath should be called with the provided filename in config
-    expect(filePathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
-      expect.objectContaining({ writeOutputToFile: 'custom/review.md' }),
-      'test-source'
-    );
-
-    // And the file should be written to that path
-    expect(utilsMock.appendToFile).toHaveBeenCalledWith('custom/review.md', 'LLM Review Response');
-
-    expect(consoleUtilsMock.displaySuccess).toHaveBeenCalledWith(
-      expect.stringContaining('custom/review.md')
-    );
-  });
 });

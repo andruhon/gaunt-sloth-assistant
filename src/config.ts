@@ -82,11 +82,12 @@ export interface GthConfig {
    * Should the output be written to md file.
    * (e.g. gth_2025-07-26_22-59-06_REVIEW.md).
    * Can be set to false with `-wn` or `-w0`
-   * Can be set to a specific filename or path by passing a string (e.g. `-wreview.md`)
+   * Can be set to a specific filename or path by passing a string (e.g. `-w review.md`)
+   * Please note the string does not accept absolute path, but allows to exit project with `..` if necessary.
    */
   writeOutputToFile: boolean | string;
   /**
-   * Use colour in ouptut
+   * Use colour in output
    */
   useColour: boolean;
   /**
@@ -239,7 +240,8 @@ export interface CommandLineConfigOverrides {
    * Should the output be written to md file.
    * (e.g. gth_2025-07-26_22-59-06_REVIEW.md).
    * Can be set to false with `-wn` or `-w0`
-   * Can be set to a specific filename or path by passing a string (e.g. `-wreview.md`)
+   * Can be set to a specific filename or path by passing a string (e.g. `-w review.md`)
+   * Please note the string does not accept absolute path, but allows to exit project with `..` if necessary.
    */
   writeOutputToFile?: boolean | string;
 }
