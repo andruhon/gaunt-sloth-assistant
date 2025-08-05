@@ -2,6 +2,15 @@ import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
+// Make randomUUID deterministic across this spec to stabilize wrapContent output
+vi.mock('node:crypto', async () => {
+  const actual = await vi.importActual<typeof import('node:crypto')>('node:crypto');
+  return {
+    ...actual,
+    randomUUID: () => '12345678-aaaa-bbbb-cccc-1234567890ab',
+  };
+});
+
 // Define mocks at the top level
 const review = vi.fn();
 const prompt = {
@@ -54,7 +63,16 @@ const configMock = {
   initConfig: vi.fn(),
 };
 
-vi.mock('#src/prompt.js', () => prompt);
+vi.mock('#src/prompt.js', async () => {
+  const actual = await import('#src/prompt.js');
+  return {
+    ...actual,
+    readBackstory: prompt.readBackstory,
+    readGuidelines: prompt.readGuidelines,
+    readReviewInstructions: prompt.readReviewInstructions,
+    readSystemPrompt: prompt.readSystemPrompt,
+  };
+});
 vi.mock('#src/config.js', () => configMock);
 vi.mock('#src/utils.js', () => utilsMock);
 
@@ -184,7 +202,7 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'JIRA Requirements\ncontent-id',
+      '\nProvided requirements follows within jira-legacy-1234567 block\n<jira-legacy-1234567>\nJIRA Requirements\n</jira-legacy-1234567>\n\n\nProvided content follows within text-1234567 block\n<text-1234567>\ncontent-id\n</text-1234567>\n',
       expect.objectContaining({
         requirementsProvider: 'jira-legacy',
         projectGuidelines: '.gsloth.guidelines.md',
@@ -228,7 +246,7 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'PR Diff Content',
+      '\nProvided GitHub diff follows within github-1234567 block\n<github-1234567>\nPR Diff Content\n</github-1234567>\n',
       expect.objectContaining({
         contentProvider: 'github',
         projectGuidelines: '.gsloth.guidelines.md',
@@ -255,7 +273,11 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'test.file:\n```\nFILE TO REVIEW\n```\nPlease check for memory leaks',
+      'test.file:\n```\nFILE TO REVIEW\n```\n' +
+        '\nProvided user message follows within message-1234567 block\n' +
+        '<message-1234567>\n' +
+        'Please check for memory leaks\n' +
+        '</message-1234567>\n',
       expect.objectContaining({
         projectGuidelines: '.gsloth.guidelines.md',
         projectReviewInstructions: '.gsloth.review.md',
@@ -287,7 +309,7 @@ describe('reviewCommand', () => {
     expect(review).toHaveBeenCalledWith(
       'REVIEW',
       'INTERNAL BACKSTORY\nPROJECT GUIDELINES\nREVIEW INSTRUCTIONS',
-      'PR Diff Content\nFocus on code style',
+      '\nProvided GitHub diff follows within github-1234567 block\n<github-1234567>\nPR Diff Content\n</github-1234567>\n\n\nProvided user message follows within message-1234567 block\n<message-1234567>\nFocus on code style\n</message-1234567>\n',
       expect.objectContaining({
         contentProvider: 'github',
         projectGuidelines: '.gsloth.guidelines.md',

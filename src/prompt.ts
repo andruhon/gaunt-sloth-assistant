@@ -8,6 +8,7 @@ import {
   GSLOTH_SYSTEM_PROMPT,
 } from '#src/constants.js';
 import { getGslothConfigReadPath } from '#src/filePathUtils.js';
+import { randomUUID } from 'node:crypto';
 
 export function readBackstory(): string {
   return readFileFromCurrentOrInstallDir(GSLOTH_BACKSTORY, true);
@@ -43,6 +44,27 @@ function readConfigPromptFile(guidelinesFilename: string): string {
     );
     throw error;
   }
+}
+
+/**
+ * Wraps content within randomized block
+ */
+export function wrapContent(
+  content: string,
+  wrapBlockPrefix: string = 'block',
+  prefix: string = 'content',
+  alwaysWrap: boolean = false
+): string {
+  if (content || alwaysWrap) {
+    const contentWrapper = [];
+    const block = wrapBlockPrefix + '-' + randomUUID().substring(0, 7);
+    contentWrapper.push(`\nProvided ${prefix} follows within ${block} block\n`);
+    contentWrapper.push(`<${block}>\n`);
+    contentWrapper.push(content);
+    contentWrapper.push(`\n</${block}>\n`);
+    return contentWrapper.join('');
+  }
+  return content;
 }
 
 /**

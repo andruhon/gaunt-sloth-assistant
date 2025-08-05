@@ -1,6 +1,15 @@
 import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Make randomUUID deterministic across this spec
+vi.mock('node:crypto', async () => {
+  const actual = await vi.importActual<typeof import('node:crypto')>('node:crypto');
+  return {
+    ...actual,
+    randomUUID: () => '12345678-aaaa-bbbb-cccc-1234567890ab',
+  };
+});
+
 // Define mocks at top level
 const askQuestion = vi.fn();
 const prompt = {
@@ -45,7 +54,15 @@ const mockConfig = {
 };
 
 // Set up static mocks
-vi.mock('#src/prompt.js', () => prompt);
+vi.mock('#src/prompt.js', async () => {
+  const actual = await import('#src/prompt.js');
+  return {
+    ...actual,
+    readBackstory: prompt.readBackstory,
+    readGuidelines: prompt.readGuidelines,
+    readSystemPrompt: prompt.readSystemPrompt,
+  };
+});
 vi.mock('#src/modules/questionAnsweringModule.js', () => questionAnsweringModule);
 vi.mock('#src/systemUtils.js', () => ({
   getStringFromStdin: vi.fn().mockReturnValue(''),
@@ -93,10 +110,11 @@ describe('askCommand', () => {
     const program = new Command();
     askCommand(program, {});
     await program.parseAsync(['na', 'na', 'ask', 'test message']);
+    // With deterministic UUID, the block id will be message-1234567
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test message',
+      '\nProvided user message follows within message-1234567 block\n<message-1234567>\ntest message\n</message-1234567>\n',
       mockConfig
     );
   });
@@ -109,7 +127,8 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test.file:\n```\nFILE CONTENT\n```\ntest message',
+      'test.file:\n```\nFILE CONTENT\n```\n' +
+        '\nProvided user message follows within message-1234567 block\n<message-1234567>\ntest message\n</message-1234567>\n',
       mockConfig
     );
   });
@@ -128,7 +147,8 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```\ntest message',
+      'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```\n' +
+        '\nProvided user message follows within message-1234567 block\n<message-1234567>\ntest message\n</message-1234567>\n',
       mockConfig
     );
   });
@@ -162,10 +182,11 @@ describe('askCommand', () => {
     const program = new Command();
     askCommand(program, {});
     await program.parseAsync(['na', 'na', 'ask']);
+    // With deterministic UUID, the block id will be stdin-content-1234567
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'STDIN CONTENT',
+      '\nProvided content follows within stdin-content-1234567 block\n<stdin-content-1234567>\nSTDIN CONTENT\n</stdin-content-1234567>\n',
       mockConfig
     );
   });
@@ -202,7 +223,7 @@ describe('askCommand', () => {
     expect(askQuestion).toHaveBeenCalledWith(
       'ASK',
       'INTERNAL PREAMBLE\nPROJECT GUIDELINES',
-      'integration test message',
+      '\nProvided user message follows within message-1234567 block\n<message-1234567>\nintegration test message\n</message-1234567>\n',
       configWithWriteOutputDisabled
     );
 

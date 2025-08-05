@@ -4,6 +4,7 @@ import {
   readGuidelines,
   readReviewInstructions,
   readSystemPrompt,
+  wrapContent,
 } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
@@ -14,7 +15,7 @@ import {
   type ContentProviderType,
   getRequirementsFromProvider,
   getContentFromProvider,
-} from './commandUtils.js';
+} from '#src/commands/commandUtils.js';
 import { CommandLineConfigOverrides } from '#src/config.js';
 
 interface ReviewCommandOptions {
@@ -99,10 +100,10 @@ export function reviewCommand(
       }
       const stringFromStdin = getStringFromStdin();
       if (stringFromStdin) {
-        content.push(stringFromStdin);
+        content.push(wrapContent(stringFromStdin, 'stdin-content'));
       }
       if (options.message) {
-        content.push(options.message);
+        content.push(wrapContent(options.message, 'message', 'user message'));
       }
       const { review } = await import('#src/modules/reviewModule.js');
       await review('REVIEW', systemMessage.join('\n'), content.join('\n'), config);

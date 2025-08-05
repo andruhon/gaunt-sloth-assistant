@@ -1,5 +1,6 @@
 import type { GthConfig } from '#src/config.js';
 import { displayError } from '#src/consoleUtils.js';
+import { wrapContent } from '#src/prompt.js';
 
 /**
  * Requirements providers. Expected to be in `.providers/` dir.
@@ -32,12 +33,13 @@ export async function getRequirementsFromProvider(
   requirementsId: string | undefined,
   config: GthConfig
 ): Promise<string> {
-  return getFromProvider(
+  const requirements = await getFromProvider(
     requirementsProvider,
     requirementsId,
     (config?.requirementsProviderConfig ?? {})[requirementsProvider as string],
     REQUIREMENTS_PROVIDERS
   );
+  return wrapContent(requirements, requirementsProvider, 'requirements');
 }
 
 export async function getContentFromProvider(
@@ -45,11 +47,16 @@ export async function getContentFromProvider(
   contentId: string | undefined,
   config: GthConfig
 ): Promise<string> {
-  return getFromProvider(
+  const content = await getFromProvider(
     contentProvider,
     contentId,
     (config?.contentProviderConfig ?? {})[contentProvider as string],
     CONTENT_PROVIDERS
+  );
+  return wrapContent(
+    content,
+    contentProvider,
+    contentProvider === 'github' ? 'GitHub diff' : 'content'
   );
 }
 

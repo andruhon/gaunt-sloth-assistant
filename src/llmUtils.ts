@@ -1,5 +1,5 @@
 import { RunnableConfig } from '@langchain/core/runnables';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Creates new runnable config.

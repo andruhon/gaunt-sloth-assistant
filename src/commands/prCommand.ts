@@ -4,11 +4,12 @@ import {
   readGuidelines,
   readReviewInstructions,
   readSystemPrompt,
+  wrapContent,
 } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import {
-  CONTENT_PROVIDERS,
   type ContentProviderType,
+  getContentFromProvider,
   getRequirementsFromProvider,
   REQUIREMENTS_PROVIDERS,
   type RequirementsProviderType,
@@ -90,12 +91,10 @@ export function prCommand(
       }
 
       // Get PR diff using the provider
-      const providerPath = `#src/providers/${CONTENT_PROVIDERS[contentProvider]}`;
-      const { get } = await import(providerPath);
-      content.push(await get(null, prId));
+      content.push(await getContentFromProvider(contentProvider, prId, config));
 
       if (options.message) {
-        content.push(options.message);
+        content.push(wrapContent(options.message, 'message', 'user message'));
       }
 
       const { review } = await import('#src/modules/reviewModule.js');

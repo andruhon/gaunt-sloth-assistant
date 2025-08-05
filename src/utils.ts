@@ -5,7 +5,8 @@ import { dirname, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentDir, getInstallDir, stdout } from '#src/systemUtils.js';
 import url from 'node:url';
-import { debugLog } from './debugUtils.js';
+import { debugLog } from '#src/debugUtils.js';
+import { wrapContent } from '#src/prompt.js';
 
 export function toFileSafeString(string: string): string {
   return string.replace(/[^A-Za-z0-9]/g, '-');
@@ -300,17 +301,17 @@ export const importFromFilePath = importExternalFile;
 /**
  * Reads multiple files from the current directory and returns their contents
  * @param fileNames - Array of file names to read
- * @returns Combined content of all files with proper formatting
+ * @returns Combined content of all files with proper formatting, each file is wrapped in random block like <file-abvesde>
  */
 export function readMultipleFilesFromCurrentDir(fileNames: string | string[]): string {
   if (!Array.isArray(fileNames)) {
-    return readFileFromCurrentDir(fileNames);
+    return wrapContent(readFileFromCurrentDir(fileNames), 'file', `file ${fileNames}`, true);
   }
 
   return fileNames
     .map((fileName) => {
       const content = readFileFromCurrentDir(fileName);
-      return `${fileName}:\n\`\`\`\n${content}\n\`\`\``;
+      return `${wrapContent(content, 'file', `file ${fileName}`, true)}`;
     })
     .join('\n\n');
 }

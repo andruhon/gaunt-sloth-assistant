@@ -6,7 +6,7 @@ import type {
   OAuthTokens,
 } from '@modelcontextprotocol/sdk/shared/auth.js';
 import express from 'express';
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 import { platform } from 'node:os';
 import { execSync } from 'node:child_process';
 import { AddressInfo } from 'net';

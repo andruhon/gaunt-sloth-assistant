@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
+import { readBackstory, readGuidelines, readSystemPrompt, wrapContent } from '#src/prompt.js';
 import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
 import { CommandLineConfigOverrides, initConfig } from '#src/config.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
@@ -38,10 +38,10 @@ export function askCommand(
       }
       const stringFromStdin = getStringFromStdin();
       if (stringFromStdin) {
-        content.push(stringFromStdin);
+        content.push(wrapContent(stringFromStdin, 'stdin-content'));
       }
       if (message) {
-        content.push(message);
+        content.push(wrapContent(message, 'message', 'user message'));
       }
 
       // Validate that at least one input source is provided
