@@ -1,4 +1,6 @@
+import { GthConfig } from '#src/config.js';
 import { displayInfo, displayWarning } from '#src/consoleUtils.js';
+import { debugLog, debugLogError } from '#src/debugUtils.js';
 import { env } from '#src/systemUtils.js';
 import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
 import type { AnthropicInput } from '@langchain/anthropic';
@@ -6,10 +8,8 @@ import type {
   BaseChatModel,
   BaseChatModelParams,
 } from '@langchain/core/language_models/chat_models';
-import { StateDefinition, StateType } from '@langchain/langgraph';
-import { isAIMessage } from '@langchain/core/messages';
-import { debugLog, debugLogError } from '#src/debugUtils.js';
-import { GthConfig } from '#src/config.js';
+import { AIMessage, isAIMessage } from '@langchain/core/messages';
+import { BinaryOperatorAggregate, Messages, StateType } from '@langchain/langgraph';
 
 /**
  * Function to process JSON config and create Anthropic LLM instance
@@ -73,7 +73,13 @@ export function postProcessJsonConfig(config: GthConfig): GthConfig {
  * This method seems unnecessary with OpenAI, but is needed for Anthropic,
  * OpenAI does not need a name on the tool and does not seem to return server_tool_use.
  */
-export function postModelHook(state: StateType<StateDefinition>): StateType<StateDefinition> {
+export function postModelHook(
+  state: StateType<{
+    messages: BinaryOperatorAggregate<AIMessage[], Messages>;
+  }>
+): StateType<{
+  messages: BinaryOperatorAggregate<AIMessage[], Messages>;
+}> {
   try {
     const lastMessage = state.messages[state.messages.length - 1];
     if (isAIMessage(lastMessage) && lastMessage.tool_calls && Array.isArray(lastMessage.content)) {

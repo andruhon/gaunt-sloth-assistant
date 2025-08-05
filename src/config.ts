@@ -9,13 +9,6 @@
  * Some config params can be overriden from command line, see {@link CommandLineConfigOverrides}
  */
 import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
-import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
-import { existsSync, readFileSync } from 'node:fs';
-import { error, exit, isTTY, setUseColour } from '#src/systemUtils.js';
-import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
-import type { Connection } from '@langchain/mcp-adapters';
-import type { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import {
   PROJECT_GUIDELINES,
   PROJECT_REVIEW_INSTRUCTIONS,
@@ -23,12 +16,20 @@ import {
   USER_PROJECT_CONFIG_JSON,
   USER_PROJECT_CONFIG_MJS,
 } from '#src/constants.js';
-import { JiraConfig } from '#src/providers/types.js';
-import type { GthAgentInterface } from '#src/core/types.js';
 import type { GthAgentRunner } from '#src/core/GthAgentRunner.js';
+import type { GthAgentInterface } from '#src/core/types.js';
+import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/filePathUtils.js';
 import type { Message } from '#src/modules/types.js';
+import { JiraConfig } from '#src/providers/types.js';
+import { error, exit, isTTY, setUseColour } from '#src/systemUtils.js';
+import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { AIMessage } from '@langchain/core/messages';
 import { RunnableConfig } from '@langchain/core/runnables';
-import { StateDefinition, StateType } from '@langchain/langgraph';
+import type { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
+import { BinaryOperatorAggregate, Messages, StateType } from '@langchain/langgraph';
+import type { Connection } from '@langchain/mcp-adapters';
+import { existsSync, readFileSync } from 'node:fs';
 
 /**
  * This is a processed Gaunt Sloth config ready to be passed down into components.
@@ -151,7 +152,13 @@ export interface ServerTool extends Record<string, unknown> {
   name?: string;
 }
 
-type LangChainHook = (state: StateType<StateDefinition>) => StateType<StateDefinition>;
+type LangChainHook = (
+  state: StateType<{
+    messages: BinaryOperatorAggregate<AIMessage[], Messages>;
+  }>
+) => StateType<{
+  messages: BinaryOperatorAggregate<AIMessage[], Messages>;
+}>;
 
 type RunnerHook = (runner: GthAgentRunner) => Promise<void>;
 

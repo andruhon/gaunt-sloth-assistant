@@ -26,7 +26,8 @@
     "lint-n-fix": "eslint . --ext .js,.ts --fix",
     "format": "prettier --write 'src/**/*.{js,ts}'",
     "prepare": "npm run build",
-    "typedoc": "typedoc"
+    "typedoc": "typedoc",
+    "chat": "node cli.js"
   },
   "bin": {
     "gaunt-sloth-assistant": "cli.js",
@@ -35,13 +36,13 @@
     "gth": "cli.js"
   },
   "dependencies": {
-    "@langchain/anthropic": "^0.3.24",
+    "@langchain/anthropic": "^0.3.25",
     "@langchain/core": "^0.3.66",
     "@langchain/deepseek": "^0.1.0",
-    "@langchain/google-genai": "^0.2.15",
-    "@langchain/google-vertexai": "^0.2.15",
+    "@langchain/google-genai": "^0.2.16",
+    "@langchain/google-vertexai": "^0.2.16",
     "@langchain/groq": "^0.2.3",
-    "@langchain/langgraph": "^0.3.10",
+    "@langchain/langgraph": "^0.4.2",
     "@langchain/mcp-adapters": "^0.6.0",
     "@langchain/openai": "^0.6.3",
     "@langchain/xai": "^0.1.0",

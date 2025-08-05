@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AIMessage } from '@langchain/core/messages';
 import { GthConfig } from '#src/config.js';
+import { AIMessage, BaseMessage } from '@langchain/core/messages';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const consoleUtilsMock = {
   displayInfo: vi.fn(),
@@ -22,7 +22,7 @@ describe('anthropic preset', () => {
   describe('postModelHook', () => {
     it('should return state as is if last message is not an AI message', async () => {
       const { postModelHook } = await import('#src/presets/anthropic.js');
-      const state = { messages: [{ content: 'not an AI message' }] };
+      const state = { messages: [{ content: 'not an AI message' } as BaseMessage] };
       const result = postModelHook(state);
       expect(result).toEqual(state);
     });
@@ -56,8 +56,10 @@ describe('anthropic preset', () => {
       ];
 
       const result = postModelHook(state);
-      expect(result.messages[0].tool_calls).toHaveLength(1);
-      expect(result.messages[0].tool_calls?.[0].name).toBe('search');
+
+      const postModelMessage = result.messages[0] as AIMessage;
+      expect(postModelMessage.tool_calls).toHaveLength(1);
+      expect(postModelMessage.tool_calls?.[0].name).toBe('search');
     });
   });
 

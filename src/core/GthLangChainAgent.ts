@@ -11,12 +11,7 @@ import { isAIMessage } from '@langchain/core/messages';
 import { RunnableConfig } from '@langchain/core/runnables';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';
 import { IterableReadableStream } from '@langchain/core/utils/stream';
-import {
-  BaseCheckpointSaver,
-  CompiledStateGraph,
-  StateDefinition,
-  StateType,
-} from '@langchain/langgraph';
+import { BaseCheckpointSaver } from '@langchain/langgraph';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import type { Connection } from '@langchain/mcp-adapters';
 import { MultiServerMCPClient, StreamableHTTPConnection } from '@langchain/mcp-adapters';
@@ -26,8 +21,7 @@ export type StatusUpdateCallback = (level: StatusLevel, message: string) => void
 export class GthLangChainAgent implements GthAgentInterface {
   private statusUpdate: StatusUpdateCallback;
   private mcpClient: MultiServerMCPClient | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private agent: CompiledStateGraph<any, any> | null = null;
+  private agent: ReturnType<typeof createReactAgent> | null = null;
   private config: GthConfig | null = null;
 
   constructor(statusUpdate: StatusUpdateCallback) {
@@ -90,7 +84,7 @@ export class GthLangChainAgent implements GthAgentInterface {
       llm: this.config.llm,
       tools,
       checkpointSaver,
-      postModelHook: (state: StateType<StateDefinition>) => {
+      postModelHook: (state) => {
         debugLogObject('postModel state', state);
         const lastMessage = state.messages[state.messages.length - 1];
         if (
