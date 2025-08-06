@@ -1,49 +1,50 @@
 import { readFileFromCurrentOrInstallDir, spawnCommand } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
-import { exit } from '#src/systemUtils.js';
+import { exit, getCurrentDir } from '#src/systemUtils.js';
+import { resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
 import {
   GSLOTH_BACKSTORY,
   GSLOTH_CHAT_PROMPT,
   GSLOTH_CODE_PROMPT,
   GSLOTH_SYSTEM_PROMPT,
+  GSLOTH_DIR,
 } from '#src/constants.js';
-import { getGslothConfigReadPath } from '#src/filePathUtils.js';
+
 import { randomUUID } from 'node:crypto';
 
 export function readBackstory(): string {
-  return readFileFromCurrentOrInstallDir(GSLOTH_BACKSTORY, true);
+  return readPromptFile(GSLOTH_BACKSTORY);
 }
 
 export function readGuidelines(guidelinesFilename: string): string {
-  return readFileFromCurrentOrInstallDir(guidelinesFilename);
+  return readPromptFile(guidelinesFilename);
 }
 
 export function readReviewInstructions(reviewInstructions: string): string {
-  return readConfigPromptFile(reviewInstructions);
+  return readPromptFile(reviewInstructions);
 }
 
 export function readSystemPrompt(): string {
-  return readFileFromCurrentOrInstallDir(GSLOTH_SYSTEM_PROMPT, true);
+  return readPromptFile(GSLOTH_SYSTEM_PROMPT);
 }
 
 export function readChatPrompt(): string {
-  return readFileFromCurrentOrInstallDir(GSLOTH_CHAT_PROMPT, true);
+  return readPromptFile(GSLOTH_CHAT_PROMPT);
 }
 
 export function readCodePrompt(): string {
-  return readFileFromCurrentOrInstallDir(GSLOTH_CODE_PROMPT, true);
+  return readPromptFile(GSLOTH_CODE_PROMPT);
 }
 
-function readConfigPromptFile(guidelinesFilename: string): string {
-  try {
-    const filePath = getGslothConfigReadPath(guidelinesFilename);
-    return readFileFromCurrentOrInstallDir(filePath);
-  } catch (error) {
-    displayError(
-      'Consider running `gsloth init` to set up your project. Check `gsloth init --help` to see options.'
-    );
-    throw error;
+function readPromptFile(filename: string): string {
+  const currentDir = getCurrentDir();
+  const gslothPath = resolve(currentDir, GSLOTH_DIR, filename);
+
+  if (existsSync(gslothPath)) {
+    return readFileSync(gslothPath, { encoding: 'utf8' });
   }
+  return readFileFromCurrentOrInstallDir(filename, true);
 }
 
 /**

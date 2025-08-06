@@ -47,10 +47,10 @@ describe('wrapContent', () => {
     const result = wrapContent(input, 'myblock', 'myPrefix');
 
     const expected =
-      `\nProvided myPrefix follows within block-1234567 block\n` +
-      `<block-1234567>\n` +
+      `\nProvided myPrefix follows within myblock-1234567 block\n` +
+      `<myblock-1234567>\n` +
       `${input}\n` +
-      `</block-1234567>\n`;
+      `</myblock-1234567>\n`;
 
     expect(result).toBe(expected);
   });
