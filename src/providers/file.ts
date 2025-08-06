@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { display } from '#src/consoleUtils.js';
 import { readFileSyncWithMessages } from '#src/utils.js';
-import { getCurrentDir } from '#src/systemUtils.js';
+import { getProjectDir } from '#src/systemUtils.js';
 import type { ProviderConfig } from './types.js';
 
 /**
@@ -17,7 +17,7 @@ export async function get(
   if (!fileName) {
     return null;
   }
-  const currentDir = getCurrentDir();
+  const currentDir = getProjectDir();
   const filePath = resolve(currentDir, fileName);
   display(`Reading file ${fileName}...`);
   return readFileSyncWithMessages(filePath);

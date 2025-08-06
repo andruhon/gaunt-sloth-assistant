@@ -1,17 +1,16 @@
-import { readFileFromCurrentOrInstallDir, spawnCommand } from '#src/utils.js';
 import { displayError } from '#src/consoleUtils.js';
-import { exit, getCurrentDir } from '#src/systemUtils.js';
-import { resolve } from 'node:path';
-import { existsSync, readFileSync } from 'node:fs';
 import {
   GSLOTH_BACKSTORY,
   GSLOTH_CHAT_PROMPT,
   GSLOTH_CODE_PROMPT,
   GSLOTH_SYSTEM_PROMPT,
-  GSLOTH_DIR,
 } from '#src/constants.js';
+import { exit } from '#src/systemUtils.js';
+import { readFileFromInstallDir, spawnCommand } from '#src/utils.js';
+import { existsSync, readFileSync } from 'node:fs';
 
 import { randomUUID } from 'node:crypto';
+import { getGslothConfigReadPath } from './filePathUtils.js';
 
 export function readBackstory(): string {
   return readPromptFile(GSLOTH_BACKSTORY);
@@ -38,13 +37,11 @@ export function readCodePrompt(): string {
 }
 
 function readPromptFile(filename: string): string {
-  const currentDir = getCurrentDir();
-  const gslothPath = resolve(currentDir, GSLOTH_DIR, filename);
-
-  if (existsSync(gslothPath)) {
-    return readFileSync(gslothPath, { encoding: 'utf8' });
+  const path = getGslothConfigReadPath(filename);
+  if (existsSync(path)) {
+    return readFileSync(path, { encoding: 'utf8' });
   }
-  return readFileFromCurrentOrInstallDir(filename, true);
+  return readFileFromInstallDir(filename);
 }
 
 /**

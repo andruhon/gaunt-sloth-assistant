@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import * as prompt from '#src/prompt.js';
 import * as systemUtils from '#src/systemUtils.js';
 import * as fs from 'node:fs';
@@ -10,23 +10,27 @@ vi.mock('node:fs', () => ({
 }));
 
 vi.mock('#src/systemUtils.js', () => ({
-  getCurrentDir: vi.fn(),
+  getProjectDir: vi.fn(),
   getInstallDir: vi.fn(),
 }));
 
+/**
+ * The logic is following:
+ * if .gsloth dir exists - look for file in projectDir/.gsloth/.gsloth-settings/
+ * if .gsloth dir exists, but file isn't there - fall back to projectDir/filename
+ * if .gsloth does not exitst - look for file in projectDir/filename
+ * if none of above exists - look for file in install dir
+ */
 describe('prompt reading functions', () => {
-  const mockCurrentDir = '/project';
+  const mockProjectDir = '/project';
   const mockInstallDir = '/install';
 
   beforeEach(() => {
-    vi.spyOn(systemUtils, 'getCurrentDir').mockReturnValue(mockCurrentDir);
+    vi.resetAllMocks();
+    vi.spyOn(systemUtils, 'getProjectDir').mockReturnValue(mockProjectDir);
     vi.spyOn(systemUtils, 'getInstallDir').mockReturnValue(mockInstallDir);
     vi.mocked(fs.existsSync).mockReset();
     vi.mocked(fs.readFileSync).mockReset();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   const testCases = [
@@ -41,8 +45,11 @@ describe('prompt reading functions', () => {
   testCases.forEach(({ name, filename, acceptsParam }) => {
     describe(name, () => {
       test(`reads ${filename} from .gsloth directory when present`, () => {
-        const gslothPath = `${mockCurrentDir}/.gsloth/${filename}`;
-        vi.mocked(fs.existsSync).mockImplementation((path) => path === gslothPath);
+        const gslothDirPath = `${mockProjectDir}/.gsloth`;
+        const filePath = `${gslothDirPath}/.gsloth-settings/${filename}`;
+        vi.mocked(fs.existsSync).mockImplementation((path) =>
+          [gslothDirPath, filePath].includes(String(path))
+        );
         vi.mocked(fs.readFileSync).mockReturnValue('gsloth content');
 
         let func = (prompt as any)[name] as (_?: string) => string;
@@ -53,20 +60,14 @@ describe('prompt reading functions', () => {
           result = func();
         }
         expect(result).toBe('gsloth content');
-        expect(fs.readFileSync).toHaveBeenCalledWith(gslothPath, { encoding: 'utf8' });
+        expect(fs.readFileSync).toHaveBeenCalledWith(filePath, { encoding: 'utf8' });
       });
 
-      test(`reads ${filename} from current directory when not in .gsloth`, () => {
-        const installPath = `${mockInstallDir}/${filename}`;
+      test(`reads ${filename} from project directory when not in .gsloth`, () => {
+        const filePath = `${mockProjectDir}/${filename}`;
 
-        vi.mocked(fs.existsSync).mockImplementation(
-          (path) => path !== `${mockCurrentDir}/.gsloth/${filename}`
-        );
-        vi.mocked(fs.readFileSync)
-          .mockImplementationOnce(() => {
-            throw new Error();
-          }) // Current dir read fails
-          .mockImplementationOnce(() => 'current content'); // Install dir read succeeds
+        vi.mocked(fs.existsSync).mockImplementation((path) => [filePath].includes(String(path)));
+        vi.mocked(fs.readFileSync).mockImplementationOnce(() => 'current content'); // Install dir read succeeds
 
         let func = (prompt as any)[name] as (_?: string) => string;
         let result;
@@ -76,20 +77,16 @@ describe('prompt reading functions', () => {
           result = func();
         }
         expect(result).toBe('current content');
-        expect(fs.readFileSync).toHaveBeenCalledWith(installPath, { encoding: 'utf8' });
+        expect(fs.readFileSync).toHaveBeenCalledWith(filePath, { encoding: 'utf8' });
       });
 
-      test(`reads ${filename} from install directory when not in .gsloth or current dir`, () => {
-        const installPath = `${mockInstallDir}/${filename}`;
+      test(`reads ${filename} from install directory when file neither exists in .gsloth nor in project dir`, () => {
+        const fileInInstallDir = `${mockInstallDir}/${filename}`;
 
-        vi.mocked(fs.existsSync).mockImplementation(
-          (path) => path !== `${mockCurrentDir}/.gsloth/${filename}`
+        vi.mocked(fs.existsSync).mockImplementation((path) =>
+          [fileInInstallDir].includes(String(path))
         );
-        vi.mocked(fs.readFileSync)
-          .mockImplementationOnce(() => {
-            throw new Error();
-          }) // Current dir read fails
-          .mockImplementationOnce(() => 'install content'); // Install dir read succeeds
+        vi.mocked(fs.readFileSync).mockImplementationOnce(() => 'install content'); // Install dir read succeeds
 
         let func = (prompt as any)[name] as (_?: string) => string;
         let result;
@@ -99,7 +96,7 @@ describe('prompt reading functions', () => {
           result = func();
         }
         expect(result).toBe('install content');
-        expect(fs.readFileSync).toHaveBeenCalledWith(installPath, { encoding: 'utf8' });
+        expect(fs.readFileSync).toHaveBeenCalledWith(fileInInstallDir, { encoding: 'utf8' });
       });
 
       test(`throws error when ${filename} not found anywhere`, () => {

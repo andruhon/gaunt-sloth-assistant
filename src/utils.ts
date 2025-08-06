@@ -1,12 +1,12 @@
-import { displayError, displayInfo, displaySuccess, displayWarning } from '#src/consoleUtils.js';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { GthConfig } from '#src/config.js';
-import { dirname, resolve } from 'node:path';
-import { spawn } from 'node:child_process';
-import { getCurrentDir, getInstallDir, stdout } from '#src/systemUtils.js';
-import url from 'node:url';
+import { displayError, displayInfo, displaySuccess, displayWarning } from '#src/consoleUtils.js';
 import { debugLog } from '#src/debugUtils.js';
 import { wrapContent } from '#src/prompt.js';
+import { getInstallDir, getProjectDir, stdout } from '#src/systemUtils.js';
+import { spawn } from 'node:child_process';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import url from 'node:url';
 
 export function toFileSafeString(string: string): string {
   return string.replace(/[^A-Za-z0-9]/g, '-');
@@ -42,36 +42,21 @@ export function generateStandardFileName(command: string): string {
   return `gth_${dateTimeStr}_${commandStr}.md`;
 }
 
-export function readFileFromCurrentDir(fileName: string): string {
-  const currentDir = getCurrentDir();
+export function readFileFromProjectDir(fileName: string): string {
+  const currentDir = getProjectDir();
   const filePath = resolve(currentDir, fileName);
   displayInfo(`Reading file ${filePath}...`);
   return readFileSyncWithMessages(filePath);
 }
 
-export function readFileFromCurrentOrInstallDir(filePath: string, silentCurrent?: boolean): string {
-  const currentDir = getCurrentDir();
-  const currentFilePath = resolve(currentDir, filePath);
-  if (!silentCurrent) {
-    displayInfo(`Reading file ${currentFilePath}...`);
-  }
-
+export function readFileFromInstallDir(filePath: string): string {
+  const installDir = getInstallDir();
+  const installFilePath = resolve(installDir, filePath);
   try {
-    return readFileSync(currentFilePath, { encoding: 'utf8' });
-  } catch (_error) {
-    if (!silentCurrent) {
-      displayWarning(
-        `The ${currentFilePath} not found or can\'t be read, trying install directory...`
-      );
-    }
-    const installDir = getInstallDir();
-    const installFilePath = resolve(installDir, filePath);
-    try {
-      return readFileSync(installFilePath, { encoding: 'utf8' });
-    } catch (readFromInstallDirError) {
-      displayError(`The ${installFilePath} not found or can\'t be read.`);
-      throw readFromInstallDirError;
-    }
+    return readFileSync(installFilePath, { encoding: 'utf8' });
+  } catch (readFromInstallDirError) {
+    displayError(`The ${installFilePath} not found or can\'t be read.`);
+    throw readFromInstallDirError;
   }
 }
 
@@ -303,14 +288,14 @@ export const importFromFilePath = importExternalFile;
  * @param fileNames - Array of file names to read
  * @returns Combined content of all files with proper formatting, each file is wrapped in random block like <file-abvesde>
  */
-export function readMultipleFilesFromCurrentDir(fileNames: string | string[]): string {
+export function readMultipleFilesFromProjectDir(fileNames: string | string[]): string {
   if (!Array.isArray(fileNames)) {
-    return wrapContent(readFileFromCurrentDir(fileNames), 'file', `file ${fileNames}`, true);
+    return wrapContent(readFileFromProjectDir(fileNames), 'file', `file ${fileNames}`, true);
   }
 
   return fileNames
     .map((fileName) => {
-      const content = readFileFromCurrentDir(fileName);
+      const content = readFileFromProjectDir(fileName);
       return `${wrapContent(content, 'file', `file ${fileName}`, true)}`;
     })
     .join('\n\n');

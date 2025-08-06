@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resolve } from 'node:path';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the fs module
 let fsUtilsMock = {
@@ -11,7 +11,7 @@ vi.mock('node:fs', () => fsUtilsMock);
 
 // Mock the systemUtils module
 const systemUtilsMock = {
-  getCurrentDir: vi.fn(),
+  getProjectDir: vi.fn(),
   getInstallDir: vi.fn(),
   exit: vi.fn(),
 };
@@ -32,7 +32,7 @@ describe('utils', () => {
     vi.resetAllMocks();
 
     // Set up default mock values
-    systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
+    systemUtilsMock.getProjectDir.mockReturnValue('/mock/project/dir');
     systemUtilsMock.getInstallDir.mockReturnValue('/mock/install/dir');
   });
 
@@ -79,73 +79,35 @@ describe('utils', () => {
     });
   });
 
-  describe('readFileFromCurrentOrInstallDir', () => {
-    it('should read file from current directory if it exists', async () => {
+  describe('readMultipleFilesFromProjectDir', () => {
+    it('should read file from project directory if it exists', async () => {
       // Arrange
       const fileName = 'test.file';
-      const currentDirPath = '/mock/current/dir';
-      const filePath = resolve(currentDirPath, fileName);
-      const fileContent = 'file content from current dir';
+      const projectDirPath = '/mock/project/dir';
+      const filePath = resolve(projectDirPath, fileName);
+      const fileContent = 'file content from project dir';
 
       fsUtilsMock.readFileSync.mockReturnValue(fileContent);
 
       // Import the function after mocks are set up
-      const { readFileFromCurrentOrInstallDir } = await import('#src/utils.js');
+      const { readFileFromProjectDir } = await import('#src/utils.js');
 
       // Act
-      const result = readFileFromCurrentOrInstallDir(fileName);
+      const result = readFileFromProjectDir(fileName);
 
       // Assert
       expect(result).toBe(fileContent);
       expect(fsUtilsMock.writeFileSync).not.toHaveBeenCalled();
       expect(fsUtilsMock.readFileSync).toHaveBeenCalledWith(filePath, { encoding: 'utf8' });
-      expect(systemUtilsMock.getCurrentDir).toHaveBeenCalled();
+      expect(systemUtilsMock.getProjectDir).toHaveBeenCalled();
       expect(systemUtilsMock.getInstallDir).not.toHaveBeenCalled();
       expect(consoleUtilsMock.displayInfo).toHaveBeenCalledWith(expect.stringContaining('Reading'));
     });
 
-    it('should read file from install directory if not found in current directory', async () => {
+    it('should exit with error if file not found in install directory', async () => {
       // Arrange
       const fileName = 'test.file';
-      const currentDirPath = '/mock/current/dir';
       const installDirPath = '/mock/install/dir';
-      const currentFilePath = resolve(currentDirPath, fileName);
-      const installFilePath = resolve(installDirPath, fileName);
-      const fileContent = 'file content from install dir';
-
-      // Mock readFileSync to throw ENOENT for a current dir but return content for install dir
-      fsUtilsMock.readFileSync
-        .mockImplementationOnce(() => {
-          const error = new Error('File not found') as NodeJS.ErrnoException;
-          error.code = 'ENOENT';
-          throw error;
-        })
-        .mockReturnValueOnce(fileContent);
-
-      // Import the function after mocks are set up
-      const { readFileFromCurrentOrInstallDir } = await import('#src/utils.js');
-
-      // Act
-      const result = readFileFromCurrentOrInstallDir(fileName);
-
-      // Assert
-      expect(result).toBe(fileContent);
-      expect(fsUtilsMock.writeFileSync).not.toHaveBeenCalled();
-      expect(fsUtilsMock.readFileSync).toHaveBeenCalledWith(currentFilePath, { encoding: 'utf8' });
-      expect(fsUtilsMock.readFileSync).toHaveBeenCalledWith(installFilePath, { encoding: 'utf8' });
-      expect(systemUtilsMock.getCurrentDir).toHaveBeenCalled();
-      expect(systemUtilsMock.getInstallDir).toHaveBeenCalled();
-      expect(consoleUtilsMock.displayWarning).toHaveBeenCalledWith(
-        expect.stringContaining('trying install directory')
-      );
-    });
-
-    it('should exit with error if file not found in either directory', async () => {
-      // Arrange
-      const fileName = 'test.file';
-      const currentDirPath = '/mock/current/dir';
-      const installDirPath = '/mock/install/dir';
-      const currentFilePath = resolve(currentDirPath, fileName);
       const installFilePath = resolve(installDirPath, fileName);
 
       // Mock readFileSync to throw ENOENT for both directories
@@ -161,14 +123,12 @@ describe('utils', () => {
         });
 
       // Import the function after mocks are set up
-      const { readFileFromCurrentOrInstallDir } = await import('#src/utils.js');
+      const { readFileFromInstallDir } = await import('#src/utils.js');
 
       // Act & Assert
-      expect(() => readFileFromCurrentOrInstallDir(fileName)).toThrow();
+      expect(() => readFileFromInstallDir(fileName)).toThrow();
       expect(fsUtilsMock.writeFileSync).not.toHaveBeenCalled();
-      expect(fsUtilsMock.readFileSync).toHaveBeenCalledWith(currentFilePath, { encoding: 'utf8' });
       expect(fsUtilsMock.readFileSync).toHaveBeenCalledWith(installFilePath, { encoding: 'utf8' });
-      expect(systemUtilsMock.getCurrentDir).toHaveBeenCalled();
       expect(systemUtilsMock.getInstallDir).toHaveBeenCalled();
       expect(consoleUtilsMock.displayError).toHaveBeenCalledWith(
         expect.stringContaining(installFilePath)

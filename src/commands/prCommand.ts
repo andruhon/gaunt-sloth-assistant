@@ -6,7 +6,7 @@ import {
   readSystemPrompt,
   wrapContent,
 } from '#src/prompt.js';
-import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
+import { readMultipleFilesFromProjectDir } from '#src/utils.js';
 import {
   type ContentProviderType,
   getContentFromProvider,
@@ -76,7 +76,7 @@ export function prCommand(
         'github';
 
       if (options.file) {
-        content.push(readMultipleFilesFromCurrentDir(options.file));
+        content.push(readMultipleFilesFromProjectDir(options.file));
       }
 
       // Handle requirements

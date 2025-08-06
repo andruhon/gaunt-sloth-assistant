@@ -12,7 +12,7 @@ const nodePathMock = {
 vi.mock('node:path', () => nodePathMock);
 
 const systemUtilsMock = {
-  getCurrentDir: vi.fn(),
+  getProjectDir: vi.fn(),
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
@@ -21,7 +21,7 @@ describe('filePathUtils', () => {
     vi.resetAllMocks();
 
     // Default mock values
-    systemUtilsMock.getCurrentDir.mockImplementation(() => '/test/project');
+    systemUtilsMock.getProjectDir.mockImplementation(() => '/test/project');
     nodePathMock.resolve.mockImplementation((...args: string[]) => args.join('/'));
   });
 

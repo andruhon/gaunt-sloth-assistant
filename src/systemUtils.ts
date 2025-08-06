@@ -129,7 +129,7 @@ process.on('SIGTERM', () => {
 });
 
 // Process-related functions and objects
-export const getCurrentDir = (): string => process.cwd();
+export const getProjectDir = (): string => process.cwd();
 export const getInstallDir = (): string => {
   if (innerState.installDir) {
     return innerState.installDir;

@@ -6,7 +6,7 @@ import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
 import { StructuredToolInterface } from '@langchain/core/tools';
 import { GthDevToolsConfig, GthConfig } from '#src/config.js';
 import { displayWarning } from '#src/consoleUtils.js';
-import { getCurrentDir } from '#src/systemUtils.js';
+import { getProjectDir } from '#src/systemUtils.js';
 import { GthCommand } from '#src/core/types.js';
 import GthDevToolkit from '#src/tools/GthDevToolkit.js';
 
@@ -67,7 +67,7 @@ async function filterDevTools(
 function filterFilesystemTools(
   filesystemConfig: string[] | 'all' | 'read' | 'none'
 ): StructuredToolInterface[] {
-  const toolkit = new GthFileSystemToolkit([getCurrentDir()]);
+  const toolkit = new GthFileSystemToolkit([getProjectDir()]);
   if (filesystemConfig === 'all') {
     return toolkit.getTools();
   }

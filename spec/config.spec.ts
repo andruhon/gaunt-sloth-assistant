@@ -38,7 +38,7 @@ vi.mock('#src/utils.js', () => utilsMock);
 
 const systemUtilsMock = {
   exit: vi.fn(),
-  getCurrentDir: vi.fn(),
+  getProjectDir: vi.fn(),
   getInstallDir: vi.fn(),
   setUseColour: vi.fn(),
   isTTY: vi.fn(),
@@ -58,7 +58,7 @@ describe('config', async () => {
     vi.clearAllMocks();
     vi.resetModules();
     // Reset and set up systemUtils mocks
-    systemUtilsMock.getCurrentDir.mockReturnValue('/mock/current/dir');
+    systemUtilsMock.getProjectDir.mockReturnValue('/mock/current/dir');
     systemUtilsMock.getInstallDir.mockReturnValue('/mock/install/dir');
     systemUtilsMock.isTTY.mockReturnValue(true);
   });

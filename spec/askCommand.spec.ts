@@ -22,7 +22,7 @@ const questionAnsweringModule = { askQuestion };
 
 const utilsMock = {
   readFileFromCurrentDir: vi.fn(),
-  readMultipleFilesFromCurrentDir: vi.fn(),
+  readMultipleFilesFromProjectDir: vi.fn(),
   ProgressIndicator: vi.fn(),
   extractLastMessageContent: vi.fn(),
   toFileSafeString: vi.fn(),
@@ -86,7 +86,7 @@ describe('askCommand', () => {
     configMock.createDefaultConfig.mockReturnValue(mockConfig);
 
     // Mock the util functions
-    utilsMock.readMultipleFilesFromCurrentDir.mockImplementation((files: string[]) => {
+    utilsMock.readMultipleFilesFromProjectDir.mockImplementation((files: string[]) => {
       if (files.includes('test.file')) {
         return 'test.file:\n```\nFILE CONTENT\n```';
       }
@@ -137,7 +137,7 @@ describe('askCommand', () => {
     const { askCommand } = await import('#src/commands/askCommand.js');
     const program = new Command();
     askCommand(program, {});
-    utilsMock.readMultipleFilesFromCurrentDir.mockImplementation((files: string[]) => {
+    utilsMock.readMultipleFilesFromProjectDir.mockImplementation((files: string[]) => {
       if (files.includes('test.file') && files.includes('test2.file')) {
         return 'test.file:\n```\nFILE CONTENT\n```\n\ntest2.file:\n```\nFILE2 CONTENT\n```';
       }

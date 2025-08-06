@@ -12,7 +12,7 @@ import type { RunnableConfig } from '@langchain/core/runnables';
 import type { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 
 const systemUtilsMock = {
-  getCurrentDir: vi.fn(),
+  getProjectDir: vi.fn(),
   stopWaitingForEscape: vi.fn(),
   waitForEscape: vi.fn(),
 };
@@ -61,7 +61,7 @@ describe('GthLangChainAgent', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
 
-    systemUtilsMock.getCurrentDir.mockReturnValue('/test/dir');
+    systemUtilsMock.getProjectDir.mockReturnValue('/test/dir');
     multiServerMCPClientMock.mockImplementation(() => mcpClientInstanceMock);
     progressIndicatorMock.mockImplementation(() => progressIndicatorInstanceMock);
 

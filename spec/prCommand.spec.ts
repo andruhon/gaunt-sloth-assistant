@@ -27,7 +27,7 @@ vi.mock('#src/modules/reviewModule.js', () => ({
 
 const utilsMock = {
   readFileFromCurrentDir: vi.fn(),
-  readMultipleFilesFromCurrentDir: vi.fn(),
+  readMultipleFilesFromProjectDir: vi.fn(),
   readFileSyncWithMessages: vi.fn(),
   execAsync: vi.fn(),
   ProgressIndicator: vi.fn(),
@@ -83,7 +83,7 @@ describe('prCommand', () => {
     // Setup default mock returns
     configMock.initConfig.mockResolvedValue(mockConfig);
     utilsMock.readFileFromCurrentDir.mockReturnValue('FILE TO REVIEW');
-    utilsMock.readMultipleFilesFromCurrentDir.mockReturnValue(
+    utilsMock.readMultipleFilesFromProjectDir.mockReturnValue(
       'test.file:\n```\nFILE TO REVIEW\n```'
     );
     utilsMock.readFileSyncWithMessages.mockReturnValue('content-id');
@@ -214,7 +214,7 @@ describe('prCommand', () => {
       env: {}, // Empty env object to ensure no environment variables are used
       error: vi.fn(),
       exit: vi.fn(),
-      getCurrentDir: vi.fn().mockReturnValue('/mock/dir'),
+      getProjectDir: vi.fn().mockReturnValue('/mock/dir'),
     }));
 
     const { prCommand } = await import('#src/commands/prCommand.js');

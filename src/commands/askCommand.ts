@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { readBackstory, readGuidelines, readSystemPrompt, wrapContent } from '#src/prompt.js';
-import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
+import { readMultipleFilesFromProjectDir } from '#src/utils.js';
 import { CommandLineConfigOverrides, initConfig } from '#src/config.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
 
@@ -34,7 +34,7 @@ export function askCommand(
       }
       const content = [];
       if (options.file) {
-        content.push(readMultipleFilesFromCurrentDir(options.file));
+        content.push(readMultipleFilesFromProjectDir(options.file));
       }
       const stringFromStdin = getStringFromStdin();
       if (stringFromStdin) {

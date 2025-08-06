@@ -6,7 +6,7 @@ import {
   readSystemPrompt,
   wrapContent,
 } from '#src/prompt.js';
-import { readMultipleFilesFromCurrentDir } from '#src/utils.js';
+import { readMultipleFilesFromProjectDir } from '#src/utils.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
 import {
   REQUIREMENTS_PROVIDERS,
@@ -96,7 +96,7 @@ export function reviewCommand(
       }
 
       if (options.file) {
-        content.push(readMultipleFilesFromCurrentDir(options.file));
+        content.push(readMultipleFilesFromProjectDir(options.file));
       }
       const stringFromStdin = getStringFromStdin();
       if (stringFromStdin) {
