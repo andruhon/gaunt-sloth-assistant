@@ -148,13 +148,11 @@ describe('reviewModule', () => {
     // Setup pathUtils mocks
     pathUtilsMock.getGslothFilePath.mockReturnValue('test-review-file-path.md');
     pathUtilsMock.gslothDirExists.mockReturnValue(false);
-    pathUtilsMock.getCommandOutputFilePath.mockImplementation(
-      (config: any, _source: string) => {
-        if (config.writeOutputToFile === false) return null;
-        if (config.writeOutputToFile === true) return 'test-review-file-path.md';
-        return String(config.writeOutputToFile);
-      }
-    );
+    pathUtilsMock.getCommandOutputFilePath.mockImplementation((config: any, _source: string) => {
+      if (config.writeOutputToFile === false) return null;
+      if (config.writeOutputToFile === true) return 'test-review-file-path.md';
+      return String(config.writeOutputToFile);
+    });
 
     gthAgentRunnerMock.mockImplementation(() => gthAgentRunnerInstanceMock);
     gthAgentRunnerInstanceMock.init.mockResolvedValue(undefined);
@@ -206,13 +204,11 @@ describe('reviewModule', () => {
 
     // Mock resolver to respect provided path as-is
     pathUtilsMock.getGslothFilePath.mockReturnValue('custom/review.md');
-    pathUtilsMock.getCommandOutputFilePath.mockImplementation(
-      (config: any, _source: string) => {
-        if (config.writeOutputToFile === false) return null;
-        if (config.writeOutputToFile === true) return 'test-review-file-path.md';
-        return String(config.writeOutputToFile);
-      }
-    );
+    pathUtilsMock.getCommandOutputFilePath.mockImplementation((config: any, _source: string) => {
+      if (config.writeOutputToFile === false) return null;
+      if (config.writeOutputToFile === true) return 'test-review-file-path.md';
+      return String(config.writeOutputToFile);
+    });
 
     // Act
     const { review } = await import('#src/modules/reviewModule.js');
