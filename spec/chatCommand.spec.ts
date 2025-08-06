@@ -26,10 +26,10 @@ const consoleUtilsMock = {
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
-const filePathUtilsMock = {
+const pathUtilsMock = {
   getGslothFilePath: vi.fn(),
 };
-vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
+vi.mock('#src/pathUtils.js', () => pathUtilsMock);
 
 const utilsMock = {
   generateStandardFileName: vi.fn(),
@@ -83,7 +83,7 @@ describe('chatCommand', () => {
 
     consoleUtilsMock.formatInputPrompt.mockImplementation((v) => v);
 
-    filePathUtilsMock.getGslothFilePath.mockReturnValue('mock/chat/file.txt');
+    pathUtilsMock.getGslothFilePath.mockReturnValue('mock/chat/file.txt');
 
     utilsMock.generateStandardFileName.mockReturnValue('mock-chat-file.txt');
     utilsMock.ProgressIndicator.mockImplementation(() => ({
@@ -207,7 +207,7 @@ describe('Default Chat Behavior (no arguments)', () => {
 
     consoleUtilsMock.formatInputPrompt.mockImplementation((v) => v);
 
-    filePathUtilsMock.getGslothFilePath.mockReturnValue('mock/chat/file.txt');
+    pathUtilsMock.getGslothFilePath.mockReturnValue('mock/chat/file.txt');
 
     utilsMock.generateStandardFileName.mockReturnValue('mock-chat-file.txt');
     utilsMock.ProgressIndicator.mockImplementation(() => ({

@@ -10,7 +10,7 @@ import { readFileFromInstallDir, spawnCommand } from '#src/utils.js';
 import { existsSync, readFileSync } from 'node:fs';
 
 import { randomUUID } from 'node:crypto';
-import { getGslothConfigReadPath } from './filePathUtils.js';
+import { getGslothConfigReadPath } from './pathUtils.js';
 
 export function readBackstory(): string {
   return readPromptFile(GSLOTH_BACKSTORY);

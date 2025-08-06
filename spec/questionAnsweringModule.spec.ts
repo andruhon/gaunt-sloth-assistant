@@ -44,19 +44,19 @@ const consoleUtilsMock = {
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
-// Mock filePathUtils module
-const filePathUtilsMock = {
+// Mock pathUtils module
+const pathUtilsMock = {
   getGslothFilePath: vi.fn(),
   gslothDirExists: vi.fn(),
   getCommandOutputFilePath: vi.fn(),
 };
-vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
-vi.mock('#src/filePathUtils.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('#src/filePathUtils.js')>();
+vi.mock('#src/pathUtils.js', () => pathUtilsMock);
+vi.mock('#src/pathUtils.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#src/pathUtils.js')>();
   return {
     ...actual,
-    getGslothFilePath: filePathUtilsMock.getGslothFilePath,
-    gslothDirExists: filePathUtilsMock.gslothDirExists,
+    getGslothFilePath: pathUtilsMock.getGslothFilePath,
+    gslothDirExists: pathUtilsMock.gslothDirExists,
     resolveOutputPath: vi.fn((writeOutputToFile: boolean | string, defaultFileName: string) => {
       if (writeOutputToFile === false) return null;
       if (writeOutputToFile === true) return actual.getGslothFilePath(defaultFileName);
@@ -128,9 +128,9 @@ describe('questionAnsweringModule', () => {
       return '';
     });
 
-    // Setup filePathUtils mocks
-    filePathUtilsMock.getGslothFilePath.mockReturnValue('test-file-path.md');
-    filePathUtilsMock.gslothDirExists.mockReturnValue(false);
+    // Setup pathUtils mocks
+    pathUtilsMock.getGslothFilePath.mockReturnValue('test-file-path.md');
+    pathUtilsMock.gslothDirExists.mockReturnValue(false);
   });
 
   it('should invoke LLM with prop drilling', async () => {

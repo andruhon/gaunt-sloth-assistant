@@ -55,13 +55,13 @@ const consoleUtilsMock = {
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
-// Mock filePathUtils module
-const filePathUtilsMock = {
+// Mock pathUtils module
+const pathUtilsMock = {
   getGslothFilePath: vi.fn(),
   gslothDirExists: vi.fn(),
   getCommandOutputFilePath: vi.fn(),
 };
-vi.mock('#src/filePathUtils.js', () => filePathUtilsMock);
+vi.mock('#src/pathUtils.js', () => pathUtilsMock);
 
 // Mock utils module
 const utilsMock = {
@@ -145,10 +145,10 @@ describe('reviewModule', () => {
     pathMock.resolve.mockImplementation(resolveMock);
     pathMock.default.resolve.mockImplementation(resolveMock);
 
-    // Setup filePathUtils mocks
-    filePathUtilsMock.getGslothFilePath.mockReturnValue('test-review-file-path.md');
-    filePathUtilsMock.gslothDirExists.mockReturnValue(false);
-    filePathUtilsMock.getCommandOutputFilePath.mockImplementation(
+    // Setup pathUtils mocks
+    pathUtilsMock.getGslothFilePath.mockReturnValue('test-review-file-path.md');
+    pathUtilsMock.gslothDirExists.mockReturnValue(false);
+    pathUtilsMock.getCommandOutputFilePath.mockImplementation(
       (config: any, _source: string) => {
         if (config.writeOutputToFile === false) return null;
         if (config.writeOutputToFile === true) return 'test-review-file-path.md';
@@ -180,7 +180,7 @@ describe('reviewModule', () => {
       'test-review-file-path.md',
       'LLM Review Response'
     );
-    expect(filePathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
+    expect(pathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
       expect.objectContaining({ writeOutputToFile: true }),
       'test-source'
     );
@@ -205,8 +205,8 @@ describe('reviewModule', () => {
     } as unknown as GthConfig;
 
     // Mock resolver to respect provided path as-is
-    filePathUtilsMock.getGslothFilePath.mockReturnValue('custom/review.md');
-    filePathUtilsMock.getCommandOutputFilePath.mockImplementation(
+    pathUtilsMock.getGslothFilePath.mockReturnValue('custom/review.md');
+    pathUtilsMock.getCommandOutputFilePath.mockImplementation(
       (config: any, _source: string) => {
         if (config.writeOutputToFile === false) return null;
         if (config.writeOutputToFile === true) return 'test-review-file-path.md';
@@ -223,7 +223,7 @@ describe('reviewModule', () => {
       new SystemMessage('test-preamble'),
       new HumanMessage('test-diff'),
     ]);
-    expect(filePathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
+    expect(pathUtilsMock.getCommandOutputFilePath).toHaveBeenCalledWith(
       expect.objectContaining({ writeOutputToFile: 'custom/review.md' }),
       'test-source'
     );

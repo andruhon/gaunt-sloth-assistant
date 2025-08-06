@@ -10,7 +10,7 @@ import {
   stopSessionLogging,
 } from '#src/consoleUtils.js';
 import { ProgressIndicator, appendToFile } from '#src/utils.js';
-import { getCommandOutputFilePath } from '#src/filePathUtils.js';
+import { getCommandOutputFilePath } from '#src/pathUtils.js';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import { MemorySaver } from '@langchain/langgraph';

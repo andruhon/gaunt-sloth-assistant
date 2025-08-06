@@ -16,7 +16,7 @@ const systemUtilsMock = {
 };
 vi.mock('#src/systemUtils.js', () => systemUtilsMock);
 
-describe('filePathUtils', () => {
+describe('pathUtils', () => {
   beforeEach(() => {
     vi.resetAllMocks();
 
@@ -30,7 +30,7 @@ describe('filePathUtils', () => {
       return path === '/test/project/.gsloth';
     });
 
-    const { gslothDirExists } = await import('#src/filePathUtils.js');
+    const { gslothDirExists } = await import('#src/pathUtils.js');
 
     expect(gslothDirExists()).toBe(true);
     expect(nodeFsMock.existsSync).toHaveBeenCalledWith('/test/project/.gsloth');
@@ -41,7 +41,7 @@ describe('filePathUtils', () => {
       return !path.includes('.gsloth');
     });
 
-    const { gslothDirExists } = await import('#src/filePathUtils.js');
+    const { gslothDirExists } = await import('#src/pathUtils.js');
 
     expect(gslothDirExists()).toBe(false);
     expect(nodeFsMock.existsSync).toHaveBeenCalledWith('/test/project/.gsloth');
@@ -52,7 +52,7 @@ describe('filePathUtils', () => {
       return path.includes('.gsloth');
     });
 
-    const { getGslothFilePath } = await import('#src/filePathUtils.js');
+    const { getGslothFilePath } = await import('#src/pathUtils.js');
 
     const result = getGslothFilePath('test-file.md');
 
@@ -65,7 +65,7 @@ describe('filePathUtils', () => {
       return !path.includes('.gsloth');
     });
 
-    const { getGslothFilePath } = await import('#src/filePathUtils.js');
+    const { getGslothFilePath } = await import('#src/pathUtils.js');
 
     const result = getGslothFilePath('test-file.md');
 
@@ -82,7 +82,7 @@ describe('filePathUtils', () => {
       return false; // .gsloth-settings does not exist
     });
 
-    const { getGslothConfigWritePath } = await import('#src/filePathUtils.js');
+    const { getGslothConfigWritePath } = await import('#src/pathUtils.js');
 
     const result = getGslothConfigWritePath('.gsloth.config.json');
 
@@ -99,7 +99,7 @@ describe('filePathUtils', () => {
     // Mock existsSync to return true for both .gsloth dir and config file within .gsloth-settings
     nodeFsMock.existsSync.mockImplementation((_path: string) => true);
 
-    const { getGslothConfigReadPath } = await import('#src/filePathUtils.js');
+    const { getGslothConfigReadPath } = await import('#src/pathUtils.js');
 
     const result = getGslothConfigReadPath('.gsloth.config.json');
 
@@ -112,7 +112,7 @@ describe('filePathUtils', () => {
       return !_path.includes('.gsloth-settings/.gsloth.config.json');
     });
 
-    const { getGslothConfigReadPath } = await import('#src/filePathUtils.js');
+    const { getGslothConfigReadPath } = await import('#src/pathUtils.js');
 
     const result = getGslothConfigReadPath('.gsloth.config.json');
 
