@@ -552,3 +552,4 @@ function mergeRawConfig(
   const modelDisplayName: string | undefined = config.llm?.model;
   return mergeConfig({ ...config, llm, modelDisplayName }, commandLineConfigOverrides);
 }
+
