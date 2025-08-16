@@ -40,7 +40,7 @@ const systemUtilsMock = {
     write: vi.fn(),
   },
 };
-vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+vi.mock('#src/utils/systemUtils.js', () => systemUtilsMock);
 
 // Mock consoleUtils module
 const consoleUtilsMock = {
@@ -53,7 +53,7 @@ const consoleUtilsMock = {
   flushSessionLog: vi.fn(),
   stopSessionLogging: vi.fn(),
 };
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 // Mock pathUtils module
 const pathUtilsMock = {
@@ -61,7 +61,7 @@ const pathUtilsMock = {
   gslothDirExists: vi.fn(),
   getCommandOutputFilePath: vi.fn(),
 };
-vi.mock('#src/pathUtils.js', () => pathUtilsMock);
+vi.mock('#src/utils/pathUtils.js', () => pathUtilsMock);
 
 // Mock utils module
 const utilsMock = {
@@ -74,7 +74,7 @@ const utilsMock = {
 utilsMock.ProgressIndicator.prototype.stop = vi.fn();
 utilsMock.ProgressIndicator.prototype.indicate = vi.fn();
 
-vi.mock('#src/utils.js', () => utilsMock);
+vi.mock('#src/utils/utils.js', () => utilsMock);
 
 // Mock llmUtils module
 const llmUtilsMock = {
@@ -84,7 +84,7 @@ const llmUtilsMock = {
     configurable: { thread_id: 'test-thread-id' },
   }),
 };
-vi.mock('#src/llmUtils.js', () => llmUtilsMock);
+vi.mock('#src/utils/llmUtils.js', () => llmUtilsMock);
 
 // Create a complete mock config for prop drilling
 const BASE_GTH_CONFIG: Pick<

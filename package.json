@@ -19,7 +19,8 @@
     "npm": ">=10.9.0"
   },
   "scripts": {
-    "build": "tsc",
+    "clean": "tsc -b -clean",
+    "build": "tsc -b -clean && tsc",
     "test": "npx tsc -p spec/tsconfig.json --noEmit && npm run build && vitest run",
     "it": "npm run build && node it.js",
     "lint": "eslint . --ext .js,.ts",

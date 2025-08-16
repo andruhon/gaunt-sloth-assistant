@@ -16,19 +16,19 @@ const consoleUtilsMock = {
   defaultStatusCallbacks: vi.fn(),
   formatInputPrompt: vi.fn(),
 };
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 const pathUtilsMock = {
   getGslothFilePath: vi.fn(),
 };
-vi.mock('#src/pathUtils.js', () => pathUtilsMock);
+vi.mock('#src/utils/pathUtils.js', () => pathUtilsMock);
 
 const utilsMock = {
   generateStandardFileName: vi.fn(),
   appendToFile: vi.fn(),
   ProgressIndicator: vi.fn(),
 };
-vi.mock('#src/utils.js', () => utilsMock);
+vi.mock('#src/utils/utils.js', () => utilsMock);
 
 const fsMock = {
   existsSync: vi.fn(),
@@ -46,7 +46,7 @@ const llmUtilsMock = {
   readSystemPrompt: vi.fn().mockReturnValue('Mock system prompt'),
   readChatPrompt: vi.fn().mockReturnValue('Mock chat prompt'),
 };
-vi.mock('#src/llmUtils.js', () => llmUtilsMock);
+vi.mock('#src/utils/llmUtils.js', () => llmUtilsMock);
 
 const readlineMock = {
   createInterface: vi.fn(),
@@ -235,7 +235,7 @@ describe('Default Chat Behavior (no arguments)', () => {
   });
 
   it('Should create session config with correct mode and prompts', async () => {
-    const { readChatPrompt } = await import('#src/llmUtils.js');
+    const { readChatPrompt } = await import('#src/utils/llmUtils.js');
 
     const sessionConfig = {
       mode: 'chat' as const,

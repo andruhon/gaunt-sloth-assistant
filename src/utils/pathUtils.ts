@@ -1,10 +1,10 @@
 import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
-import { getProjectDir } from '#src/systemUtils.js';
+import { getProjectDir } from '#src/utils/systemUtils.js';
 import { GSLOTH_DIR, GSLOTH_SETTINGS_DIR } from '#src/constants.js';
 import type { GthConfig } from '#src/config.js';
-import { generateStandardFileName } from '#src/utils.js';
+import { generateStandardFileName } from '#src/utils/utils.js';
 
 /**
  * Checks if .gsloth directory exists in the project root

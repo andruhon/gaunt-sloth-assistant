@@ -4,9 +4,14 @@ import { BaseCheckpointSaver } from '@langchain/langgraph';
 import { GthAgentInterface, GthCommand } from '#src/core/types.js';
 import { GthLangChainAgent, StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 import { RunnableConfig } from '@langchain/core/runnables';
-import { executeHooks } from '#src/utils.js';
-import { getNewRunnableConfig } from '#src/llmUtils.js';
-import { initDebugLogging, debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
+import { executeHooks } from '#src/utils/llmUtils.js';
+import { getNewRunnableConfig } from '#src/utils/llmUtils.js';
+import {
+  initDebugLogging,
+  debugLog,
+  debugLogError,
+  debugLogObject,
+} from '#src/utils/debugUtils.js';
 
 /**
  * Agent simplifies interaction with LLM and reduces it to calling a few methods

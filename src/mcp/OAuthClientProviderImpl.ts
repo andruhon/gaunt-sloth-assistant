@@ -10,10 +10,10 @@ import * as crypto from 'node:crypto';
 import { platform } from 'node:os';
 import { execSync } from 'node:child_process';
 import { AddressInfo } from 'net';
-import { displayInfo } from '#src/consoleUtils.js';
+import { displayInfo } from '#src/utils/consoleUtils.js';
 import { StreamableHTTPConnection } from '@langchain/mcp-adapters';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { getOAuthStoragePath } from '#src/globalConfigUtils.js';
+import { getOAuthStoragePath } from '#src/utils/globalConfigUtils.js';
 import http from 'http';
 
 interface OAuthClientProviderConfig {

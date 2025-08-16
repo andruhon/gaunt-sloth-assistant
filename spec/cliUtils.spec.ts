@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { coerceBooleanOrString, parseBooleanOrString } from '#src/cliUtils.js';
+import { coerceBooleanOrString, parseBooleanOrString } from '#src/utils/cliUtils.js';
 
 describe('cliUtils', () => {
   describe('parseBooleanOrString', () => {

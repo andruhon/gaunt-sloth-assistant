@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'os';
 import { createTwoFilesPatch } from 'diff';
 import { minimatch } from 'minimatch';
-import { displayInfo } from '#src/consoleUtils.js';
+import { displayInfo } from '#src/utils/consoleUtils.js';
 
 /**
  * Filesystem toolkit

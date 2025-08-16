@@ -1,6 +1,6 @@
 import { type StructuredToolInterface, tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import { displayWarning } from '#src/consoleUtils.js';
+import { displayWarning } from '#src/utils/consoleUtils.js';
 import jiraLogWork from '#src/helpers/jira/jiraLogWork.js';
 import type { JiraConfig } from '#src/providers/types.js';
 import { GthConfig } from '#src/config.js';

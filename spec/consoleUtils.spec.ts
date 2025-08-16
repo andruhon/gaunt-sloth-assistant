@@ -13,7 +13,7 @@ const systemUtilsMock = {
   stream: vi.fn(),
 };
 
-vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+vi.mock('#src/utils/systemUtils.js', () => systemUtilsMock);
 
 describe('consoleUtils', () => {
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('consoleUtils', () => {
   describe('initSessionLogging', () => {
     it('should initialize session logging when enabled', async () => {
       // Import the function after mocks are set up
-      const { initSessionLogging } = await import('#src/consoleUtils.js');
+      const { initSessionLogging } = await import('#src/utils/consoleUtils.js');
 
       const logFileName = 'test-session.log';
 
@@ -37,7 +37,7 @@ describe('consoleUtils', () => {
 
     it('should not initialize session logging when disabled', async () => {
       // Import the function after mocks are set up
-      const { initSessionLogging } = await import('#src/consoleUtils.js');
+      const { initSessionLogging } = await import('#src/utils/consoleUtils.js');
 
       const logFileName = 'test-session.log';
 
@@ -52,7 +52,7 @@ describe('consoleUtils', () => {
   describe('stopSessionLogging', () => {
     it('should close log stream and reset state', async () => {
       // Import the functions after mocks are set up
-      const { initSessionLogging, stopSessionLogging } = await import('#src/consoleUtils.js');
+      const { initSessionLogging, stopSessionLogging } = await import('#src/utils/consoleUtils.js');
 
       // Set up session logging first
       initSessionLogging('test.log', true);
@@ -68,14 +68,14 @@ describe('consoleUtils', () => {
   describe('display functions', () => {
     beforeEach(async () => {
       // Import and initialize session logging for each test
-      const { initSessionLogging } = await import('#src/consoleUtils.js');
+      const { initSessionLogging } = await import('#src/utils/consoleUtils.js');
       initSessionLogging('test.log', true);
     });
 
     describe('displayError', () => {
       it('should display error message and log to session', async () => {
         // Import the function after mocks are set up
-        const { displayError } = await import('#src/consoleUtils.js');
+        const { displayError } = await import('#src/utils/consoleUtils.js');
 
         const message = 'Test error message';
 
@@ -91,7 +91,7 @@ describe('consoleUtils', () => {
         systemUtilsMock.getUseColour.mockReturnValue(true);
 
         // Import the function after mocks are set up
-        const { displayError } = await import('#src/consoleUtils.js');
+        const { displayError } = await import('#src/utils/consoleUtils.js');
 
         const message = 'Test error message';
 
@@ -107,7 +107,7 @@ describe('consoleUtils', () => {
     describe('displayWarning', () => {
       it('should display warning message and log to session', async () => {
         // Import the function after mocks are set up
-        const { displayWarning } = await import('#src/consoleUtils.js');
+        const { displayWarning } = await import('#src/utils/consoleUtils.js');
 
         const message = 'Test warning message';
 
@@ -123,7 +123,7 @@ describe('consoleUtils', () => {
     describe('displaySuccess', () => {
       it('should display success message and log to session', async () => {
         // Import the function after mocks are set up
-        const { displaySuccess } = await import('#src/consoleUtils.js');
+        const { displaySuccess } = await import('#src/utils/consoleUtils.js');
 
         const message = 'Test success message';
 
@@ -139,7 +139,7 @@ describe('consoleUtils', () => {
     describe('displayInfo', () => {
       it('should display info message and log to session', async () => {
         // Import the function after mocks are set up
-        const { displayInfo } = await import('#src/consoleUtils.js');
+        const { displayInfo } = await import('#src/utils/consoleUtils.js');
 
         const message = 'Test info message';
 
@@ -155,7 +155,7 @@ describe('consoleUtils', () => {
     describe('display', () => {
       it('should display plain message and log to session', async () => {
         // Import the function after mocks are set up
-        const { display } = await import('#src/consoleUtils.js');
+        const { display } = await import('#src/utils/consoleUtils.js');
 
         const message = 'Test plain message';
 
@@ -171,7 +171,7 @@ describe('consoleUtils', () => {
     describe('displayDebug', () => {
       it('should display debug message and log to session', async () => {
         // Import the function after mocks are set up
-        const { displayDebug } = await import('#src/consoleUtils.js');
+        const { displayDebug } = await import('#src/utils/consoleUtils.js');
 
         const message = 'Test debug message';
 
@@ -185,7 +185,7 @@ describe('consoleUtils', () => {
 
       it('should handle Error objects', async () => {
         // Import the function after mocks are set up
-        const { displayDebug } = await import('#src/consoleUtils.js');
+        const { displayDebug } = await import('#src/utils/consoleUtils.js');
 
         const error = new Error('Test error');
         error.stack = 'Error: Test error\n    at test.js:1:1';
@@ -200,7 +200,7 @@ describe('consoleUtils', () => {
 
       it('should handle undefined values', async () => {
         // Import the function after mocks are set up
-        const { displayDebug } = await import('#src/consoleUtils.js');
+        const { displayDebug } = await import('#src/utils/consoleUtils.js');
 
         // Act
         displayDebug(undefined);
@@ -215,13 +215,13 @@ describe('consoleUtils', () => {
   describe('defaultStatusCallback', () => {
     beforeEach(async () => {
       // Import and initialize session logging for each test
-      const { initSessionLogging } = await import('#src/consoleUtils.js');
+      const { initSessionLogging } = await import('#src/utils/consoleUtils.js');
       initSessionLogging('test.log', true);
     });
 
     it('should handle all status levels correctly', async () => {
       // Import the callback after mocks are set up
-      const { defaultStatusCallback } = await import('#src/consoleUtils.js');
+      const { defaultStatusCallback } = await import('#src/utils/consoleUtils.js');
 
       // Test info level
       defaultStatusCallback('info', 'Info message');
@@ -259,7 +259,7 @@ describe('consoleUtils', () => {
       systemUtilsMock.getUseColour.mockReturnValue(false);
 
       // Import the function after mocks are set up
-      const { formatInputPrompt } = await import('#src/consoleUtils.js');
+      const { formatInputPrompt } = await import('#src/utils/consoleUtils.js');
 
       const message = 'Enter input:';
 
@@ -274,7 +274,7 @@ describe('consoleUtils', () => {
       systemUtilsMock.getUseColour.mockReturnValue(true);
 
       // Import the function after mocks are set up
-      const { formatInputPrompt } = await import('#src/consoleUtils.js');
+      const { formatInputPrompt } = await import('#src/utils/consoleUtils.js');
 
       const message = 'Enter input:';
 
@@ -291,7 +291,7 @@ describe('consoleUtils', () => {
   describe('session logging with disabled state', () => {
     it('should not log to session when logging is disabled', async () => {
       // Import the functions after mocks are set up
-      const { initSessionLogging, displayInfo } = await import('#src/consoleUtils.js');
+      const { initSessionLogging, displayInfo } = await import('#src/utils/consoleUtils.js');
 
       // Initialize with logging disabled
       initSessionLogging('test.log', false);

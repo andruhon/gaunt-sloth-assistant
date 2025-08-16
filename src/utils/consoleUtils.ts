@@ -1,7 +1,7 @@
 import { StatusUpdateCallback } from '#src/core/GthLangChainAgent.js';
 import { StatusLevel } from '#src/core/types.js';
-import * as su from '#src/systemUtils.js';
-import { closeLogStream, initLogStream, stream, writeToLogStream } from '#src/systemUtils.js';
+import * as su from '#src/utils/systemUtils.js';
+import { closeLogStream, initLogStream, stream, writeToLogStream } from '#src/utils/systemUtils.js';
 
 // Internal state for session logging
 interface LoggingState {

@@ -7,9 +7,9 @@ import {
   formatInputPrompt,
   initSessionLogging,
   stopSessionLogging,
-} from '#src/consoleUtils.js';
+} from '#src/utils/consoleUtils.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
-import { getCommandOutputFilePath } from '#src/pathUtils.js';
+import { getCommandOutputFilePath } from '#src/utils/pathUtils.js';
 import {
   createInterface,
   error,
@@ -17,11 +17,11 @@ import {
   setRawMode,
   stdin as input,
   stdout as output,
-} from '#src/systemUtils.js';
-import { appendToFile } from '#src/utils.js';
+} from '#src/utils/systemUtils.js';
+import { appendToFile } from '#src/utils/utils.js';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
-import { readBackstory, readGuidelines, readSystemPrompt } from '#src/llmUtils.js';
+import { readBackstory, readGuidelines, readSystemPrompt } from '#src/utils/llmUtils.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';

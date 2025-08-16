@@ -1,12 +1,17 @@
 import { GthConfig } from '#src/config.js';
-import { displayError, displayInfo, displaySuccess, displayWarning } from '#src/consoleUtils.js';
-import { debugLog } from '#src/debugUtils.js';
-import { getInstallDir, getProjectDir, stdout } from '#src/systemUtils.js';
+import {
+  displayError,
+  displayInfo,
+  displaySuccess,
+  displayWarning,
+} from '#src/utils/consoleUtils.js';
+import { debugLog } from '#src/utils/debugUtils.js';
+import { getInstallDir, getProjectDir, stdout } from '#src/utils/systemUtils.js';
 import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import url from 'node:url';
-import { wrapContent } from '#src/llmUtils.js';
+import { wrapContent } from '#src/utils/llmUtils.js';
 
 export function toFileSafeString(string: string): string {
   return string.replace(/[^A-Za-z0-9]/g, '-');
@@ -316,26 +321,4 @@ export async function execAsync(command: string): Promise<string> {
       resolve(stdout.trim());
     });
   });
-}
-
-/**
- * Utility function to execute hook(s) - either a single hook or an array of hooks
- * Fully type-safe and works with any number of arguments
- * @param hooks - Single hook function or array of hook functions (or undefined)
- * @param args - Arguments to pass to each hook function
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function executeHooks<T extends (...args: any[]) => Promise<void>>(
-  hooks: T | T[] | undefined,
-  ...args: Parameters<T>
-): Promise<void> {
-  if (!hooks) return;
-
-  if (Array.isArray(hooks)) {
-    for (const hook of hooks) {
-      await hook(...args);
-    }
-  } else {
-    await hooks(...args);
-  }
 }

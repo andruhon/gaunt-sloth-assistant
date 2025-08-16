@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
-import { display } from '#src/consoleUtils.js';
-import { readFileSyncWithMessages } from '#src/utils.js';
-import { getProjectDir } from '#src/systemUtils.js';
+import { display } from '#src/utils/consoleUtils.js';
+import { readFileSyncWithMessages } from '#src/utils/utils.js';
+import { getProjectDir } from '#src/utils/systemUtils.js';
 import type { ProviderConfig } from './types.js';
 
 /**

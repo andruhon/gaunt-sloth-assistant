@@ -63,8 +63,8 @@ const configMock = {
   initConfig: vi.fn(),
 };
 
-vi.mock('#src/llmUtils.js', async () => {
-  const actual = await import('#src/llmUtils.js');
+vi.mock('#src/utils/llmUtils.js', async () => {
+  const actual = await import('#src/utils/llmUtils.js');
   return {
     ...actual,
     readBackstory: llmUtils.readBackstory,
@@ -74,7 +74,7 @@ vi.mock('#src/llmUtils.js', async () => {
   };
 });
 vi.mock('#src/config.js', () => configMock);
-vi.mock('#src/utils.js', () => utilsMock);
+vi.mock('#src/utils/utils.js', () => utilsMock);
 
 describe('reviewCommand', () => {
   beforeEach(async () => {

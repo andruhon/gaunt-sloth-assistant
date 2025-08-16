@@ -1,12 +1,12 @@
 import { getDefaultTools } from '#src/builtInToolsConfig.js';
 import { GthConfig, ServerTool } from '#src/config.js';
-import { displayInfo } from '#src/consoleUtils.js';
+import { displayInfo } from '#src/utils/consoleUtils.js';
 import { GthAgentInterface, GthCommand, StatusLevel } from '#src/core/types.js';
-import { debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
+import { debugLog, debugLogError, debugLogObject } from '#src/utils/debugUtils.js';
 import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
 import type { Message } from '#src/modules/types.js';
-import { stopWaitingForEscape, waitForEscape } from '#src/systemUtils.js';
-import { formatToolCalls, ProgressIndicator } from '#src/utils.js';
+import { stopWaitingForEscape, waitForEscape } from '#src/utils/systemUtils.js';
+import { formatToolCalls, ProgressIndicator } from '#src/utils/utils.js';
 import { isAIMessage } from '@langchain/core/messages';
 import { RunnableConfig } from '@langchain/core/runnables';
 import { BaseToolkit, StructuredToolInterface } from '@langchain/core/tools';

@@ -1,8 +1,13 @@
 import { Command } from 'commander';
-import { readMultipleFilesFromProjectDir } from '#src/utils.js';
+import { readMultipleFilesFromProjectDir } from '#src/utils/utils.js';
 import { CommandLineConfigOverrides, initConfig } from '#src/config.js';
-import { getStringFromStdin } from '#src/systemUtils.js';
-import { readBackstory, readGuidelines, readSystemPrompt, wrapContent } from '#src/llmUtils.js';
+import { getStringFromStdin } from '#src/utils/systemUtils.js';
+import {
+  readBackstory,
+  readGuidelines,
+  readSystemPrompt,
+  wrapContent,
+} from '#src/utils/llmUtils.js';
 
 interface AskCommandOptions {
   file?: string[];

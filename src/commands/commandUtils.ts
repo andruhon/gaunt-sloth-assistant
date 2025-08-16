@@ -1,7 +1,7 @@
 import type { GthConfig } from '#src/config.js';
-import { displayError } from '#src/consoleUtils.js';
+import { displayError } from '#src/utils/consoleUtils.js';
 
-import {wrapContent} from "#src/llmUtils.js";
+import { wrapContent } from '#src/utils/llmUtils.js';
 
 /**
  * Requirements providers. Expected to be in `.providers/` dir.

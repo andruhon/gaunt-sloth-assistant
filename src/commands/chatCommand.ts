@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { createInteractiveSession, SessionConfig } from '#src/modules/interactiveSessionModule.js';
 import { CommandLineConfigOverrides } from '#src/config.js';
-import { readChatPrompt } from '#src/llmUtils.js';
+import { readChatPrompt } from '#src/utils/llmUtils.js';
 
 export function chatCommand(
   program: Command,

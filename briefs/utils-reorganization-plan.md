@@ -267,7 +267,7 @@ This document outlines a phased approach to reorganize utility files in the Gaun
 ### For Release 1:
 ```typescript
 // Old import
-import { readFileFromProjectDir } from '#src/utils.js';
+import { readFileFromProjectDir } from '#src/utils/utils.js';
 
 // New import (both work in Release 1)
 import { readFileFromProjectDir } from '#src/fileUtils.js';
@@ -276,20 +276,20 @@ import { readFileFromProjectDir } from '#src/fileUtils.js';
 ### For Release 2:
 ```typescript
 // Old import
-import { getGlobalGslothDir } from '#src/globalConfigUtils.js';
+import { getGlobalGslothDir } from '#src/utils/globalConfigUtils.js';
 
 // New import
-import { getGlobalGslothDir } from '#src/pathUtils.js';
+import { getGlobalGslothDir } from '#src/utils/pathUtils.js';
 ```
 
 ### For Release 3:
 ```typescript
 // Old imports
-import { debugLog } from '#src/debugUtils.js';
-import { displayError } from '#src/consoleUtils.js';
+import { debugLog } from '#src/utils/debugUtils.js';
+import { displayError } from '#src/utils/consoleUtils.js';
 
 // New unified import
-import { debugLog, displayError } from '#src/consoleUtils.js';
+import { debugLog, displayError } from '#src/utils/consoleUtils.js';
 ```
 
 ### For Release 4:

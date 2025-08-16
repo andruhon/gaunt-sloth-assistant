@@ -12,7 +12,7 @@ const consoleUtilsMock = {
   displayInfo: vi.fn(),
   displayError: vi.fn(),
 };
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 // Mock systemUtils
 const systemUtilsMock = {
@@ -20,7 +20,7 @@ const systemUtilsMock = {
     write: vi.fn(),
   },
 };
-vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+vi.mock('#src/utils/systemUtils.js', () => systemUtilsMock);
 
 describe('GthDevToolkit - Basic Tests', () => {
   let GthDevToolkit: typeof import('#src/tools/GthDevToolkit.js').default;

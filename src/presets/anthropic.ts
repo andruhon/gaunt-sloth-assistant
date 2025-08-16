@@ -1,8 +1,8 @@
 import { GthConfig } from '#src/config.js';
-import { displayInfo, displayWarning } from '#src/consoleUtils.js';
-import { debugLog, debugLogError } from '#src/debugUtils.js';
-import { env } from '#src/systemUtils.js';
-import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
+import { displayInfo, displayWarning } from '#src/utils/consoleUtils.js';
+import { debugLog, debugLogError } from '#src/utils/debugUtils.js';
+import { env } from '#src/utils/systemUtils.js';
+import { writeFileIfNotExistsWithMessages } from '#src/utils/utils.js';
 import type { AnthropicInput } from '@langchain/anthropic';
 import type {
   BaseChatModel,

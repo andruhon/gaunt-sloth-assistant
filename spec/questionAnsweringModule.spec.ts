@@ -30,7 +30,7 @@ vi.mock('node:path', () => pathMock);
 const systemUtilsMock = {
   getProjectDir: vi.fn(),
 };
-vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+vi.mock('#src/utils/systemUtils.js', () => systemUtilsMock);
 
 // Mock consoleUtils module
 const consoleUtilsMock = {
@@ -42,7 +42,7 @@ const consoleUtilsMock = {
   flushSessionLog: vi.fn(),
   stopSessionLogging: vi.fn(),
 };
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 // Mock pathUtils module
 const pathUtilsMock = {
@@ -50,9 +50,9 @@ const pathUtilsMock = {
   gslothDirExists: vi.fn(),
   getCommandOutputFilePath: vi.fn(),
 };
-vi.mock('#src/pathUtils.js', () => pathUtilsMock);
-vi.mock('#src/pathUtils.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('#src/pathUtils.js')>();
+vi.mock('#src/utils/pathUtils.js', () => pathUtilsMock);
+vi.mock('#src/utils/pathUtils.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#src/utils/pathUtils.js')>();
   return {
     ...actual,
     getGslothFilePath: pathUtilsMock.getGslothFilePath,
@@ -79,7 +79,7 @@ const utilsMock = {
 utilsMock.ProgressIndicator.prototype.stop = vi.fn();
 utilsMock.ProgressIndicator.prototype.indicate = vi.fn();
 
-vi.mock('#src/utils.js', () => utilsMock);
+vi.mock('#src/utils/utils.js', () => utilsMock);
 
 // Create a complete mock config for prop drilling
 const mockConfig = {
@@ -115,7 +115,7 @@ const llmUtilsMock = {
     configurable: { thread_id: 'test-thread-id' },
   }),
 };
-vi.mock('#src/llmUtils.js', () => llmUtilsMock);
+vi.mock('#src/utils/llmUtils.js', () => llmUtilsMock);
 
 describe('questionAnsweringModule', () => {
   beforeEach(async () => {

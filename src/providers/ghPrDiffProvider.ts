@@ -1,5 +1,5 @@
-import { displayWarning } from '#src/consoleUtils.js';
-import { execAsync, ProgressIndicator } from '#src/utils.js';
+import { displayWarning } from '#src/utils/consoleUtils.js';
+import { execAsync, ProgressIndicator } from '#src/utils/utils.js';
 import type { ProviderConfig } from './types.js';
 
 /**

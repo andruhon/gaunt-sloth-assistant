@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from '#src/tools/gthSequentialThinkingTool.js';
 import { GthConfig } from '#src/config.js';
-import { displayInfo } from '#src/consoleUtils.js';
+import { displayInfo } from '#src/utils/consoleUtils.js';
 
-vi.mock('#src/consoleUtils.js');
+vi.mock('#src/utils/consoleUtils.js');
 
 describe('gthSequentialThinkingTool', () => {
   let config: GthConfig;

@@ -1,5 +1,5 @@
 import { Command, Option } from 'commander';
-import { readMultipleFilesFromProjectDir } from '#src/utils.js';
+import { readMultipleFilesFromProjectDir } from '#src/utils/utils.js';
 import {
   type ContentProviderType,
   getContentFromProvider,
@@ -16,7 +16,7 @@ import {
   readReviewInstructions,
   readSystemPrompt,
   wrapContent,
-} from '#src/llmUtils.js';
+} from '#src/utils/llmUtils.js';
 
 interface PrCommandOptions {
   file?: string[];

@@ -24,7 +24,7 @@ describe('debugUtils', () => {
 
   describe('initDebugLogging', () => {
     it('should initialize logging when enabled', async () => {
-      const { initDebugLogging } = await import('#src/debugUtils.js');
+      const { initDebugLogging } = await import('#src/utils/debugUtils.js');
 
       initDebugLogging(true);
 
@@ -37,7 +37,7 @@ describe('debugUtils', () => {
     });
 
     it('should not initialize logging when disabled', async () => {
-      const { initDebugLogging } = await import('#src/debugUtils.js');
+      const { initDebugLogging } = await import('#src/utils/debugUtils.js');
 
       initDebugLogging(false);
 
@@ -48,7 +48,7 @@ describe('debugUtils', () => {
 
   describe('debugLog', () => {
     it('should write to log file when debug is enabled', async () => {
-      const { initDebugLogging, debugLog } = await import('#src/debugUtils.js');
+      const { initDebugLogging, debugLog } = await import('#src/utils/debugUtils.js');
 
       initDebugLogging(true);
       vi.clearAllMocks(); // Clear initialization calls
@@ -63,7 +63,7 @@ describe('debugUtils', () => {
     });
 
     it('should not write to log file when debug is disabled', async () => {
-      const { initDebugLogging, debugLog } = await import('#src/debugUtils.js');
+      const { initDebugLogging, debugLog } = await import('#src/utils/debugUtils.js');
 
       initDebugLogging(false);
       debugLog('Test message');
@@ -74,7 +74,7 @@ describe('debugUtils', () => {
 
   describe('debugLogMultiline', () => {
     it('should format multiline content with title', async () => {
-      const { initDebugLogging, debugLogMultiline } = await import('#src/debugUtils.js');
+      const { initDebugLogging, debugLogMultiline } = await import('#src/utils/debugUtils.js');
 
       initDebugLogging(true);
       vi.clearAllMocks();
@@ -97,7 +97,7 @@ describe('debugUtils', () => {
 
   describe('debugLogObject', () => {
     it('should format object using node inspect', async () => {
-      const { initDebugLogging, debugLogObject } = await import('#src/debugUtils.js');
+      const { initDebugLogging, debugLogObject } = await import('#src/utils/debugUtils.js');
 
       initDebugLogging(true);
       vi.clearAllMocks();
@@ -121,7 +121,7 @@ describe('debugUtils', () => {
 
   describe('debugLogError', () => {
     it('should log error with stack trace', async () => {
-      const { initDebugLogging, debugLogError } = await import('#src/debugUtils.js');
+      const { initDebugLogging, debugLogError } = await import('#src/utils/debugUtils.js');
 
       initDebugLogging(true);
       vi.clearAllMocks();

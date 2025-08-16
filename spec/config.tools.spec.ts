@@ -22,7 +22,7 @@ vi.mock('#src/tools/GthFileSystemToolkit.js', () => ({
   },
 }));
 
-vi.mock('#src/systemUtils.js', () => ({
+vi.mock('#src/utils/systemUtils.js', () => ({
   getProjectDir: () => '/test/dir',
 }));
 

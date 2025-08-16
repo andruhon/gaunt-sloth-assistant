@@ -1,6 +1,6 @@
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import { displayInfo } from '#src/consoleUtils.js';
+import { displayInfo } from '#src/utils/consoleUtils.js';
 import { GthConfig } from '#src/config.js';
 import chalk from 'chalk';
 

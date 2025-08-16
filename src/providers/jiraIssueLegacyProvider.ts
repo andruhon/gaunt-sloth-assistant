@@ -1,5 +1,5 @@
-import { display, displayError, displayWarning } from '#src/consoleUtils.js';
-import { env } from '#src/systemUtils.js';
+import { display, displayError, displayWarning } from '#src/utils/consoleUtils.js';
+import { env } from '#src/utils/systemUtils.js';
 import type { JiraLegacyConfig } from '#src/providers/types.js';
 
 interface JiraIssueResponse {

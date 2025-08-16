@@ -26,7 +26,7 @@ const processEventMocks = {
 };
 
 vi.mock('node:fs', () => fsMock);
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 // Mock the global process object
 Object.defineProperty(global, 'process', {
@@ -45,7 +45,7 @@ describe('systemUtils', () => {
   describe('waitForEscape', () => {
     it('should not set up escape handler when disabled', async () => {
       // Import the function after mocks are set up
-      const { waitForEscape } = await import('#src/systemUtils.js');
+      const { waitForEscape } = await import('#src/utils/systemUtils.js');
 
       // Act
       waitForEscape(() => {}, false);
@@ -58,7 +58,7 @@ describe('systemUtils', () => {
 
     it('should set up escape handler when enabled', async () => {
       // Import the function after mocks are set up
-      const { waitForEscape } = await import('#src/systemUtils.js');
+      const { waitForEscape } = await import('#src/utils/systemUtils.js');
 
       const callback = vi.fn();
 
@@ -75,7 +75,7 @@ describe('systemUtils', () => {
 
     it('should call callback when escape key is pressed', async () => {
       // Import the function after mocks are set up
-      const { waitForEscape } = await import('#src/systemUtils.js');
+      const { waitForEscape } = await import('#src/utils/systemUtils.js');
 
       const callback = vi.fn();
       let keypressHandler: (_chunk: any, _key: any) => void;
@@ -100,7 +100,7 @@ describe('systemUtils', () => {
 
     it('should not call callback when other keys are pressed', async () => {
       // Import the function after mocks are set up
-      const { waitForEscape } = await import('#src/systemUtils.js');
+      const { waitForEscape } = await import('#src/utils/systemUtils.js');
 
       const callback = vi.fn();
       let keypressHandler: (_chunk: any, _key: any) => void;
@@ -129,7 +129,7 @@ describe('systemUtils', () => {
   describe('stopWaitingForEscape', () => {
     it('should clean up escape handler', async () => {
       // Import the functions after mocks are set up
-      const { waitForEscape, stopWaitingForEscape } = await import('#src/systemUtils.js');
+      const { waitForEscape, stopWaitingForEscape } = await import('#src/utils/systemUtils.js');
 
       const callback = vi.fn();
       let keypressHandler: any;
@@ -152,7 +152,7 @@ describe('systemUtils', () => {
 
     it('should handle multiple calls safely', async () => {
       // Import the function after mocks are set up
-      const { stopWaitingForEscape } = await import('#src/systemUtils.js');
+      const { stopWaitingForEscape } = await import('#src/utils/systemUtils.js');
 
       // Act - call multiple times
       stopWaitingForEscape();
@@ -180,7 +180,7 @@ describe('systemUtils', () => {
     describe('initLogStream', () => {
       it('should create a write stream with correct options', async () => {
         // Import the function after mocks are set up
-        const { initLogStream } = await import('#src/systemUtils.js');
+        const { initLogStream } = await import('#src/utils/systemUtils.js');
 
         const fileName = 'test.log';
 
@@ -198,7 +198,7 @@ describe('systemUtils', () => {
 
       it('should handle stream creation errors', async () => {
         // Import the function after mocks are set up
-        const { initLogStream } = await import('#src/systemUtils.js');
+        const { initLogStream } = await import('#src/utils/systemUtils.js');
 
         const error = new Error('Stream creation failed');
         fsMock.createWriteStream.mockImplementation(() => {
@@ -218,7 +218,7 @@ describe('systemUtils', () => {
     describe('writeToLogStream', () => {
       it('should write to active stream', async () => {
         // Import the functions after mocks are set up
-        const { initLogStream, writeToLogStream } = await import('#src/systemUtils.js');
+        const { initLogStream, writeToLogStream } = await import('#src/utils/systemUtils.js');
 
         const message = 'test message';
 
@@ -234,7 +234,7 @@ describe('systemUtils', () => {
 
       it('should not write to destroyed stream', async () => {
         // Import the functions after mocks are set up
-        const { initLogStream, writeToLogStream } = await import('#src/systemUtils.js');
+        const { initLogStream, writeToLogStream } = await import('#src/utils/systemUtils.js');
 
         const message = 'test message';
 
@@ -253,7 +253,7 @@ describe('systemUtils', () => {
     describe('closeLogStream', () => {
       it('should close active stream', async () => {
         // Import the functions after mocks are set up
-        const { initLogStream, closeLogStream } = await import('#src/systemUtils.js');
+        const { initLogStream, closeLogStream } = await import('#src/utils/systemUtils.js');
 
         // Set up log stream
         initLogStream('test.log');
@@ -267,7 +267,7 @@ describe('systemUtils', () => {
 
       it('should not close destroyed stream', async () => {
         // Import the functions after mocks are set up
-        const { initLogStream, closeLogStream } = await import('#src/systemUtils.js');
+        const { initLogStream, closeLogStream } = await import('#src/utils/systemUtils.js');
 
         // Set up log stream but mark as destroyed
         initLogStream('test.log');

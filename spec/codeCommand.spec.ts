@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { display, displayInfo } from '#src/consoleUtils.js';
+import { display, displayInfo } from '#src/utils/consoleUtils.js';
 import type { Interface as ReadlineInterface } from 'node:readline/promises';
 import { createInterface } from 'node:readline/promises';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
@@ -18,8 +18,8 @@ vi.mock('#src/config.js', () => ({
   }),
 }));
 
-vi.mock('#src/consoleUtils.js', async () => {
-  const actual = await vi.importActual('#src/consoleUtils.js');
+vi.mock('#src/utils/consoleUtils.js', async () => {
+  const actual = await vi.importActual('#src/utils/consoleUtils.js');
   return {
     ...actual,
     display: vi.fn(),
@@ -36,8 +36,8 @@ vi.mock('#src/consoleUtils.js', async () => {
   };
 });
 
-vi.mock('#src/systemUtils.js', async () => {
-  const actual = await vi.importActual('#src/systemUtils.js');
+vi.mock('#src/utils/systemUtils.js', async () => {
+  const actual = await vi.importActual('#src/utils/systemUtils.js');
   return {
     ...actual,
     initLogStream: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock('#src/systemUtils.js', async () => {
   };
 });
 
-vi.mock('#src/pathUtils.js', () => ({
+vi.mock('#src/utils/pathUtils.js', () => ({
   getGslothFilePath: vi.fn().mockReturnValue('mock/code/file.txt'),
   getCommandOutputFilePath: vi.fn((config: any, _source: string) => {
     // Preserve previous test expectation: when writeOutputToFile is true,
@@ -57,7 +57,7 @@ vi.mock('#src/pathUtils.js', () => ({
   }),
 }));
 
-vi.mock('#src/utils.js', () => ({
+vi.mock('#src/utils/utils.js', () => ({
   generateStandardFileName: vi.fn().mockReturnValue('mock-code-file.txt'),
   appendToFile: vi.fn(),
   ProgressIndicator: vi.fn().mockImplementation(() => ({
@@ -69,7 +69,7 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock('#src/llmUtils.js', () => ({
+vi.mock('#src/utils/llmUtils.js', () => ({
   invoke: vi.fn().mockResolvedValue('Mock response'),
   getNewRunnableConfig: vi.fn().mockReturnValue({
     recursionLimit: 250,
@@ -322,7 +322,7 @@ describe('codeCommand', () => {
     } as Partial<GthConfig>;
     const { initConfig } = await import('#src/config.js');
     vi.mocked(initConfig).mockResolvedValue({ ...mockConfig } as GthConfig);
-    const { initSessionLogging } = await import('#src/consoleUtils.js');
+    const { initSessionLogging } = await import('#src/utils/consoleUtils.js');
     const messages = ['first message', 'exit'];
     let messageIndex = 0;
     const mockReadline = {
@@ -350,7 +350,7 @@ describe('codeCommand', () => {
     } as Partial<GthConfig>;
     const { initConfig } = await import('#src/config.js');
     vi.mocked(initConfig).mockResolvedValue(mockConfig as GthConfig);
-    const { flushSessionLog } = await import('#src/consoleUtils.js');
+    const { flushSessionLog } = await import('#src/utils/consoleUtils.js');
     const messages = ['test message', 'exit'];
     let messageIndex = 0;
     const mockReadline = {

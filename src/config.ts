@@ -8,7 +8,12 @@
  *
  * Some config params can be overriden from command line, see {@link CommandLineConfigOverrides}
  */
-import { displayDebug, displayError, displayInfo, displayWarning } from '#src/consoleUtils.js';
+import {
+  displayDebug,
+  displayError,
+  displayInfo,
+  displayWarning,
+} from '#src/utils/consoleUtils.js';
 import {
   PROJECT_GUIDELINES,
   PROJECT_REVIEW_INSTRUCTIONS,
@@ -18,11 +23,11 @@ import {
 } from '#src/constants.js';
 import type { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import type { GthAgentInterface } from '#src/core/types.js';
-import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/pathUtils.js';
+import { getGslothConfigReadPath, getGslothConfigWritePath } from '#src/utils/pathUtils.js';
 import type { Message } from '#src/modules/types.js';
 import { JiraConfig } from '#src/providers/types.js';
-import { error, exit, isTTY, setUseColour } from '#src/systemUtils.js';
-import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils.js';
+import { error, exit, isTTY, setUseColour } from '#src/utils/systemUtils.js';
+import { importExternalFile, writeFileIfNotExistsWithMessages } from '#src/utils/utils.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { AIMessage } from '@langchain/core/messages';
 import { RunnableConfig } from '@langchain/core/runnables';

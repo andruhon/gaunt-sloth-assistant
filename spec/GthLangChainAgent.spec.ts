@@ -16,7 +16,7 @@ const systemUtilsMock = {
   stopWaitingForEscape: vi.fn(),
   waitForEscape: vi.fn(),
 };
-vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+vi.mock('#src/utils/systemUtils.js', () => systemUtilsMock);
 
 const configMock = {
   getDefaultTools: vi.fn(),
@@ -29,7 +29,7 @@ const progressIndicatorInstanceMock = {
   stop: vi.fn(),
 };
 const progressIndicatorMock = vi.fn().mockImplementation(() => progressIndicatorInstanceMock);
-vi.mock('#src/utils.js', () => ({
+vi.mock('#src/utils/utils.js', () => ({
   ProgressIndicator: progressIndicatorMock,
   formatToolCalls: vi.fn((toolCalls) => toolCalls.map((tc: any) => `${tc.name}()`).join(', ')),
 }));
@@ -51,7 +51,7 @@ vi.mock('#src/mcp/OAuthClientProviderImpl.js', () => ({
 const consoleUtilsMock = {
   displayInfo: vi.fn(),
 };
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 describe('GthLangChainAgent', () => {
   let GthLangChainAgent: typeof import('#src/core/GthLangChainAgent.js').GthLangChainAgent;

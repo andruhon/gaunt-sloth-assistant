@@ -5,8 +5,8 @@
 import GthFileSystemToolkit from '#src/tools/GthFileSystemToolkit.js';
 import { StructuredToolInterface } from '@langchain/core/tools';
 import { GthDevToolsConfig, GthConfig } from '#src/config.js';
-import { displayWarning } from '#src/consoleUtils.js';
-import { getProjectDir } from '#src/systemUtils.js';
+import { displayWarning } from '#src/utils/consoleUtils.js';
+import { getProjectDir } from '#src/utils/systemUtils.js';
 import { GthCommand } from '#src/core/types.js';
 import GthDevToolkit from '#src/tools/GthDevToolkit.js';
 

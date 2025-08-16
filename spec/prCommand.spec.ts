@@ -63,8 +63,8 @@ const configMock = {
   initConfig: vi.fn(),
 };
 
-vi.mock('#src/llmUtils.js', async () => {
-  const actual = await import('#src/llmUtils.js');
+vi.mock('#src/utils/llmUtils.js', async () => {
+  const actual = await import('#src/utils/llmUtils.js');
   return {
     ...actual,
     readBackstory: prompt.readBackstory,
@@ -74,7 +74,7 @@ vi.mock('#src/llmUtils.js', async () => {
   };
 });
 vi.mock('#src/config.js', () => configMock);
-vi.mock('#src/utils.js', () => utilsMock);
+vi.mock('#src/utils/utils.js', () => utilsMock);
 
 describe('prCommand', () => {
   beforeEach(async () => {
@@ -210,7 +210,7 @@ describe('prCommand', () => {
     const testOutput = { text: '' };
 
     // Mock systemUtils to ensure environment variables don't interfere with the test
-    vi.mock('#src/systemUtils.js', () => ({
+    vi.mock('#src/utils/systemUtils.js', () => ({
       env: {}, // Empty env object to ensure no environment variables are used
       error: vi.fn(),
       exit: vi.fn(),

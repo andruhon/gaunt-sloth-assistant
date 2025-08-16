@@ -54,8 +54,8 @@ const mockConfig = {
 };
 
 // Set up static mocks
-vi.mock('#src/llmUtils.js', async () => {
-  const actual = await import('#src/llmUtils.js');
+vi.mock('#src/utils/llmUtils.js', async () => {
+  const actual = await import('#src/utils/llmUtils.js');
   return {
     ...actual,
     readBackstory: prompt.readBackstory,
@@ -64,7 +64,7 @@ vi.mock('#src/llmUtils.js', async () => {
   };
 });
 vi.mock('#src/modules/questionAnsweringModule.js', () => questionAnsweringModule);
-vi.mock('#src/systemUtils.js', () => ({
+vi.mock('#src/utils/systemUtils.js', () => ({
   getStringFromStdin: vi.fn().mockReturnValue(''),
 }));
 const configMock = {
@@ -73,7 +73,7 @@ const configMock = {
 };
 
 vi.mock('#src/config.js', () => configMock);
-vi.mock('#src/utils.js', () => utilsMock);
+vi.mock('#src/utils/utils.js', () => utilsMock);
 
 describe('askCommand', () => {
   beforeEach(async () => {
@@ -175,7 +175,7 @@ describe('askCommand', () => {
   });
 
   it('Should call askQuestion with stdin content only (no message)', async () => {
-    const { getStringFromStdin } = await import('#src/systemUtils.js');
+    const { getStringFromStdin } = await import('#src/utils/systemUtils.js');
     vi.mocked(getStringFromStdin).mockReturnValue('STDIN CONTENT');
 
     const { askCommand } = await import('#src/commands/askCommand.js');
@@ -192,7 +192,7 @@ describe('askCommand', () => {
   });
 
   it('Should throw error when no input source is provided', async () => {
-    const { getStringFromStdin } = await import('#src/systemUtils.js');
+    const { getStringFromStdin } = await import('#src/utils/systemUtils.js');
     vi.mocked(getStringFromStdin).mockReturnValue('');
 
     const { askCommand } = await import('#src/commands/askCommand.js');

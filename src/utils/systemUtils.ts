@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'url';
 import { Command } from 'commander';
-import { ProgressIndicator } from '#src/utils.js';
+import { ProgressIndicator } from '#src/utils/utils.js';
 import { createInterface, type Interface as ReadLineInterface } from 'node:readline/promises';
 import { displayInfo, displayWarning } from './consoleUtils.js';
 import { createWriteStream, type WriteStream } from 'node:fs';

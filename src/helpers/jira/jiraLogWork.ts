@@ -1,6 +1,6 @@
 import type { JiraConfig } from '#src/providers/types.js';
 import { getJiraCredentials, jiraRequest } from './jiraClient.js';
-import { displayError, displaySuccess } from '#src/consoleUtils.js';
+import { displayError, displaySuccess } from '#src/utils/consoleUtils.js';
 
 interface WorklogRequestBody {
   comment: {

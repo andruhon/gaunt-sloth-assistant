@@ -4,25 +4,17 @@ This directory contains integration tests for the Gaunt Sloth Assistant CLI tool
 
 ## Test Structure
 
-The tests are organized as follows:
+Some tests intentionally contain `simple` in their name to indicate,
+that fast models with lower intelligence, such as mercury can run them without failing,
+moreover they take less tokens, which means they may be run in matrix.
 
-- **Test Files**:
-    - `askCommand.it.ts`: Tests for the ask command
-    - `reviewCommand.it.ts`: Tests for the review command
-    - `prCommand.it.ts`: Tests for the PR command
+```bash
+npm run it inception simple
+```
 
-- **Support Files**:
-    - `support/commandRunner.ts`: Helper function to run commands in the test directory
-    - `support/outputChecker.ts`: Helper function to check command output
-    - `support/reviewScoreExtractor.ts`: Helper function to extract review score
-
-- **Configuration**:
-    - `.gsloth.config.json`: Claude-based configuration for testing
-    - `.gsloth.guidelines.md`: Guidelines for the AI to follow during testing
-
-- **Test Data**:
-    - `test-data/filewithgoodcode.js`: Sample good code for review tests
-    - `test-data/filewithbadcode.js`: Sample bad code with intentional issues for review tests
+```bash
+npm run it groq simple
+```
 
 ## Running the Tests
 
@@ -44,7 +36,8 @@ To run the integration tests:
    npm run it anthropic
    ```
 
-Or `npm run it vertexai` or `npm run it groq`,
+Or `npm run it vertexai` or `npm run it groq simple`,
+
 please note if you are on free tier of Groq review and PR tests are likely to fail,
 because tokens limit has been hit.
 

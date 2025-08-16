@@ -28,7 +28,7 @@ jobs:
       run: npm ci
     
     - name: Run lite integration tests with ${{ matrix.provider }}
-      run: npm run it ${{ matrix.provider }} askCommand.it.ts chatCommand.it.ts codeCommand.it.ts
+      run: npm run it ${{ matrix.provider }} simple
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}

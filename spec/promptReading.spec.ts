@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import * as prompt from '#src/llmUtils.js';
-import * as systemUtils from '#src/systemUtils.js';
+import * as prompt from '#src/utils/llmUtils.js';
+import * as systemUtils from '#src/utils/systemUtils.js';
 import * as fs from 'node:fs';
 import { sep } from 'path';
 import { platform } from 'node:os';
@@ -11,7 +11,7 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
 }));
 
-vi.mock('#src/systemUtils.js', () => ({
+vi.mock('#src/utils/systemUtils.js', () => ({
   getProjectDir: vi.fn(),
   getInstallDir: vi.fn(),
 }));

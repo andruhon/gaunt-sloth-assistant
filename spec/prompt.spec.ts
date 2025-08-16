@@ -9,7 +9,7 @@ vi.mock('node:crypto', async () => {
   };
 });
 
-import { wrapContent } from '#src/llmUtils.js';
+import { wrapContent } from '#src/utils/llmUtils.js';
 
 describe('wrapContent', () => {
   test('returns original content when empty and alwaysWrap=false', () => {

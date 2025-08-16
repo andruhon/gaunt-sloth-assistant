@@ -5,9 +5,9 @@ import { BaseToolkit, StructuredToolInterface, tool } from '@langchain/core/tool
 import { z } from 'zod';
 import { spawn } from 'child_process';
 import path from 'node:path';
-import { displayInfo, displayError } from '#src/consoleUtils.js';
+import { displayInfo, displayError } from '#src/utils/consoleUtils.js';
 import { GthDevToolsConfig } from '#src/config.js';
-import { stdout } from '#src/systemUtils.js';
+import { stdout } from '#src/utils/systemUtils.js';
 
 // Helper function to create a tool with dev type
 function createGthTool<T extends z.ZodSchema>(

@@ -8,7 +8,7 @@ import {
   getGlobalAuthDir,
   getGlobalGslothDir,
   getOAuthStoragePath,
-} from '#src/globalConfigUtils.js';
+} from '#src/utils/globalConfigUtils.js';
 import { GSLOTH_AUTH, GSLOTH_DIR } from '#src/constants.js';
 
 vi.mock('node:fs');

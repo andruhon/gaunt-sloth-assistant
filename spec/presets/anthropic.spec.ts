@@ -6,13 +6,13 @@ const consoleUtilsMock = {
   displayInfo: vi.fn(),
   displayWarning: vi.fn(),
 };
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 const debugUtilsMock = {
   debugLog: vi.fn(),
   debugLogError: vi.fn(),
 };
-vi.mock('#src/debugUtils.js', () => debugUtilsMock);
+vi.mock('#src/utils/debugUtils.js', () => debugUtilsMock);
 
 describe('anthropic preset', () => {
   beforeEach(() => {

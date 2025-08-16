@@ -5,10 +5,10 @@ import { reviewCommand } from '#src/commands/reviewCommand.js';
 import { prCommand } from '#src/commands/prCommand.js';
 import { chatCommand } from '#src/commands/chatCommand.js';
 import { codeCommand } from '#src/commands/codeCommand.js';
-import { getSlothVersion } from '#src/utils.js';
-import { argv, readStdin } from '#src/systemUtils.js';
+import { getSlothVersion } from '#src/utils/utils.js';
+import { argv, readStdin } from '#src/utils/systemUtils.js';
 import type { CommandLineConfigOverrides } from '#src/config.js';
-import { coerceBooleanOrString } from '#src/cliUtils.js';
+import { coerceBooleanOrString } from '#src/utils/cliUtils.js';
 
 const program = new Command();
 

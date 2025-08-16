@@ -1,13 +1,13 @@
 import { RunnableConfig } from '@langchain/core/runnables';
 import { randomUUID } from 'node:crypto';
-import { readFileFromInstallDir } from '#src/utils.js';
+import { readFileFromInstallDir } from '#src/utils/utils.js';
 import {
   GSLOTH_BACKSTORY,
   GSLOTH_CHAT_PROMPT,
   GSLOTH_CODE_PROMPT,
   GSLOTH_SYSTEM_PROMPT,
 } from '#src/constants.js';
-import { getGslothConfigReadPath } from '#src/pathUtils.js';
+import { getGslothConfigReadPath } from '#src/utils/pathUtils.js';
 import { existsSync, readFileSync } from 'node:fs';
 
 /**
@@ -74,4 +74,26 @@ export function wrapContent(
     return contentWrapper.join('');
   }
   return content;
+}
+
+/**
+ * Utility function to execute hook(s) - either a single hook or an array of hooks
+ * Fully type-safe and works with any number of arguments
+ * @param hooks - Single hook function or array of hook functions (or undefined)
+ * @param args - Arguments to pass to each hook function
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function executeHooks<T extends (...args: any[]) => Promise<void>>(
+  hooks: T | T[] | undefined,
+  ...args: Parameters<T>
+): Promise<void> {
+  if (!hooks) return;
+
+  if (Array.isArray(hooks)) {
+    for (const hook of hooks) {
+      await hook(...args);
+    }
+  } else {
+    await hooks(...args);
+  }
 }

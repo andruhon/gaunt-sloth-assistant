@@ -1,5 +1,5 @@
-import { displayWarning } from '#src/consoleUtils.js';
-import { writeFileIfNotExistsWithMessages } from '#src/utils.js';
+import { displayWarning } from '#src/utils/consoleUtils.js';
+import { writeFileIfNotExistsWithMessages } from '#src/utils/utils.js';
 import { ChatVertexAIInput } from '@langchain/google-vertexai';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 

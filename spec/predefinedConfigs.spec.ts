@@ -9,7 +9,7 @@ const consoleUtilsMock = {
   displaySuccess: vi.fn(),
   displayDebug: vi.fn(),
 };
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 const fsMock = {
   existsSync: vi.fn(),
@@ -29,7 +29,7 @@ const systemUtilsMock = {
   getInstallDir: vi.fn(),
   env: {},
 };
-vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+vi.mock('#src/utils/systemUtils.js', () => systemUtilsMock);
 
 describe('predefined AI provider configurations', () => {
   beforeEach(async () => {

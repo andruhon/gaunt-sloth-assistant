@@ -22,7 +22,7 @@ const consoleUtilsMock = {
   displaySuccess: vi.fn(),
   displayDebug: vi.fn(),
 };
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
+vi.mock('#src/utils/consoleUtils.js', () => consoleUtilsMock);
 
 const utilsMock = {
   writeFileIfNotExistsWithMessages: vi.fn(),
@@ -34,7 +34,7 @@ const utilsMock = {
   extractLastMessageContent: vi.fn(),
   readFileSyncWithMessages: vi.fn(),
 };
-vi.mock('#src/utils.js', () => utilsMock);
+vi.mock('#src/utils/utils.js', () => utilsMock);
 
 const systemUtilsMock = {
   exit: vi.fn(),
@@ -43,13 +43,13 @@ const systemUtilsMock = {
   setUseColour: vi.fn(),
   isTTY: vi.fn(),
 };
-vi.mock('#src/systemUtils.js', () => systemUtilsMock);
+vi.mock('#src/utils/systemUtils.js', () => systemUtilsMock);
 
 const pathUtilsMock = {
   getGslothConfigReadPath: vi.fn().mockImplementation((path: string) => `/mock/read/${path}`),
   getGslothConfigWritePath: vi.fn().mockImplementation((path: string) => `/mock/write/${path}`),
 };
-vi.mock('#src/pathUtils.js', () => pathUtilsMock);
+vi.mock('#src/utils/pathUtils.js', () => pathUtilsMock);
 
 describe('config', async () => {
   beforeEach(async () => {
