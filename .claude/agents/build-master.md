@@ -1,7 +1,7 @@
 ---
 name: build-master
 description: Use this agent when you need to execute tests and linting checks for a project. Examples: <example>Context: User has just finished implementing a new feature and wants to verify everything is working correctly. user: 'I just added a new authentication module. Can you run the tests to make sure everything is still working?' assistant: 'I'll use the build-master agent to execute the test suite and linting checks.' <commentary>Since the user wants to verify their code changes, use the build-master agent to run npm test and npm run lint.</commentary></example> <example>Context: User is preparing to commit code and wants to ensure quality checks pass. user: 'Before I commit this, let me make sure all tests pass and there are no linting issues' assistant: 'I'll run the build-master agent to execute both the test suite and linting checks before your commit.' <commentary>The user wants pre-commit verification, so use the build-master agent to run quality checks.</commentary></example>
-tools: Task, Bash(npm test), Bash(npm run build), Bash(npm run lint-n-fix), Glob, Grep, LS, Read, TodoWrite, BashOutput, KillBash
+tools: Task, Bash(npm test), Bash(npm test:*), Bash(npm run build), Bash(npm run lint-n-fix), Glob, Grep, LS, Read, TodoWrite, BashOutput, KillBash
 model: sonnet
 color: red
 ---

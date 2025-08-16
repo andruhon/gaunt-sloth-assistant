@@ -5,14 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const consoleUtilsMock = {
   displayInfo: vi.fn(),
   displayWarning: vi.fn(),
-};
-vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
-
-const debugUtilsMock = {
   debugLog: vi.fn(),
   debugLogError: vi.fn(),
 };
-vi.mock('#src/debugUtils.js', () => debugUtilsMock);
+vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 
 describe('anthropic preset', () => {
   beforeEach(() => {

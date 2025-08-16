@@ -73,17 +73,18 @@ export async function createInteractiveSession(
         if (systemPrompt) {
           systemPromptParts.push(systemPrompt);
         }
-        messages.push(
-          new SystemMessage({
-            content: [
-              {
-                text: systemPromptParts.join('\n'),
-                type: 'text',
-                // cache_control: { type: 'ephemeral' }, // TODO add cache control for Anthropic
-              },
-            ],
-          })
-        );
+        // TODO add cache control for Anthropic
+        // messages.push(
+        //   new SystemMessage({
+        //     content: [
+        //       {
+        //         text: systemPromptParts.join('\n'),
+        //         type: 'text',
+        //         // cache_control: { type: 'ephemeral' },
+        //       },
+        //     ],
+        //   })
+        messages.push(new SystemMessage(systemPromptParts.join('\n')));
       }
       messages.push(new HumanMessage(userInput));
 

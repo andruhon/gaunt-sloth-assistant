@@ -1,5 +1,5 @@
 import { displayError, displaySuccess } from '#src/consoleUtils.js';
-import { debugLog } from '#src/debugUtils.js';
+import { debugLog } from '#src/consoleUtils.js';
 import { getInstallDir, stdout } from '#src/systemUtils.js';
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';

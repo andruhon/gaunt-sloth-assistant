@@ -2,7 +2,7 @@ import { getDefaultTools } from '#src/builtInToolsConfig.js';
 import { GthConfig, ServerTool } from '#src/config.js';
 import { displayInfo } from '#src/consoleUtils.js';
 import { GthAgentInterface, GthCommand, StatusLevel } from '#src/core/types.js';
-import { debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
+import { debugLog, debugLogError, debugLogObject } from '#src/consoleUtils.js';
 import { createAuthProviderAndAuthenticate } from '#src/mcp/OAuthClientProviderImpl.js';
 import type { Message } from '#src/modules/types.js';
 import { stopWaitingForEscape, waitForEscape } from '#src/systemUtils.js';

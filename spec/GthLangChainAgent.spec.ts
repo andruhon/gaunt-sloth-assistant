@@ -50,6 +50,9 @@ vi.mock('#src/mcp/OAuthClientProviderImpl.js', () => ({
 
 const consoleUtilsMock = {
   displayInfo: vi.fn(),
+  debugLog: vi.fn(),
+  debugLogError: vi.fn(),
+  debugLogObject: vi.fn(),
 };
 vi.mock('#src/consoleUtils.js', () => consoleUtilsMock);
 

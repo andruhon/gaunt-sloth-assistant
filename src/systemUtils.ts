@@ -20,7 +20,6 @@ export { closeLogStream, initLogStream, writeToLogStream } from '#src/fileUtils.
 interface InnerState {
   installDir: string | null | undefined;
   stringFromStdin: string;
-  useColour: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   waitForEscapeCallback?: (_: any, key: any) => void;
 }
@@ -28,7 +27,6 @@ interface InnerState {
 const innerState: InnerState = {
   installDir: undefined,
   stringFromStdin: '',
-  useColour: false,
   waitForEscapeCallback: undefined,
 };
 
@@ -83,18 +81,8 @@ export const getInstallDir = (): string => {
 export const getStringFromStdin = (): string => {
   return innerState.stringFromStdin;
 };
-/**
- * Get the current useColour setting.
- */
-export const getUseColour = (): boolean => {
-  return innerState.useColour;
-};
-/**
- * Set the useColour setting.
- */
-export const setUseColour = (useColour: boolean): void => {
-  innerState.useColour = useColour;
-};
+
+// useColour functions moved to consoleUtils.ts and re-exported below
 
 export const isTTY = (): boolean => !!stdin.isTTY;
 
@@ -146,13 +134,27 @@ export function readStdin(program: Command): Promise<void> {
   });
 }
 
-// Console-related functions
-export const log = (message: string): void => console.log(message);
-export const error = (message: string): void => console.error(message);
-export const warn = (message: string): void => console.warn(message);
-export const info = (message: string): void => console.info(message);
-export const debug = (message: string): void => console.debug(message);
-export const stream = (chunk: string): boolean => process.stdout.write(chunk);
+// Console-related functions, color functions, and debug functions - re-exported from consoleUtils.ts for backward compatibility
+export {
+  log,
+  error,
+  warn,
+  info,
+  debug,
+  stream,
+  getUseColour,
+  setUseColour,
+  // Debug functions for backward compatibility
+  initDebugLogging,
+  debugLog,
+  debugLogMultiline,
+  debugLogObject,
+  debugLogError,
+  // Unified logging configuration
+  configureLogging,
+  getLoggingConfig,
+  type LogConfig,
+} from '#src/consoleUtils.js';
 
 // Re-export path utilities from pathUtils.ts for backward compatibility (Release 2)
 export {

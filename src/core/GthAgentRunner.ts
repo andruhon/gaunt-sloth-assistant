@@ -6,7 +6,7 @@ import { GthLangChainAgent, StatusUpdateCallback } from '#src/core/GthLangChainA
 import { RunnableConfig } from '@langchain/core/runnables';
 import { executeHooks } from '#src/utils.js';
 import { getNewRunnableConfig } from '#src/llmUtils.js';
-import { initDebugLogging, debugLog, debugLogError, debugLogObject } from '#src/debugUtils.js';
+import { initDebugLogging, debugLog, debugLogError, debugLogObject } from '#src/consoleUtils.js';
 
 /**
  * Agent simplifies interaction with LLM and reduces it to calling a few methods
