@@ -2,6 +2,8 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import * as prompt from '#src/prompt.js';
 import * as systemUtils from '#src/systemUtils.js';
 import * as fs from 'node:fs';
+import { sep } from 'path';
+import { platform } from 'node:os';
 
 // Mock dependencies
 vi.mock('node:fs', () => ({
@@ -22,8 +24,9 @@ vi.mock('#src/systemUtils.js', () => ({
  * if none of above exists - look for file in install dir
  */
 describe('prompt reading functions', () => {
-  const mockProjectDir = '/project';
-  const mockInstallDir = '/install';
+  const prefix = platform() == 'win32' ? 'C:\\' : '/';
+  const mockProjectDir = `${prefix}project`;
+  const mockInstallDir = `${prefix}install`;
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -45,8 +48,8 @@ describe('prompt reading functions', () => {
   testCases.forEach(({ name, filename, acceptsParam }) => {
     describe(name, () => {
       test(`reads ${filename} from .gsloth directory when present`, () => {
-        const gslothDirPath = `${mockProjectDir}/.gsloth`;
-        const filePath = `${gslothDirPath}/.gsloth-settings/${filename}`;
+        const gslothDirPath = `${mockProjectDir}${sep}.gsloth`;
+        const filePath = `${gslothDirPath}${sep}.gsloth-settings${sep}${filename}`;
         vi.mocked(fs.existsSync).mockImplementation((path) =>
           [gslothDirPath, filePath].includes(String(path))
         );
