@@ -153,10 +153,3 @@ export const warn = (message: string): void => console.warn(message);
 export const info = (message: string): void => console.info(message);
 export const debug = (message: string): void => console.debug(message);
 export const stream = (chunk: string): boolean => process.stdout.write(chunk);
-
-// Re-export path utilities from pathUtils.ts for backward compatibility (Release 2)
-export {
-  getProjectDir as getProjectDir_new,
-  getInstallDir as getInstallDir_new,
-  setEntryPoint as setEntryPoint_new,
-} from '#src/pathUtils.js';

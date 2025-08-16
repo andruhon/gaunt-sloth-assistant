@@ -6,20 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-Your current allow list is as follows:
-```
-"Bash(npm run test:*)",
-"Bash(mkdir:*)",
-"Bash(npm run lint)",
-"Bash(npm run lint:*)",
-"Bash(grep:*)",
-"Bash(npm run build:*)",
-"Bash(npm test)",
-"Bash(node safeRm.js:*)"
-```
-
-Abstain from using commands outside of this list.
-
 ### Building and Testing
 
 ```bash
