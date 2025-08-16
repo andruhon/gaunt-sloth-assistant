@@ -1,11 +1,4 @@
 import { Command, Option } from 'commander';
-import {
-  readBackstory,
-  readGuidelines,
-  readReviewInstructions,
-  readSystemPrompt,
-  wrapContent,
-} from '#src/prompt.js';
 import { readMultipleFilesFromProjectDir } from '#src/utils.js';
 import {
   type ContentProviderType,
@@ -17,6 +10,13 @@ import {
 import jiraLogWork from '#src/helpers/jira/jiraLogWork.js';
 import { JiraConfig } from '#src/providers/types.js';
 import { CommandLineConfigOverrides } from '#src/config.js';
+import {
+  readBackstory,
+  readGuidelines,
+  readReviewInstructions,
+  readSystemPrompt,
+  wrapContent,
+} from '#src/llmUtils.js';
 
 interface PrCommandOptions {
   file?: string[];

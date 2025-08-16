@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { createInteractiveSession, SessionConfig } from '#src/modules/interactiveSessionModule.js';
-import { readCodePrompt } from '#src/prompt.js';
 import { CommandLineConfigOverrides } from '#src/config.js';
+import { readCodePrompt } from '#src/llmUtils.js';
 
 export function codeCommand(
   program: Command,

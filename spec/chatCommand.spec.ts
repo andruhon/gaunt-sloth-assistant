@@ -1,14 +1,6 @@
 import { Command } from 'commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const promptMock = {
-  readBackstory: vi.fn(),
-  readGuidelines: vi.fn(),
-  readSystemPrompt: vi.fn(),
-  readChatPrompt: vi.fn(),
-};
-vi.mock('#src/prompt.js', () => promptMock);
-
 const configMock = {
   initConfig: vi.fn(),
 };
@@ -49,6 +41,10 @@ const llmUtilsMock = {
     recursionLimit: 250,
     configurable: { thread_id: 'test-thread-id' },
   }),
+  readBackstory: vi.fn().mockReturnValue('Mock backstory'),
+  readGuidelines: vi.fn().mockReturnValue('Mock guidelines'),
+  readSystemPrompt: vi.fn().mockReturnValue('Mock system prompt'),
+  readChatPrompt: vi.fn().mockReturnValue('Mock chat prompt'),
 };
 vi.mock('#src/llmUtils.js', () => llmUtilsMock);
 
@@ -69,12 +65,6 @@ describe('chatCommand', () => {
     vi.resetAllMocks();
     vi.resetModules();
     program = new Command();
-
-    // Set up default mock implementations
-    promptMock.readBackstory.mockReturnValue('Mock backstory');
-    promptMock.readGuidelines.mockReturnValue('Mock guidelines');
-    promptMock.readSystemPrompt.mockReturnValue('Mock system prompt');
-    promptMock.readChatPrompt.mockReturnValue('Mock chat prompt');
 
     configMock.initConfig.mockResolvedValue({
       projectGuidelines: 'Mock guidelines',
@@ -162,7 +152,7 @@ describe('chatCommand', () => {
     expect(interactiveSessionModuleMock.createInteractiveSession).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'chat',
-        readModePrompt: promptMock.readChatPrompt,
+        readModePrompt: llmUtilsMock.readChatPrompt,
       }),
       {},
       undefined
@@ -193,12 +183,6 @@ describe('Default Chat Behavior (no arguments)', () => {
     vi.resetAllMocks();
     vi.resetModules();
     program = new Command();
-
-    // Set up default mock implementations
-    promptMock.readBackstory.mockReturnValue('Mock backstory');
-    promptMock.readGuidelines.mockReturnValue('Mock guidelines');
-    promptMock.readSystemPrompt.mockReturnValue('Mock system prompt');
-    promptMock.readChatPrompt.mockReturnValue('Mock chat prompt');
 
     configMock.initConfig.mockResolvedValue({
       projectGuidelines: 'Mock guidelines',
@@ -251,7 +235,7 @@ describe('Default Chat Behavior (no arguments)', () => {
   });
 
   it('Should create session config with correct mode and prompts', async () => {
-    const { readChatPrompt } = await import('#src/prompt.js');
+    const { readChatPrompt } = await import('#src/llmUtils.js');
 
     const sessionConfig = {
       mode: 'chat' as const,

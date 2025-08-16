@@ -63,8 +63,8 @@ const configMock = {
   initConfig: vi.fn(),
 };
 
-vi.mock('#src/prompt.js', async () => {
-  const actual = await import('#src/prompt.js');
+vi.mock('#src/llmUtils.js', async () => {
+  const actual = await import('#src/llmUtils.js');
   return {
     ...actual,
     readBackstory: prompt.readBackstory,

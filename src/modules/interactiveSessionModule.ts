@@ -10,7 +10,6 @@ import {
 } from '#src/consoleUtils.js';
 import { GthAgentRunner } from '#src/core/GthAgentRunner.js';
 import { getCommandOutputFilePath } from '#src/pathUtils.js';
-import { readBackstory, readGuidelines, readSystemPrompt } from '#src/prompt.js';
 import {
   createInterface,
   error,
@@ -22,6 +21,7 @@ import {
 import { appendToFile } from '#src/utils.js';
 import { type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { MemorySaver } from '@langchain/langgraph';
+import { readBackstory, readGuidelines, readSystemPrompt } from '#src/llmUtils.js';
 
 export interface SessionConfig {
   mode: 'chat' | 'code';

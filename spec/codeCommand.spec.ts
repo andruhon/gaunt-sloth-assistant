@@ -9,13 +9,6 @@ import { FakeStreamingChatModel } from '@langchain/core/utils/testing';
 import type { GthConfig } from '#src/config.js';
 
 // Mock modules
-vi.mock('#src/prompt.js', () => ({
-  readBackstory: vi.fn().mockReturnValue('Mock backstory'),
-  readGuidelines: vi.fn().mockReturnValue('Mock guidelines'),
-  readSystemPrompt: vi.fn().mockReturnValue('Mock system prompt'),
-  readCodePrompt: vi.fn().mockReturnValue('Mock code prompt'),
-}));
-
 vi.mock('#src/config.js', () => ({
   initConfig: vi.fn().mockResolvedValue({
     projectGuidelines: 'Mock guidelines',
@@ -82,6 +75,10 @@ vi.mock('#src/llmUtils.js', () => ({
     recursionLimit: 250,
     configurable: { thread_id: 'test-thread-id' },
   }),
+  readBackstory: vi.fn().mockReturnValue('Mock backstory'),
+  readGuidelines: vi.fn().mockReturnValue('Mock guidelines'),
+  readSystemPrompt: vi.fn().mockReturnValue('Mock system prompt'),
+  readCodePrompt: vi.fn().mockReturnValue('Mock code prompt'),
 }));
 
 const gthAgentRunnerMock = vi.fn();

@@ -1,11 +1,4 @@
 import { Command, Option } from 'commander';
-import {
-  readBackstory,
-  readGuidelines,
-  readReviewInstructions,
-  readSystemPrompt,
-  wrapContent,
-} from '#src/prompt.js';
 import { readMultipleFilesFromProjectDir } from '#src/utils.js';
 import { getStringFromStdin } from '#src/systemUtils.js';
 import {
@@ -17,6 +10,13 @@ import {
   getContentFromProvider,
 } from '#src/commands/commandUtils.js';
 import { CommandLineConfigOverrides } from '#src/config.js';
+import {
+  readBackstory,
+  readGuidelines,
+  readReviewInstructions,
+  readSystemPrompt,
+  wrapContent,
+} from '#src/llmUtils.js';
 
 interface ReviewCommandOptions {
   file?: string[];

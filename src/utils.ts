@@ -1,12 +1,12 @@
 import { GthConfig } from '#src/config.js';
 import { displayError, displayInfo, displaySuccess, displayWarning } from '#src/consoleUtils.js';
 import { debugLog } from '#src/debugUtils.js';
-import { wrapContent } from '#src/prompt.js';
 import { getInstallDir, getProjectDir, stdout } from '#src/systemUtils.js';
 import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import url from 'node:url';
+import { wrapContent } from '#src/llmUtils.js';
 
 export function toFileSafeString(string: string): string {
   return string.replace(/[^A-Za-z0-9]/g, '-');

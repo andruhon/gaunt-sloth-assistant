@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import * as prompt from '#src/prompt.js';
+import * as prompt from '#src/llmUtils.js';
 import * as systemUtils from '#src/systemUtils.js';
 import * as fs from 'node:fs';
 import { sep } from 'path';
@@ -67,7 +67,7 @@ describe('prompt reading functions', () => {
       });
 
       test(`reads ${filename} from project directory when not in .gsloth`, () => {
-        const filePath = `${mockProjectDir}/${filename}`;
+        const filePath = `${mockProjectDir}${sep}${filename}`;
 
         vi.mocked(fs.existsSync).mockImplementation((path) => [filePath].includes(String(path)));
         vi.mocked(fs.readFileSync).mockImplementationOnce(() => 'current content'); // Install dir read succeeds
@@ -84,7 +84,7 @@ describe('prompt reading functions', () => {
       });
 
       test(`reads ${filename} from install directory when file neither exists in .gsloth nor in project dir`, () => {
-        const fileInInstallDir = `${mockInstallDir}/${filename}`;
+        const fileInInstallDir = `${mockInstallDir}${sep}${filename}`;
 
         vi.mocked(fs.existsSync).mockImplementation((path) =>
           [fileInInstallDir].includes(String(path))

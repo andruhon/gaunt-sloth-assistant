@@ -1,5 +1,14 @@
 import { RunnableConfig } from '@langchain/core/runnables';
 import { randomUUID } from 'node:crypto';
+import { readFileFromInstallDir } from '#src/utils.js';
+import {
+  GSLOTH_BACKSTORY,
+  GSLOTH_CHAT_PROMPT,
+  GSLOTH_CODE_PROMPT,
+  GSLOTH_SYSTEM_PROMPT,
+} from '#src/constants.js';
+import { getGslothConfigReadPath } from '#src/pathUtils.js';
+import { existsSync, readFileSync } from 'node:fs';
 
 /**
  * Creates new runnable config.
@@ -12,4 +21,57 @@ export function getNewRunnableConfig(): RunnableConfig {
     recursionLimit: 250,
     configurable: { thread_id: randomUUID() },
   };
+}
+
+export function readBackstory(): string {
+  return readPromptFile(GSLOTH_BACKSTORY);
+}
+
+export function readGuidelines(guidelinesFilename: string): string {
+  return readPromptFile(guidelinesFilename);
+}
+
+export function readReviewInstructions(reviewInstructions: string): string {
+  return readPromptFile(reviewInstructions);
+}
+
+export function readSystemPrompt(): string {
+  return readPromptFile(GSLOTH_SYSTEM_PROMPT);
+}
+
+export function readChatPrompt(): string {
+  return readPromptFile(GSLOTH_CHAT_PROMPT);
+}
+
+export function readCodePrompt(): string {
+  return readPromptFile(GSLOTH_CODE_PROMPT);
+}
+
+function readPromptFile(filename: string): string {
+  const path = getGslothConfigReadPath(filename);
+  if (existsSync(path)) {
+    return readFileSync(path, { encoding: 'utf8' });
+  }
+  return readFileFromInstallDir(filename);
+}
+
+/**
+ * Wraps content within randomized block
+ */
+export function wrapContent(
+  content: string,
+  wrapBlockPrefix: string = 'block',
+  prefix: string = 'content',
+  alwaysWrap: boolean = false
+): string {
+  if (content || alwaysWrap) {
+    const contentWrapper = [];
+    const block = wrapBlockPrefix + '-' + randomUUID().substring(0, 7);
+    contentWrapper.push(`\nProvided ${prefix} follows within ${block} block\n`);
+    contentWrapper.push(`<${block}>\n`);
+    contentWrapper.push(content);
+    contentWrapper.push(`\n</${block}>\n`);
+    return contentWrapper.join('');
+  }
+  return content;
 }

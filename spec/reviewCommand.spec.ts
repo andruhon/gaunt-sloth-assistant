@@ -13,7 +13,7 @@ vi.mock('node:crypto', async () => {
 
 // Define mocks at the top level
 const review = vi.fn();
-const prompt = {
+const llmUtils = {
   readBackstory: vi.fn(),
   readGuidelines: vi.fn(),
   readReviewInstructions: vi.fn(),
@@ -63,14 +63,14 @@ const configMock = {
   initConfig: vi.fn(),
 };
 
-vi.mock('#src/prompt.js', async () => {
-  const actual = await import('#src/prompt.js');
+vi.mock('#src/llmUtils.js', async () => {
+  const actual = await import('#src/llmUtils.js');
   return {
     ...actual,
-    readBackstory: prompt.readBackstory,
-    readGuidelines: prompt.readGuidelines,
-    readReviewInstructions: prompt.readReviewInstructions,
-    readSystemPrompt: prompt.readSystemPrompt,
+    readBackstory: llmUtils.readBackstory,
+    readGuidelines: llmUtils.readGuidelines,
+    readReviewInstructions: llmUtils.readReviewInstructions,
+    readSystemPrompt: llmUtils.readSystemPrompt,
   };
 });
 vi.mock('#src/config.js', () => configMock);
@@ -88,10 +88,10 @@ describe('reviewCommand', () => {
     );
     utilsMock.readFileSyncWithMessages.mockReturnValue('content-id');
     utilsMock.execAsync.mockResolvedValue('');
-    prompt.readBackstory.mockReturnValue('INTERNAL BACKSTORY');
-    prompt.readGuidelines.mockReturnValue('PROJECT GUIDELINES');
-    prompt.readReviewInstructions.mockReturnValue('REVIEW INSTRUCTIONS');
-    prompt.readSystemPrompt.mockReturnValue('');
+    llmUtils.readBackstory.mockReturnValue('INTERNAL BACKSTORY');
+    llmUtils.readGuidelines.mockReturnValue('PROJECT GUIDELINES');
+    llmUtils.readReviewInstructions.mockReturnValue('REVIEW INSTRUCTIONS');
+    llmUtils.readSystemPrompt.mockReturnValue('');
   });
 
   it('Should call review with file contents', async () => {
