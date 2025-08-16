@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x, latest]
-        provider: [groq, inception]
+        provider: [groq, inception, openrouter]
 
     steps:
     - uses: actions/checkout@v4
@@ -33,3 +33,4 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         INCEPTION_API_KEY: ${{ secrets.INCEPTION_API_KEY }}
+        OPEN_ROUTER_API_KEY: ${{ secrets.OPEN_ROUTER_API_KEY }}
