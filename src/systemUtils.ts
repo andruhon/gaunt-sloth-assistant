@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { Command } from 'commander';
 import { ProgressIndicator } from '#src/utils.js';
 import { createInterface, type Interface as ReadLineInterface } from 'node:readline/promises';
+import { displayInfo, displayWarning } from './consoleUtils.js';
 
 // Re-export log stream functions from fileUtils for backward compatibility
 export { closeLogStream, initLogStream, writeToLogStream } from '#src/fileUtils.js';
@@ -19,14 +20,52 @@ export { closeLogStream, initLogStream, writeToLogStream } from '#src/fileUtils.
 interface InnerState {
   installDir: string | null | undefined;
   stringFromStdin: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  waitForEscapeCallback?: (_: any, key: any) => void;
 }
 
 const innerState: InnerState = {
   installDir: undefined,
   stringFromStdin: '',
+  waitForEscapeCallback: undefined,
 };
 
-// Moved to processUtils.ts (Release 4) - re-exported below for backward compatibility
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const keypressHandler = (callback: () => void) => (_: any, key: any) => {
+  if (key?.name === 'escape' || key?.name === 'q') {
+    displayWarning('\nInterrupting...');
+    callback();
+    return;
+  }
+};
+
+export const waitForEscape = (callback: () => void, enabled: boolean) => {
+  if (!enabled) {
+    return;
+  }
+  process.stdin.setRawMode(true);
+  innerState.waitForEscapeCallback = keypressHandler(callback);
+  process.stdin.on('keypress', innerState.waitForEscapeCallback);
+  displayInfo(`
+  ┌--------------------------------------┐
+  │ Press Escape or Q to interrupt Agent │
+  └--------------------------------------┘
+  `);
+};
+
+export const stopWaitingForEscape = () => {
+  if (innerState.waitForEscapeCallback) {
+    process.stdin.setRawMode(false);
+    process.stdin.off('keypress', innerState.waitForEscapeCallback);
+    innerState.waitForEscapeCallback = undefined;
+  }
+};
+
+export const setRawMode = (rawMode: boolean) => {
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(rawMode);
+  }
+};
 
 // Process-related functions and objects
 export const getProjectDir = (): string => process.cwd();
@@ -123,6 +162,3 @@ export {
   getInstallDir as getInstallDir_new,
   setEntryPoint as setEntryPoint_new,
 } from '#src/pathUtils.js';
-
-// Re-export process utilities from processUtils.ts for backward compatibility (Release 4)
-export { waitForEscape, stopWaitingForEscape, setRawMode } from '#src/processUtils.js';

@@ -173,7 +173,7 @@ This document outlines a phased approach to reorganize utility files in the Gaun
 
 ---
 
-### (Complete) Release 4: Provider & Command Utilities
+### Release 4: Provider & Command Utilities
 **Risk Level:** Medium
 **Breaking Changes:** None
 
@@ -253,8 +253,7 @@ This document outlines a phased approach to reorganize utility files in the Gaun
    ```
 
 4. Update all imports throughout codebase
-5. Identify gap in unit tests, update tests, rename test files.
-6. Update documentation
+5. Update documentation
 
 #### Testing:
 - Full regression test suite

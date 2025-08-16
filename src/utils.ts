@@ -1,4 +1,7 @@
-import { getInstallDir } from '#src/systemUtils.js';
+import { displayError, displaySuccess } from '#src/consoleUtils.js';
+import { debugLog } from '#src/consoleUtils.js';
+import { getInstallDir, stdout } from '#src/systemUtils.js';
+import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -48,7 +51,47 @@ export function generateStandardFileName(command: string): string {
   return `gth_${dateTimeStr}_${commandStr}.md`;
 }
 
-// Moved to processUtils.ts (Release 4) - re-exported below for backward compatibility
+interface SpawnOutput {
+  stdout: string;
+  stderr: string;
+}
+
+export async function spawnCommand(
+  command: string,
+  args: string[],
+  progressMessage: string,
+  successMessage: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const progressIndicator = new ProgressIndicator(progressMessage, true);
+    const out: SpawnOutput = { stdout: '', stderr: '' };
+    const spawned = spawn(command, args);
+
+    spawned.stdout.on('data', async (stdoutChunk) => {
+      progressIndicator.indicate();
+      out.stdout += stdoutChunk.toString();
+    });
+
+    spawned.stderr.on('data', (err) => {
+      progressIndicator.indicate();
+      out.stderr += err.toString();
+    });
+
+    spawned.on('error', (err) => {
+      reject(err.toString());
+    });
+
+    spawned.on('close', (code) => {
+      if (code === 0) {
+        displaySuccess(successMessage);
+        resolve(out.stdout);
+      } else {
+        displayError(`Failed to spawn command with code ${code}`);
+        reject(out.stdout + ' ' + out.stderr);
+      }
+    });
+  });
+}
 
 export function getSlothVersion(): string {
   // TODO figure out if this can be injected with TS
@@ -58,11 +101,131 @@ export function getSlothVersion(): string {
   return JSON.parse(projectJson).version;
 }
 
-// Moved to processUtils.ts (Release 4) - re-exported below for backward compatibility
+export class ProgressIndicator {
+  private interval: number | undefined = undefined;
 
-// Moved to formatUtils.ts (Release 4) - re-exported below for backward compatibility
+  constructor(initialMessage: string, manual?: boolean) {
+    stdout.write(initialMessage);
+    if (!manual) {
+      this.interval = setInterval(this.indicateInner, 1000) as unknown as number;
+    }
+  }
 
-// Moved to processUtils.ts (Release 4) - re-exported below for backward compatibility
+  private indicateInner(): void {
+    stdout.write('.');
+  }
+
+  indicate(): void {
+    if (this.interval) {
+      throw new Error('ProgressIndicator.indicate only to be called in manual mode');
+    }
+    this.indicateInner();
+  }
+
+  stop(): void {
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
+    stdout.write('\n');
+  }
+}
+
+// Tool formatting utilities
+
+/**
+ * Truncate a string to a maximum length with ellipsis
+ */
+export function truncateString(str: string, maxLength: number): string {
+  if (str.length <= maxLength) {
+    return str;
+  }
+  return str.slice(0, maxLength - 3) + '...';
+}
+
+/**
+ * Format tool call arguments in a human-readable way
+ */
+export function formatToolCallArgs(args: Record<string, unknown>): string {
+  return Object.entries(args)
+    .map(([key, value]) => {
+      let displayValue: string;
+      if (typeof value === 'string') {
+        displayValue = value;
+      } else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+        displayValue = JSON.stringify(value);
+      } else {
+        displayValue = String(value);
+      }
+      return `${key}: ${truncateString(displayValue, 50)}`;
+    })
+    .join(', ');
+}
+
+/**
+ * Format a single tool call with name and arguments
+ */
+export function formatToolCall(
+  toolName: string,
+  args: Record<string, unknown>,
+  prefix = ''
+): string {
+  const formattedArgs = formatToolCallArgs(args);
+  return `${prefix}${toolName}(${formattedArgs})`;
+}
+
+/**
+ * Format multiple tool calls for display (matches Invocation.ts behavior)
+ */
+export function formatToolCalls(
+  toolCalls: Array<{ name: string; args?: Record<string, unknown> }>,
+  maxLength = 255
+): string {
+  const formatted = toolCalls
+    .map((toolCall) => {
+      debugLog(JSON.stringify(toolCall));
+      const formattedArgs = formatToolCallArgs(toolCall.args || {});
+      return `${toolCall.name}(${formattedArgs})`;
+    })
+    .join(', ');
+
+  // Truncate to maxLength characters if needed
+  return formatted.length > maxLength ? formatted.slice(0, maxLength - 3) + '...' : formatted;
+}
+
+interface LLMOutput {
+  messages: Array<{
+    content: string;
+  }>;
+}
+
+/**
+ * Extracts the content of the last message from an LLM response
+ * @param output - The output from the LLM containing messages
+ * @returns The content of the last message
+ */
+export function extractLastMessageContent(output: LLMOutput): string {
+  if (!output || !output.messages || !output.messages.length) {
+    return '';
+  }
+  return output.messages[output.messages.length - 1].content;
+}
+
+export async function execAsync(command: string): Promise<string> {
+  const { exec } = await import('node:child_process');
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      if (stderr) {
+        reject(new Error(stderr));
+        return;
+      }
+      resolve(stdout.trim());
+    });
+  });
+}
 
 /**
  * Utility function to execute hook(s) - either a single hook or an array of hooks
@@ -92,15 +255,3 @@ export {
   fileSafeLocalDate as fileSafeLocalDate_new,
   generateStandardFileName as generateStandardFileName_new,
 } from '#src/pathUtils.js';
-
-// Re-export process utilities from processUtils.ts for backward compatibility (Release 4)
-export { spawnCommand, execAsync, ProgressIndicator } from '#src/processUtils.js';
-
-// Re-export format utilities from formatUtils.ts for backward compatibility (Release 4)
-export {
-  truncateString,
-  formatToolCallArgs,
-  formatToolCall,
-  formatToolCalls,
-  extractLastMessageContent,
-} from '#src/formatUtils.js';
