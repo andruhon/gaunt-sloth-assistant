@@ -4,7 +4,9 @@ import { Command } from 'commander';
 import { ProgressIndicator } from '#src/utils.js';
 import { createInterface, type Interface as ReadLineInterface } from 'node:readline/promises';
 import { displayInfo, displayWarning } from './consoleUtils.js';
-import { createWriteStream, type WriteStream } from 'node:fs';
+
+// Re-export log stream functions from fileUtils for backward compatibility
+export { closeLogStream, initLogStream, writeToLogStream } from '#src/fileUtils.js';
 
 /**
  * This file contains all system functions and objects that are globally available
@@ -21,7 +23,6 @@ interface InnerState {
   useColour: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   waitForEscapeCallback?: (_: any, key: any) => void;
-  logWriteStream?: WriteStream;
 }
 
 const innerState: InnerState = {
@@ -29,7 +30,6 @@ const innerState: InnerState = {
   stringFromStdin: '',
   useColour: false,
   waitForEscapeCallback: undefined,
-  logWriteStream: undefined,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,65 +68,6 @@ export const setRawMode = (rawMode: boolean) => {
     process.stdin.setRawMode(rawMode);
   }
 };
-
-export const initLogStream = (logFileName: string): void => {
-  try {
-    // Close existing stream if present
-    if (innerState.logWriteStream) {
-      innerState.logWriteStream.end();
-    }
-
-    // Create new write stream with append mode
-    innerState.logWriteStream = createWriteStream(logFileName, {
-      flags: 'a',
-      autoClose: true,
-    });
-
-    // Handle stream errors
-    innerState.logWriteStream.on('error', (err) => {
-      displayWarning(`Log stream error: ${err.message}`);
-      innerState.logWriteStream = undefined;
-    });
-
-    // Handle stream close
-    innerState.logWriteStream.on('close', () => {
-      innerState.logWriteStream = undefined;
-    });
-  } catch (err) {
-    displayWarning(
-      `Failed to create log stream: ${err instanceof Error ? err.message : String(err)}`
-    );
-    innerState.logWriteStream = undefined;
-  }
-};
-
-export const writeToLogStream = (message: string): void => {
-  if (innerState.logWriteStream && !innerState.logWriteStream.destroyed) {
-    innerState.logWriteStream.write(message);
-  }
-};
-
-export const closeLogStream = (): void => {
-  if (innerState.logWriteStream && !innerState.logWriteStream.destroyed) {
-    innerState.logWriteStream.end();
-    innerState.logWriteStream = undefined;
-  }
-};
-
-// Ensure log stream is closed on process exit
-process.on('exit', () => {
-  closeLogStream();
-});
-
-process.on('SIGINT', () => {
-  closeLogStream();
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  closeLogStream();
-  process.exit(0);
-});
 
 // Process-related functions and objects
 export const getProjectDir = (): string => process.cwd();
