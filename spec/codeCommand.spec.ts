@@ -168,14 +168,7 @@ describe('codeCommand', () => {
     );
 
     expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledWith([
-      new SystemMessage({
-        content: [
-          {
-            text: 'Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt',
-            type: 'text',
-          },
-        ],
-      }),
+      new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
       new HumanMessage('test message'),
     ]);
   });
@@ -310,14 +303,7 @@ describe('codeCommand', () => {
 
     expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenCalledTimes(2);
     expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(1, [
-      new SystemMessage({
-        content: [
-          {
-            text: 'Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt',
-            type: 'text',
-          },
-        ],
-      }),
+      new SystemMessage('Mock backstory\nMock guidelines\nMock code prompt\nMock system prompt'),
       new HumanMessage('first message'),
     ]);
     expect(gthAgentRunnerInstanceMock.processMessages).toHaveBeenNthCalledWith(2, [
