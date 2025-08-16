@@ -248,3 +248,10 @@ export async function executeHooks<T extends (...args: any[]) => Promise<void>>(
     await hooks(...args);
   }
 }
+
+// Re-export path utilities from pathUtils.ts for backward compatibility (Release 2)
+export {
+  toFileSafeString as toFileSafeString_new,
+  fileSafeLocalDate as fileSafeLocalDate_new,
+  generateStandardFileName as generateStandardFileName_new,
+} from '#src/pathUtils.js';

@@ -4,6 +4,11 @@ import { homedir } from 'node:os';
 import { GSLOTH_DIR, GSLOTH_AUTH } from '#src/constants.js';
 
 /**
+ * @deprecated This file is deprecated as of Release 2. All functions have been consolidated into pathUtils.ts.
+ * This file will be removed in a future release. Please use pathUtils.ts instead.
+ */
+
+/**
  * Gets the global .gsloth directory path in the user's home directory
  * @returns The resolved path to the global .gsloth directory
  */
@@ -69,3 +74,12 @@ export function getOAuthStoragePath(serverUrl: string): string {
 
   return resolve(authDir, `${safeFilename}.json`);
 }
+
+// Re-export from pathUtils.ts for backward compatibility (Release 2)
+export {
+  getGlobalGslothDir as getGlobalGslothDir_new,
+  ensureGlobalGslothDir as ensureGlobalGslothDir_new,
+  getGlobalAuthDir as getGlobalAuthDir_new,
+  ensureGlobalAuthDir as ensureGlobalAuthDir_new,
+  getOAuthStoragePath as getOAuthStoragePath_new,
+} from '#src/pathUtils.js';
