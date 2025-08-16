@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { runCommandWithArgs } from './support/commandRunner.ts';
 import { extractReviewScore } from './support/reviewScoreExtractor.ts';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
