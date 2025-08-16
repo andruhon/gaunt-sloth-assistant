@@ -1,21 +1,12 @@
-import { displayError, displaySuccess } from '#src/consoleUtils.js';
+import { GthConfig } from '#src/config.js';
+import { displayError, displayInfo, displaySuccess, displayWarning } from '#src/consoleUtils.js';
 import { debugLog } from '#src/debugUtils.js';
-import { getInstallDir, stdout } from '#src/systemUtils.js';
+import { wrapContent } from '#src/prompt.js';
+import { getInstallDir, getProjectDir, stdout } from '#src/systemUtils.js';
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-
-// Re-export file I/O functions from fileUtils for backward compatibility
-export {
-  appendToFile,
-  importExternalFile,
-  importFromFilePath,
-  readFileFromInstallDir,
-  readFileFromProjectDir,
-  readFileSyncWithMessages,
-  readMultipleFilesFromProjectDir,
-  writeFileIfNotExistsWithMessages,
-} from '#src/fileUtils.js';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import url from 'node:url';
 
 export function toFileSafeString(string: string): string {
   return string.replace(/[^A-Za-z0-9]/g, '-');
@@ -49,6 +40,70 @@ export function generateStandardFileName(command: string): string {
   const commandStr = toFileSafeString(command.toUpperCase());
 
   return `gth_${dateTimeStr}_${commandStr}.md`;
+}
+
+export function readFileFromProjectDir(fileName: string): string {
+  const currentDir = getProjectDir();
+  const filePath = resolve(currentDir, fileName);
+  displayInfo(`Reading file ${filePath}...`);
+  return readFileSyncWithMessages(filePath);
+}
+
+export function readFileFromInstallDir(filePath: string): string {
+  const installDir = getInstallDir();
+  const installFilePath = resolve(installDir, filePath);
+  try {
+    return readFileSync(installFilePath, { encoding: 'utf8' });
+  } catch (readFromInstallDirError) {
+    displayError(`The ${installFilePath} not found or can\'t be read.`);
+    throw readFromInstallDirError;
+  }
+}
+
+export function writeFileIfNotExistsWithMessages(filePath: string, content: string): void {
+  displayInfo(`checking ${filePath} existence`);
+  if (!existsSync(filePath)) {
+    // Create parent directories if they don't exist
+    const parentDir = dirname(filePath);
+    if (!existsSync(parentDir)) {
+      mkdirSync(parentDir, { recursive: true });
+    }
+    writeFileSync(filePath, content);
+    displaySuccess(`Created ${filePath}`);
+  } else {
+    displayWarning(`${filePath} already exists`);
+  }
+}
+
+export function appendToFile(filePath: string, content: string): void {
+  try {
+    const parentDir = dirname(filePath);
+    if (!existsSync(parentDir)) {
+      mkdirSync(parentDir, { recursive: true });
+    }
+    appendFileSync(filePath, content);
+  } catch (e) {
+    displayError(`Failed to append to file ${filePath}: ${(e as Error).message}`);
+  }
+}
+
+export function readFileSyncWithMessages(
+  filePath: string,
+  errorMessageIn?: string,
+  noFileMessage?: string
+): string {
+  const errorMessage = errorMessageIn ?? 'Error reading file at: ';
+  try {
+    return readFileSync(filePath, { encoding: 'utf8' });
+  } catch (error) {
+    displayError(errorMessage + filePath);
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      displayWarning(noFileMessage ?? 'Please ensure the file exists.');
+    } else {
+      displayError((error as Error).message);
+    }
+    throw error;
+  }
 }
 
 interface SpawnOutput {
@@ -208,6 +263,42 @@ export function extractLastMessageContent(output: LLMOutput): string {
     return '';
   }
   return output.messages[output.messages.length - 1].content;
+}
+
+/**
+ * Dynamically imports a module from a file path from the outside of the installation dir
+ * @returns A promise that resolves to the imported module
+ */
+export function importExternalFile(
+  filePath: string
+): Promise<{ configure: () => Promise<Partial<GthConfig>> }> {
+  const configFileUrl = url.pathToFileURL(filePath).toString();
+  return import(configFileUrl);
+}
+
+/**
+ * Alias for importExternalFile for backward compatibility with tests
+ * @param filePath - The path to the file to import
+ * @returns A promise that resolves to the imported module
+ */
+export const importFromFilePath = importExternalFile;
+
+/**
+ * Reads multiple files from the current directory and returns their contents
+ * @param fileNames - Array of file names to read
+ * @returns Combined content of all files with proper formatting, each file is wrapped in random block like <file-abvesde>
+ */
+export function readMultipleFilesFromProjectDir(fileNames: string | string[]): string {
+  if (!Array.isArray(fileNames)) {
+    return wrapContent(readFileFromProjectDir(fileNames), 'file', `file ${fileNames}`, true);
+  }
+
+  return fileNames
+    .map((fileName) => {
+      const content = readFileFromProjectDir(fileName);
+      return `${wrapContent(content, 'file', `file ${fileName}`, true)}`;
+    })
+    .join('\n\n');
 }
 
 export async function execAsync(command: string): Promise<string> {
